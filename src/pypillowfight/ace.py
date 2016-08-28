@@ -111,7 +111,6 @@ def ace(img, slope=10, limit=1000, samples=100, seed=None):
             rscore['bmin'] = min(rscore['bmin'], b_rscore_sum)
 
     # Dynamic tone reproduction scaling
-    print ("Dynamic")
     for i in range(0, img_size[1]):
         for j in range(0, img_size[0]):
             img_r[j][i] = linear_scaling(

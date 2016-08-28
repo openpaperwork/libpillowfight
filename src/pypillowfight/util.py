@@ -27,9 +27,11 @@ def to_pil(img_bytes):
     """
     (x, y) = (len(img_bytes[0]), len(img_bytes))
     data = b"".join(
-        [b"".join(
-            [bytes(pixel) for pixel in line]
-        ) for line in img_bytes]
+        [
+            b"".join(
+                [bytes(pixel) for pixel in line]
+            ) for line in img_bytes
+        ]
     )
     return PIL.Image.frombytes(
         mode='RGB',

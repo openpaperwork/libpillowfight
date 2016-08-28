@@ -22,27 +22,22 @@ def transpose_axis(data, axis):
     )
 
     new_position = [0, 0, 0]
-    out = []
-    for new_position[0] in range(0, new_shape[0]):
 
-        line = []
-        for new_position[1] in range(0, new_shape[1]):
-
-            val = []
-            for new_position[2] in range(0, new_shape[2]):
-                old_position = (
-                    new_position[axisinv[0]],
-                    new_position[axisinv[1]],
-                    new_position[axisinv[2]]
-                )
-                val.append(
-                    data[old_position[0]][old_position[1]][old_position[2]]
-                )
-            line.append(val)
-        out.append(line)
+    return [
+        [
+            [
+                data \
+                    [new_position[axisinv[0]]] \
+                    [new_position[axisinv[1]]] \
+                    [new_position[axisinv[2]]]
+                for new_position[2] in range(0, new_shape[2])
+            ]
+            for new_position[1] in range(0, new_shape[1])
+        ]
+        for new_position[0] in range(0, new_shape[0])
+    ]
 
     return out
-
 
 
 def from_pil(pil_img):

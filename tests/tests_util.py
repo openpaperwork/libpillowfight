@@ -33,15 +33,12 @@ class TestUtil(unittest.TestCase):
         ar_out = util.transpose_axis(ar_out, (1, 2, 0))
         self.assertEqual(ar_in, ar_out)
 
+    def test_transpose_pil(self):
+        in_img = PIL.Image.open("tests/data/brightness_problem.jpg")
 
-def get_all_tests():
-    all_tests = unittest.TestSuite()
-
-    test_names = [
-        'test_frompil',
-        'test_transpose',
-    ]
-    tests = unittest.TestSuite(map(TestUtil, test_names))
-    all_tests.addTest(tests)
-
-    return all_tests
+        ar_in = util.from_pil(in_img)
+        ar_out = util.transpose_axis(ar_in, (2, 0, 1))
+        ar_out = util.transpose_axis(ar_out, (1, 2, 0))
+        self.assertEqual(ar_in, ar_out)
+        out_img = util.to_pil(ar_out)
+        self.assertEqual(in_img.tobytes(), out_img.tobytes())

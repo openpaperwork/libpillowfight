@@ -8,7 +8,7 @@ from tests import tests_ace
 from tests import tests_util
 
 if __name__ == '__main__':
-    print("Util")
+    print("=== Util")
     unittest.TextTestRunner().run(tests_util.get_all_tests())
-    print("Automatic Color Equalization")
+    print("=== Automatic Color Equalization")
     unittest.TextTestRunner().run(tests_ace.get_all_tests())

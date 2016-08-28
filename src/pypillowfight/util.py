@@ -9,15 +9,15 @@ def from_pil(pil_img):
     pil_bytes = pil_img.tobytes()
     (x, y) = pil_img.size
 
-    output = []
-    for line_bytes in range(0, y):
-        line = []
-        for offset in range(0, x):
-            line.append(
-                [b for b in pil_bytes[offset*3:(offset+1)*3]]
-            )
-        output.append(line)
-    print (output[0][0])
+    assert(x * y * 3 == len(pil_bytes))
+
+    output = [
+        [
+            [b for b in pil_bytes[offset:offset+3]]
+            for offset in range(line_pos, line_pos + (y * 3), 3)
+        ]
+        for line_pos in range(0, x * y * 3, y * 3)
+    ]
     return output
 
 

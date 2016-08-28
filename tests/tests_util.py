@@ -1,10 +1,19 @@
 import sys
 import unittest
 
+import PIL.Image
+
 sys.path = ["src"] + sys.path
 from pypillowfight import util
 
 class TestUtil(unittest.TestCase):
+    def test_frompil(self):
+        in_img = PIL.Image.open("tests/data/brightness_problem.jpg")
+        in_img = in_img.convert("RGB")
+        imgbytes = util.from_pil(in_img)
+        out_img = util.to_pil(imgbytes)
+        self.assertEqual(in_img.tobytes(), out_img.tobytes())
+
     def test_transpose(self):
         ar_in = [
             [
@@ -29,6 +38,7 @@ def get_all_tests():
     all_tests = unittest.TestSuite()
 
     test_names = [
+        'test_frompil',
         'test_transpose',
     ]
     tests = unittest.TestSuite(map(TestUtil, test_names))

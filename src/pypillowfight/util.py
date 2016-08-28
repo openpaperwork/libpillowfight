@@ -58,9 +58,6 @@ def from_pil(pil_img):
         for line_pos in range(0, x * y * 3, y * 3)
     ]
 
-    # fix the axis
-    # TODO: Optim
-    output = transpose_axis(output, (1, 0, 2))
     return output
 
 
@@ -69,10 +66,6 @@ def to_pil(img_bytes):
     Convert an array of arrays of pixels (3 values) into a Pillow image
     """
     (x, y) = (len(img_bytes), len(img_bytes[0]))
-
-    # fix the axis
-    # TODO: Optim
-    img_bytes = transpose_axis(img_bytes, (1, 0, 2))
 
     data = b"".join(
         [
@@ -89,9 +82,8 @@ def to_pil(img_bytes):
 
 
 def create_random_pairs(nb_pairs, max_x, max_y):
-    return [
-        (
-            random.randint(0, max_x),
-            random.randint(0, max_y),
-        ) for _ in range(0, nb_pairs)
-    ]
+    for _ in range(0, nb_pairs):
+        yield (
+            random.randint(0, max_x - 1),
+            random.randint(0, max_y - 1),
+        )

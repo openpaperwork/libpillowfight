@@ -44,7 +44,7 @@ def linear_scaling(v, in_max, in_min, out_max, out_min):
     return int(((v - in_min) * slope) + out_min)
 
 
-def ace(img, slope=10, limit=1000, samples=100, seed=None):
+def ace(img, slope=10, limit=1000, samples=5, seed=None):
     random.seed(seed)
 
     img_size = img.size
@@ -62,8 +62,6 @@ def ace(img, slope=10, limit=1000, samples=100, seed=None):
     rscore = create_rscore(img_size[0], img_size[1])
 
     # Chromatic/Spatial Adjustment
-    # XXX(Jflesch): We do the computation only on 100x100 points. Otherwise
-    # it's far too long on big images
     for i in range(0, img_size[1]):
         for j in range(0, img_size[0]):
             r_pixel = img_r[j][i]

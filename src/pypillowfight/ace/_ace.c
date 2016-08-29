@@ -11,12 +11,13 @@
 #define ACE_COLORS 3 /* we don't use the alpha channel */
 
 #define MATRIX_GET(matrix, a, b, color) \
-	((matrix)->values[((b) * matrix->size.x) + (a)].channels[color])
-#define MATRIX_SET(matrix, a, b, color, val) \
-	((matrix)->values[((b) * matrix->size.x) + (a)].channels[color]) = (val)
+	((matrix)->values[((b) * (matrix)->size.x) + (a)].channels[color])
 
-#define MIN(a, b) ((a) < (b) ? (a) : (b))
-#define MAX(a, b) ((a) > (b) ? (a) : (b))
+#define MATRIX_SET(matrix, a, b, color, val) \
+	MATRIX_GET(matrix, a, b, color) = (val)
+
+#define MIN(a, b) (((a) < (b)) ? (a) : (b))
+#define MAX(a, b) (((a) > (b)) ? (a) : (b))
 
 
 /*!
@@ -29,14 +30,13 @@ struct matrix {
 		int y;
 	} size;
 	union {
-		uint32_t whole;
 		struct {
-			uint8_t r;
-			uint8_t g;
-			uint8_t b;
-			uint8_t a;
+			double r;
+			double g;
+			double b;
+			double a;
 		};
-		uint8_t channels[NB_COLORS];
+		double channels[NB_COLORS];
 	} values[];
 };
 
@@ -106,9 +106,9 @@ static void free_pairs(struct pair *pairs) {
 
 #define GET_SATURATION(out, diff, slope, limit) \
 	do { \
-		double _diff_slope = diff * slope; \
-		(out) = (_diff_slope > (limit)) ? (limit) : ( \
-			(_diff_slope < (-limit)) ? (-limit) : _diff_slope \
+		(out) = (diff) * (slope); \
+		(out) = ((out) > (limit)) ? (limit) : ( \
+			((out) < (-limit)) ? (-limit) : (out) \
 		); \
 	} while(0)
 
@@ -157,6 +157,7 @@ static void _ace(const struct bitmap *in, struct bitmap *out,
 							- GET_COLOR(in, sample.x, sample.y, color),
 							slope,
 							limit);
+					saturation /= dist;
 					rscore_sums[color] += saturation;
 				}
 				denominator += (limit / dist);
@@ -165,8 +166,10 @@ static void _ace(const struct bitmap *in, struct bitmap *out,
 			for (color = 0 ; color < ACE_COLORS ; color++) {
 				rscore_sums[color] /= denominator;
 				MATRIX_SET(rscore.scores, i, j, color, rscore_sums[color]);
+
+
 				rscore.max[color] = MAX(rscore.max[color], rscore_sums[color]);
-				rscore.min[color] = MIN(rscore.max[color], rscore_sums[color]);
+				rscore.min[color] = MIN(rscore.min[color], rscore_sums[color]);
 			}
 		}
 	}
@@ -177,12 +180,13 @@ static void _ace(const struct bitmap *in, struct bitmap *out,
 	for (i = 0 ; i < in->size.x ; i++) {
 		for (j = 0 ; j < in->size.y ; j++) {
 			for (color = 0 ; color < ACE_COLORS ; color++) {
+				scaled = MATRIX_GET(rscore.scores, i, j, color);
 				scaled = GET_LINEAR_SCALING(
-					MATRIX_GET(rscore.scores, i, j, color),
+					scaled,
 					rscore.max[color], rscore.min[color],
 					255.0, 0.0
 				);
-				SET_COLOR(out, i, j, color, (uint16_t)scaled);
+				SET_COLOR(out, i, j, color, (uint8_t)scaled);
 			}
 		}
 	}

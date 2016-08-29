@@ -27,16 +27,30 @@ setup(
     packages=[
         'pypillowfight',
         'pypillowfight.ace',
+        'pypillowfight.blackfilter',
     ],
     package_dir={
         'pypillowfight': 'src/pypillowfight',
         'pypillowfight.ace': 'src/pypillowfight/ace',
+        'pypillowfight.blackfilter': 'src/pypillowfight/blackfilter',
     },
     ext_modules=[
         Extension(
             'pypillowfight.ace._ace', [
                 'src/pypillowfight/util.c',
                 'src/pypillowfight/ace/_ace.c',
+            ],
+            include_dirs=[
+                'src/pypillowfight'
+            ],
+            libraries=['m'],
+            extra_compile_args=[],
+            undef_macros=['NDEBUG'],
+        ),
+        Extension(
+            'pypillowfight.blackfilter._blackfilter', [
+                'src/pypillowfight/util.c',
+                'src/pypillowfight/blackfilter/_blackfilter.c',
             ],
             include_dirs=[
                 'src/pypillowfight'

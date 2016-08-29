@@ -19,11 +19,18 @@
  * \returns a uint32_t (RGBA)
  */
 #define GET_PIXEL(bitmap, a, b) ((bitmap)->pixels[((b) * (bitmap)->size.x) + (a)])
+#define GET_PIXEL_DEF(bitmap, a, b, def) \
+	((a < 0 || a >= bitmap->size.x) ? def : \
+	 ((b < 0 || b >= bitmap->size.y) ? def : \
+	  GET_PIXEL(bitmap, a, b)))
+
+#define SET_PIXEL(bitmap, a, b, value) GET_PIXEL(bitmap, a, b).whole = (value);
 
 /*!
  * \returns a uint8_t
  */
 #define GET_COLOR(bitmap, a, b, color) (GET_PIXEL(bitmap, a, b).channels[(color)])
+#define GET_COLOR_DEF(bitmap, a, b, color, def) (GET_PIXEL_DEF(bitmap, a, b, def).channels[(color)])
 
 #define SET_COLOR(bitmap, a, b, color, value) (GET_PIXEL(bitmap, a, b).channels[(color)]) = (value)
 

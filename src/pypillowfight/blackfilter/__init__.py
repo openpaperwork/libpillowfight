@@ -1,3 +1,5 @@
+import PIL.Image
+
 from . import _blackfilter
 
 

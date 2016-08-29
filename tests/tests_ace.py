@@ -1,9 +1,7 @@
-import sys
 import unittest
 
 import PIL.Image
 
-sys.path = ["src"] + sys.path
 from pypillowfight import ace
 
 

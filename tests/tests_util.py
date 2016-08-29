@@ -1,10 +1,9 @@
-import sys
 import unittest
 
 import PIL.Image
 
-sys.path = ["src"] + sys.path
 from pypillowfight import util
+
 
 class TestUtil(unittest.TestCase):
     def test_frompil(self):

@@ -1,12 +1,37 @@
-from copy import copy
 import logging
 import math
 import random
+import time
 
-from . import util
+import PIL.Image
 
+from .. import util
+
+from . import _ace
 
 logger = logging.getLogger(__name__)
+
+
+def ace(img_in, slope=10, limit=1000, samples=5, seed=None):
+    if seed is None:
+        seed = int(time.time())
+    img_in = img_in.convert("RGBA")  # Add alpha to align on 32bits
+    img_out = bytes(img_in.size[0] * img_in.size[1] * 4 * [0])
+    _ace.ace(
+        img_in.size[0],
+        img_in.size[1],
+        img_in.tobytes(),
+        slope,
+        limit,
+        samples,
+        seed,
+        img_out
+    )
+    return PIL.Image.frombytes(
+        mode="RGBA",
+        size=(img_in.size[0], img_in.size[1]),
+        data=img_out
+    )
 
 
 def new_2d_mat(x, y):
@@ -44,7 +69,7 @@ def linear_scaling(v, in_max, in_min, out_max, out_min):
     return int(((v - in_min) * slope) + out_min)
 
 
-def ace(img, slope=10, limit=1000, samples=5, seed=None):
+def pure_py_ace(img, slope=10, limit=1000, samples=5, seed=None):
     random.seed(seed)
 
     img_size = img.size
@@ -83,14 +108,14 @@ def ace(img, slope=10, limit=1000, samples=5, seed=None):
                 if dist < img_size[1] / 5:
                     continue
                 r_rscore_sum += calc_saturation(
-                        r_pixel - img_r[l][k], slope, limit
-                    ) / dist
+                    r_pixel - img_r[l][k], slope, limit
+                ) / dist
                 g_rscore_sum += calc_saturation(
-                        g_pixel - img_g[l][k], slope, limit
-                    ) / dist
+                    g_pixel - img_g[l][k], slope, limit
+                ) / dist
                 b_rscore_sum += calc_saturation(
-                        b_pixel - img_b[l][k], slope, limit
-                    ) / dist
+                    b_pixel - img_b[l][k], slope, limit
+                ) / dist
                 denominator += limit / dist
 
             r_rscore_sum /= denominator

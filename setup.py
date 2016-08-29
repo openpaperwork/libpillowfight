@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from setuptools import setup
+from setuptools import Extension, setup
 
 setup(
     name="pypillowfight",
@@ -17,9 +17,8 @@ setup(
         " (GPLv3+)",
         "Operating System :: POSIX :: Linux",
         "Programming Language :: Python",
-        "Programming Language :: Python :: 2.7",
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.3",
+        "Programming Language :: Python :: 3.5",
         "Topic :: Multimedia :: Graphics :: Graphics Conversion",
     ],
     license="GPLv3+",
@@ -27,10 +26,26 @@ setup(
     author_email="jflesch@gmail.com",
     packages=[
         'pypillowfight',
+        'pypillowfight.ace',
     ],
     package_dir={
         'pypillowfight': 'src/pypillowfight',
+        'pypillowfight.ace': 'src/pypillowfight/ace',
     },
+    ext_modules=[
+        Extension(
+            'pypillowfight.ace._ace', [
+                'src/pypillowfight/util.c',
+                'src/pypillowfight/ace/_ace.c',
+            ],
+            include_dirs=[
+                'src/pypillowfight'
+            ],
+            libraries=['m'],
+            extra_compile_args=[],
+            undef_macros=['NDEBUG'],
+        ),
+    ],
     data_files=[],
     scripts=[],
     install_requires=[

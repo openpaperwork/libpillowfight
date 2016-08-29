@@ -231,6 +231,16 @@ static PyMethodDef ace_methods[] = {
 	{NULL, NULL, 0, NULL},
 };
 
+#if PY_VERSION_HEX < 0x03000000
+
+PyMODINIT_FUNC
+init_ace(void)
+{
+    PyObject* m = Py_InitModule("_ace", ace_methods);
+}
+
+#else
+
 static struct PyModuleDef ace_module = {
 	PyModuleDef_HEAD_INIT,
 	"_ace",
@@ -243,3 +253,5 @@ PyMODINIT_FUNC PyInit__ace(void)
 {
 	return PyModule_Create(&ace_module);
 }
+
+#endif

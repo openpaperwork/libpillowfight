@@ -1,4 +1,5 @@
 import logging
+import multiprocessing
 import time
 
 import PIL.Image
@@ -21,6 +22,7 @@ def ace(img_in, slope=10, limit=1000, samples=100, seed=None):
         slope,
         limit,
         samples,
+        multiprocessing.cpu_count(),
         seed,
         img_out
     )

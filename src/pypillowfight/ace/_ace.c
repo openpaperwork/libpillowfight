@@ -1,5 +1,6 @@
 #include <assert.h>
 #include <math.h>
+#include <pthread.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <values.h>
@@ -7,6 +8,8 @@
 #include <Python.h>
 
 #include <util.h>
+
+#define MAX_THREADS 32
 
 #define ACE_COLORS 3 /* we don't use the alpha channel */
 
@@ -118,77 +121,190 @@ static void free_pairs(struct pair *pairs) {
 #define GET_LINEAR_SCALING(v, in_max, in_min, out_max, out_min) \
 	((((v) - (in_min)) * GET_SLOPE(in_max, in_min, out_max, out_min)) + (out_min))
 
-static void _ace(const struct bitmap *in, struct bitmap *out,
-		int nb_samples, double slope, double limit)
-{
-	int i, j, sample_idx;
-	int color;
-	struct pair sample;
-	double rscore_sums[ACE_COLORS];
+struct ace_thread_adjustment_params {
+	struct {
+		int x;
+		int y;
+	} start;
+	struct {
+		int x;
+		int y;
+	} stop;
+
+	double slope;
+	double limit;
+	const struct bitmap *in;
+	const struct pair *samples;
+	int nb_samples;
+
+	/* output */
 	struct rscore rscore;
+};
+
+static void *ace_thread_adjustment(void *_thread_params)
+{
+	int i, j, color, sample_idx;
+	struct ace_thread_adjustment_params *params = _thread_params;
+	struct pair sample;
 	double dist;
-	double saturation;
 	double denominator;
-	double scaled;
+	double rscore_sums[ACE_COLORS];
+	double saturation;
 
-	struct pair *samples;
-
-	samples = create_pairs(nb_samples, in->size.x, in->size.y);
-	rscore = new_rscore(in->size.x, in->size.y);
-
-	// Chromatic/Spatial adjustment
-	for (i = 0 ; i < in->size.x ; i++) {
-		for (j = 0 ; j < in->size.y ; j++) {
+	for (i = params->start.x ; i < params->stop.x ; i++) {
+		for (j = params->start.y ; j < params->stop.y ; j++) {
 			memset(rscore_sums, 0, sizeof(rscore_sums));
-
 			denominator = 0.0;
 
-			for (sample_idx = 0 ; sample_idx < nb_samples ; sample_idx++) {
-				sample = samples[sample_idx];
+			for (sample_idx = 0 ; sample_idx < params->nb_samples ; sample_idx++) {
+				sample = params->samples[sample_idx];
+
 				dist = sqrt(
 						((i - sample.x) * (i - sample.x))
 						+ ((j - sample.y) * (j - sample.y))
 					);
-				if (dist < (in->size.y / 5))
+				if (dist < (params->in->size.y / 5))
 					continue;
 				for (color = 0 ; color < ACE_COLORS ; color++) {
 					GET_SATURATION(saturation,
-							GET_COLOR(in, i, j, color)
-							- GET_COLOR(in, sample.x, sample.y, color),
-							slope,
-							limit);
+							GET_COLOR(params->in, i, j, color)
+							- GET_COLOR(params->in, sample.x, sample.y, color),
+							params->slope,
+							params->limit);
 					saturation /= dist;
 					rscore_sums[color] += saturation;
 				}
-				denominator += (limit / dist);
+				denominator += (params->limit / dist);
 			}
 
 			for (color = 0 ; color < ACE_COLORS ; color++) {
 				rscore_sums[color] /= denominator;
-				MATRIX_SET(rscore.scores, i, j, color, rscore_sums[color]);
+				MATRIX_SET(params->rscore.scores, i, j, color, rscore_sums[color]);
 
-
-				rscore.max[color] = MAX(rscore.max[color], rscore_sums[color]);
-				rscore.min[color] = MIN(rscore.min[color], rscore_sums[color]);
+				params->rscore.max[color] = MAX(
+						params->rscore.max[color], rscore_sums[color]
+				);
+				params->rscore.min[color] = MIN(
+						params->rscore.min[color], rscore_sums[color]
+				);
 			}
 		}
+	}
+
+	return params;
+}
+
+struct ace_thread_scaling_params {
+	struct {
+		int x;
+		int y;
+	} start;
+	struct {
+		int x;
+		int y;
+	} stop;
+
+	const struct rscore *rscore;
+
+	const struct bitmap *out;
+};
+
+void *ace_thread_scaling(void *_params) {
+	struct ace_thread_scaling_params *params = _params;
+	int i, j, color;
+	double scaled;
+
+	for (i = params->start.x ; i < params->stop.x ; i++) {
+		for (j = params->start.y ; j < params->stop.y ; j++) {
+			for (color = 0 ; color < ACE_COLORS ; color++) {
+				scaled = MATRIX_GET(params->rscore->scores, i, j, color);
+				scaled = GET_LINEAR_SCALING(
+					scaled,
+					params->rscore->max[color],
+					params->rscore->min[color],
+					255.0, 0.0
+				);
+				SET_COLOR(params->out, i, j, color, (uint8_t)scaled);
+			}
+		}
+	}
+
+	return params;
+}
+
+static void ace_main(const struct bitmap *in, struct bitmap *out,
+		int nb_samples, double slope, double limit,
+		int nb_threads)
+{
+	int i, nb_lines_per_thread, color;
+	struct rscore rscore;
+	struct pair *samples;
+	pthread_t threads[MAX_THREADS];
+	struct ace_thread_adjustment_params *adj_params;
+	struct ace_thread_scaling_params *scaling_params;
+
+	if (nb_threads > MAX_THREADS)
+		nb_threads = MAX_THREADS;
+	if (nb_threads > in->size.y)
+		nb_threads = 1;
+
+	samples = create_pairs(nb_samples, in->size.x, in->size.y);
+	rscore = new_rscore(in->size.x, in->size.y);
+
+	memset(&threads, 0, sizeof(threads));
+
+	nb_lines_per_thread = in->size.y / nb_threads;
+
+	// Chromatic/Spatial adjustment
+	for (i = 0 ; i < nb_threads ; i++) {
+		adj_params = calloc(1, sizeof(struct ace_thread_adjustment_params));
+
+		adj_params->start.x = 0;
+		adj_params->start.y = (i * nb_lines_per_thread);
+		adj_params->stop.x = in->size.x;
+		adj_params->stop.y = MIN((i + 1) * nb_lines_per_thread, in->size.y);
+
+		adj_params->slope = slope;
+		adj_params->limit = limit;
+		adj_params->in = in;
+		adj_params->samples = samples;
+		adj_params->nb_samples = nb_samples;
+
+		// Will share the pointer to the same matrix
+		// but not the same min/max values
+		memcpy(&adj_params->rscore, &rscore, sizeof(rscore));
+
+		pthread_create(&threads[i], NULL, ace_thread_adjustment, adj_params);
+	}
+
+	for (i = 0 ; i < nb_threads ; i++) {
+		pthread_join(threads[i], (void **)&adj_params);
+		// we must merge the min/max values
+		for (color = 0 ; color < ACE_COLORS ; color++)
+			rscore.max[color] = MAX(rscore.max[color], adj_params->rscore.max[color]);
+		for (color = 0 ; color < ACE_COLORS ; color++)
+			rscore.min[color] = MIN(rscore.min[color], adj_params->rscore.min[color]);
 	}
 
 	free_pairs(samples);
 
 	// Dynamic tone reproduction scaling
-	for (i = 0 ; i < in->size.x ; i++) {
-		for (j = 0 ; j < in->size.y ; j++) {
-			for (color = 0 ; color < ACE_COLORS ; color++) {
-				scaled = MATRIX_GET(rscore.scores, i, j, color);
-				scaled = GET_LINEAR_SCALING(
-					scaled,
-					rscore.max[color], rscore.min[color],
-					255.0, 0.0
-				);
-				SET_COLOR(out, i, j, color, (uint8_t)scaled);
-			}
-		}
+	for (i = 0 ; i < nb_threads ; i++) {
+		scaling_params = calloc(1, sizeof(struct ace_thread_scaling_params));
+
+		scaling_params->start.x = 0;
+		scaling_params->start.y = (i * nb_lines_per_thread);
+		scaling_params->stop.x = in->size.x;
+		scaling_params->stop.y = MIN((i + 1) * nb_lines_per_thread, in->size.y);
+		scaling_params->rscore = &rscore;
+
+		scaling_params->out = out;
+
+		pthread_create(&threads[i], NULL, ace_thread_scaling, scaling_params);
+	}
+
+	for (i = 0 ; i < nb_threads ; i++) {
+		pthread_join(threads[i], NULL);
 	}
 
 	free_rscore(&rscore);
@@ -200,13 +316,15 @@ static PyObject *ace(PyObject *self, PyObject* args)
 	Py_buffer img_in, img_out;
 	double slope, limit;
 	int samples, seed;
+	int nb_threads;
 	struct bitmap bitmap_in;
 	struct bitmap bitmap_out;
 
-	if (!PyArg_ParseTuple(args, "iiy*ddiiy*",
+	if (!PyArg_ParseTuple(args, "iiy*ddiiiy*",
 				&img_x, &img_y,
 				&img_in, &slope, &limit,
-				&samples, &seed, &img_out)) {
+				&samples, &nb_threads,
+				&seed, &img_out)) {
 		return NULL;
 	}
 
@@ -218,7 +336,7 @@ static PyObject *ace(PyObject *self, PyObject* args)
 	bitmap_in = from_py_buffer(&img_in, img_x, img_y);
 	bitmap_out = from_py_buffer(&img_out, img_x, img_y);
 
-	_ace(&bitmap_in, &bitmap_out, samples, slope, limit);
+	ace_main(&bitmap_in, &bitmap_out, samples, slope, limit, nb_threads);
 
 	PyBuffer_Release(&img_in);
 	PyBuffer_Release(&img_out);

@@ -10,6 +10,11 @@
  * - In position (x, y): x = width, y = height.
  */
 
+#define COLOR_R 0
+#define COLOR_G 1
+#define COLOR_B 2
+#define NB_COLORS 4 /* to align on 32bits */
+
 /*!
  * \returns a uint32_t (RGBA)
  */
@@ -20,6 +25,7 @@
  */
 #define GET_COLOR(bitmap, a, b, color) (GET_PIXEL(bitmap, a, b).channels[(color)])
 
+#define SET_COLOR(bitmap, a, b, color, value) (GET_PIXEL(bitmap, a, b).channels[(color)]) = (value)
 
 union pixel {
 	uint32_t whole;

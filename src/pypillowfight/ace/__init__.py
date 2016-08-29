@@ -12,7 +12,7 @@ from . import _ace
 logger = logging.getLogger(__name__)
 
 
-def ace(img_in, slope=10, limit=1000, samples=5, seed=None):
+def ace(img_in, slope=10, limit=1000, samples=100, seed=None):
     if seed is None:
         seed = int(time.time())
     img_in = img_in.convert("RGBA")  # Add alpha to align on 32bits

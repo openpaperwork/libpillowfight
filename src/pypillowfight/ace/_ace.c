@@ -6,6 +6,12 @@
 
 #include <util.h>
 
+static void _ace(const struct bitmap *in, struct bitmap *out)
+{
+
+	memcpy(out->pixels, in->pixels, in->size.x * in->size.y * 4);
+
+}
 
 static PyObject *ace(PyObject *self, PyObject* args)
 {
@@ -29,7 +35,7 @@ static PyObject *ace(PyObject *self, PyObject* args)
 	bitmap_in = from_py_buffer(&img_in, img_x, img_y);
 	bitmap_out = from_py_buffer(&img_out, img_x, img_y);
 
-	memcpy(bitmap_out.pixels, bitmap_in.pixels, bitmap_in.size.x * bitmap_in.size.y * 4);
+	_ace(&bitmap_in, &bitmap_out);
 
 	PyBuffer_Release(&img_in);
 	PyBuffer_Release(&img_out);

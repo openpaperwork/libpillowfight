@@ -13,12 +13,12 @@
 /*!
  * \returns a uint32_t (RGBA)
  */
-#define GET_PIXEL(bitmap, a, b) (bitmap->data[(b * bitmap->size.x) + a])
+#define GET_PIXEL(bitmap, a, b) ((bitmap)->pixels[((b) * (bitmap)->size.x) + (a)])
 
 /*!
  * \returns a uint8_t
  */
-#define GET_COLOR(bitmap, a, b, color_offset)
+#define GET_COLOR(bitmap, a, b, color) (GET_PIXEL(bitmap, a, b).channels[(color)])
 
 
 union pixel {

@@ -15,7 +15,6 @@ class TestBlackfilter(unittest.TestCase):
 
             # beware of JPG compression
             out_img.save(tmpfile.name)
-            out_img.save("tests/data/black_border_problem2.jpg")
             out_img.close()
             out_img = PIL.Image.open(tmpfile.name)
 

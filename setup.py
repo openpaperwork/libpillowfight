@@ -49,6 +49,15 @@ setup(
             undef_macros=['NDEBUG'],
         ),
         Extension(
+            'pypillowfight._border', [
+                'src/pypillowfight/util.c',
+                'src/pypillowfight/_border.c',
+            ],
+            include_dirs=[],
+            extra_compile_args=[],
+            undef_macros=['NDEBUG'],
+        ),
+        Extension(
             'pypillowfight._grayfilter', [
                 'src/pypillowfight/util.c',
                 'src/pypillowfight/_grayfilter.c',

@@ -76,6 +76,13 @@
 	  + GET_PIXEL_DEF(img, x, y, g_default_white_pixel).color.g \
 	  + GET_PIXEL_DEF(img, x, y, g_default_white_pixel).color.b) / 3)
 
+#define GET_PIXEL_LIGHTNESS(img, x, y) \
+	MIN3( \
+		GET_COLOR_DEF(img, x, y, COLOR_R, g_default_white_pixel), \
+		GET_COLOR_DEF(img, x, y, COLOR_G, g_default_white_pixel), \
+		GET_COLOR_DEF(img, x, y, COLOR_B, g_default_white_pixel) \
+	)
+
 
 union pixel {
 	uint32_t whole;
@@ -112,5 +119,13 @@ Py_buffer to_py_buffer(const struct bitmap *bitmap);
  * @return The number of pixels actually changed from black (dark) to white.
  */
 void clear_rect(struct bitmap *img, int left, int top, int right, int bottom);
+
+/**
+ * Counts the number of pixels in a rectangular area whose grayscale
+ * values ranges between minColor and maxBrightness. Optionally, the area can get
+ * cleared with white color while counting.
+ */
+int count_pixels_rect(int left, int top, int right, int bottom,
+		int max_brightness, struct bitmap *img);
 
 #endif

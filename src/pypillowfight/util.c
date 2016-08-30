@@ -57,3 +57,23 @@ void clear_rect(struct bitmap *img, int left, int top, int right, int bottom)
 		}
 	}
 }
+
+
+int count_pixels_rect(int left, int top, int right, int bottom,
+		int max_brightness, struct bitmap *img)
+{
+	int x;
+	int y;
+	int count = 0;
+	int pixel;
+
+	for (y = top; y <= bottom; y++) {
+		for (x = left; x <= right; x++) {
+			pixel = GET_PIXEL_GRAYSCALE(img, x, y);
+			if ((pixel >= 0) && (pixel <= max_brightness)) {
+				count++;
+			}
+		}
+	}
+	return count;
+}

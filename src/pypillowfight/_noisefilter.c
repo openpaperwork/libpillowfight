@@ -34,13 +34,6 @@
 #define WHITE_MIN ((int)(WHITE_THRESHOLD * WHITE))
 #define INTENSITY 4
 
-#define GET_PIXEL_LIGHTNESS(img, x, y) \
-	MIN3( \
-			GET_COLOR_DEF(img, x, y, COLOR_R, g_default_white_pixel), \
-			GET_COLOR_DEF(img, x, y, COLOR_G, g_default_white_pixel), \
-			GET_COLOR_DEF(img, x, y, COLOR_B, g_default_white_pixel) \
-	)
-
 static void callback_count(int x, int y, struct bitmap *img, void *cb_data) {
 	int *count = cb_data;
 	(*count)++;

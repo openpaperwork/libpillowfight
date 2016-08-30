@@ -30,10 +30,68 @@
  * \brief Algorithm 'grayfilter' from unpaper, partially rewritten.
  */
 
+#define SCAN_SIZE 50
+#define SCAN_STEP 20
+#define THRESHOLD 0.5
+#define BLACK_THRESHOLD 0.33
+
+#define BLACK_MAX (WHITE * (1.0 - BLACK_THRESHOLD))
+#define THRESHOLD_ABS (WHITE * THRESHOLD)
+
+/**
+ * Returns the average lightness of a rectangular area.
+ */
+static int lightness_rect(int x1, int y1, int x2, int y2, const struct bitmap *img) {
+	int x;
+	int y;
+	int total = 0;
+	const int count = (x2 - x1 + 1) * (y2 - y1 + 1);
+
+	for (x = x1; x < x2; x++) {
+		for (y = y1; y < y2; y++) {
+			total += GET_PIXEL_LIGHTNESS(img, x, y);
+		}
+	}
+	return total / count;
+}
+
 static void grayfilter_main(const struct bitmap *in, struct bitmap *out)
 {
+	int left;
+	int top;
+	int right;
+	int bottom;
+	int count;
+	int lightness;
+
 	memcpy(out->pixels, in->pixels, sizeof(union pixel) * in->size.x * in->size.y);
-	// TODO
+
+	left = 0;
+	top = 0;
+	right = SCAN_SIZE - 1;
+	bottom = SCAN_SIZE - 1;
+
+	while (1) {
+		count = count_pixels_rect(left, top, right, bottom, BLACK_MAX, out);
+		if (count == 0) {
+			lightness = lightness_rect(left, top, right, bottom, out);
+			if ((WHITE - lightness) < THRESHOLD_ABS) {
+				clear_rect(out, left, top, right, bottom);
+			}
+		}
+		if (left < out->size.x) {
+			left += SCAN_STEP;
+			right += SCAN_STEP;
+		} else { // end of row
+			if (bottom >= out->size.y) // has been last row
+				return;
+			// next row
+			left = 0;
+			right = SCAN_SIZE - 1;
+			top += SCAN_STEP;
+			bottom += SCAN_STEP;
+		}
+	}
 }
 
 static PyObject *grayfilter(PyObject *self, PyObject* args)

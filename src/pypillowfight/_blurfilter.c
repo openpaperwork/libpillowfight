@@ -36,30 +36,6 @@
  * \brief Algorithm blurfilter from unpaper, partially rewritten.
  */
 
-/**
- * Counts the number of pixels in a rectangular area whose grayscale
- * values ranges between minColor and maxBrightness. Optionally, the area can get
- * cleared with white color while counting.
- */
-int count_pixels_rect(int left, int top, int right, int bottom, struct bitmap *img)
-{
-	int x;
-	int y;
-	int count = 0;
-	int pixel;
-
-	for (y = top; y <= bottom; y++) {
-		for (x = left; x <= right; x++) {
-			pixel = GET_PIXEL_GRAYSCALE(img, x, y);
-			if ((pixel >= 0) && (pixel <= WHITE_MIN)) {
-				count++;
-			}
-		}
-	}
-	return count;
-}
-
-
 static void blurfilter_main(const struct bitmap *in, struct bitmap *out)
 {
 	int left;
@@ -99,7 +75,7 @@ static void blurfilter_main(const struct bitmap *in, struct bitmap *out)
 
 	block = 1;
 	for (left = 0; left <= max_left; left += SCAN_SIZE) {
-		cur_counts[block] = count_pixels_rect(left, top, right, bottom, out);
+		cur_counts[block] = count_pixels_rect(left, top, right, bottom, WHITE_MIN, out);
 		block++;
 		right += SCAN_SIZE;
 	}
@@ -118,7 +94,7 @@ static void blurfilter_main(const struct bitmap *in, struct bitmap *out)
 		left = 0;
 		right = SCAN_SIZE - 1;
 		next_counts[0] = count_pixels_rect(
-				left, top + SCAN_STEP, right, bottom + SCAN_SIZE, out
+				left, top + SCAN_STEP, right, bottom + SCAN_SIZE, WHITE_MIN, out
 		);
 
 		block = 1;
@@ -147,6 +123,7 @@ static void blurfilter_main(const struct bitmap *in, struct bitmap *out)
 					top + SCAN_STEP,
 					right + SCAN_SIZE,
 					bottom + SCAN_SIZE,
+					WHITE_MIN,
 					out
 			);
 			if (count > max) {

@@ -15,12 +15,11 @@ class TestGrayFilter(unittest.TestCase):
 
             # beware of JPG compression
             out_img.save(tmpfile.name)
-            out_img.save("tests/data/out.jpg")
             out_img.close()
             out_img = PIL.Image.open(tmpfile.name)
 
         expected_img = PIL.Image.open(
-            "tests/data/black_border_problem2_masks.jpg"
+            "tests/data/black_border_problem_grayfilter.jpg"
         )
         self.assertEqual(out_img.tobytes(), expected_img.tobytes())
         expected_img.close()

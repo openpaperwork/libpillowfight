@@ -37,19 +37,6 @@
 
 #define MASK_COLOR WHOLE_WHITE
 
-struct mask {
-	int valid;
-
-	struct {
-		int x;
-		int y;
-	} a;
-	struct {
-		int x;
-		int y;
-	} b;
-};
-
 /**
  * Returns the average brightness of a rectagular area.
  */
@@ -115,10 +102,10 @@ static int detect_edge(const struct bitmap *img, int start_x, int start_y, int s
 	}
 }
 
-static struct mask detect_mask(const struct bitmap *img, int x, int y)
+static struct rectangle detect_mask(const struct bitmap *img, int x, int y)
 {
 	int width;
-	struct mask out;
+	struct rectangle out;
 	int edge;
 
 	memset(&out, 0, sizeof(out));
@@ -143,35 +130,16 @@ static struct mask detect_mask(const struct bitmap *img, int x, int y)
 
 	// if below minimum or above maximum, set to maximum
 	width = out.b.x - out.a.x;
-	out.valid = 1;
 	if (width < SCAN_MIN || width >= img->size.x) {
 		out.a.x = 0;
 		out.b.x = img->size.x;
-		out.valid = 0;
 	}
 	return out;
 }
 
-/**
- * Permanently applies image mask. Each pixel which is not covered by at least
- * one mask is set to maskColor.
- */
-static void apply_mask(struct bitmap *img, const struct mask *mask) {
-	int x;
-	int y;
-
-	for (y=0 ; y < img->size.y ; y++) {
-		for (x=0 ; x < img->size.x ; x++) {
-			if (!(IS_IN(x, mask->a.x, mask->b.x) && IS_IN(y, mask->a.y, mask->b.y))) {
-				SET_PIXEL(img, x, y, WHOLE_WHITE);
-			}
-		}
-	}
-}
-
 static void masks_main(const struct bitmap *in, struct bitmap *out)
 {
-	struct mask mask;
+	struct rectangle mask;
 
 	memcpy(out->pixels, in->pixels, sizeof(union pixel) * in->size.x * in->size.y);
 

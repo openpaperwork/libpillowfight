@@ -104,6 +104,18 @@ struct bitmap {
 	union pixel *pixels;
 };
 
+struct rectangle {
+	struct {
+		int x;
+		int y;
+	} a;
+	struct {
+		int x;
+		int y;
+	} b;
+};
+
+
 extern const union pixel g_default_white_pixel;
 
 /*!
@@ -126,6 +138,12 @@ void clear_rect(struct bitmap *img, int left, int top, int right, int bottom);
  * cleared with white color while counting.
  */
 int count_pixels_rect(int left, int top, int right, int bottom,
-		int max_brightness, struct bitmap *img);
+		int max_brightness, const struct bitmap *img);
+
+/**
+ * Permanently applies image mask. Each pixel which is not covered by at least
+ * one mask is set to maskColor.
+ */
+void apply_mask(struct bitmap *img, const struct rectangle *mask);
 
 #endif

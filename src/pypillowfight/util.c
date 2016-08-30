@@ -60,7 +60,7 @@ void clear_rect(struct bitmap *img, int left, int top, int right, int bottom)
 
 
 int count_pixels_rect(int left, int top, int right, int bottom,
-		int max_brightness, struct bitmap *img)
+		int max_brightness, const struct bitmap *img)
 {
 	int x;
 	int y;
@@ -76,4 +76,18 @@ int count_pixels_rect(int left, int top, int right, int bottom,
 		}
 	}
 	return count;
+}
+
+
+void apply_mask(struct bitmap *img, const struct rectangle *mask) {
+	int x;
+	int y;
+
+	for (y=0 ; y < img->size.y ; y++) {
+		for (x=0 ; x < img->size.x ; x++) {
+			if (!(IS_IN(x, mask->a.x, mask->b.x) && IS_IN(y, mask->a.y, mask->b.y))) {
+				SET_PIXEL(img, x, y, WHOLE_WHITE);
+			}
+		}
+	}
 }

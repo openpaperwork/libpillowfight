@@ -30,10 +30,82 @@
  * \brief Algorithm 'border detection' from unpaper, partially rewritten.
  */
 
+#define SCAN_SIZE 5
+#define SCAN_STEP 5
+#define SCAN_THRESHOLD 5
+#define BLACK_THRESHOLD 0.33
+
+#define ABS_BLACK_THRESHOLD ((int)(WHITE * (1.0 - BLACK_THRESHOLD)))
+
+
+/* we only scan in the vertical direction */
+
+/**
+ * Find the size of one border edge.
+ *
+ * @param x1..y2 area inside of which border is to be detected
+ */
+static int detect_border_edge(const struct bitmap *img, int step_y) {
+	int left;
+	int right;
+	int top;
+	int bottom;
+	int cnt;
+	int result;
+
+	// vertical detection
+	left = 0;
+	right = img->size.x;
+	if (step_y > 0) {
+		top = 0;
+		bottom = SCAN_SIZE;
+	} else {
+		top = img->size.y - SCAN_SIZE;
+		bottom = 0;
+	}
+
+	result = 0;
+	while (result < img->size.y) {
+		cnt = count_pixels_rect(left, top, right, bottom, ABS_BLACK_THRESHOLD, img);
+		if (cnt >= SCAN_THRESHOLD) {
+			return result; // border has been found: regular exit here
+		}
+		top += step_y;
+		bottom += step_y;
+		result += abs(step_y);
+	}
+	return 0; // no border found between 0..img->size.y
+}
+
+
+/**
+ * Detects a border of completely non-black pixels
+ */
+static struct rectangle detect_border(const struct bitmap *img) {
+	struct rectangle out;
+
+	memset(&out, 0, sizeof(out));
+
+	out.a.y += detect_border_edge(img, SCAN_STEP);
+	out.b.y += detect_border_edge(img, -SCAN_STEP);
+
+	out.b.x = img->size.x - out.b.x;
+	out.b.y = img->size.y - out.b.y;
+
+	fprintf(stderr, "BORDER: %dx%d - %dx%d\n",
+			out.a.x, out.a.y, out.b.x, out.b.y);
+
+	return out;
+}
+
 static void border_main(const struct bitmap *in, struct bitmap *out)
 {
+	struct rectangle border;
+
 	memcpy(out->pixels, in->pixels, sizeof(union pixel) * in->size.x * in->size.y);
-	// TODO
+
+	border = detect_border(in);
+	apply_mask(out, &border);
 }
 
 static PyObject *border(PyObject *self, PyObject* args)

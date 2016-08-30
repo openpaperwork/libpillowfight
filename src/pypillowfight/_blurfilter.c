@@ -41,7 +41,8 @@
  * values ranges between minColor and maxBrightness. Optionally, the area can get
  * cleared with white color while counting.
  */
-int count_pixels_rect(int left, int top, int right, int bottom, struct bitmap *img) {
+int count_pixels_rect(int left, int top, int right, int bottom, struct bitmap *img)
+{
 	int x;
 	int y;
 	int count = 0;
@@ -56,21 +57,6 @@ int count_pixels_rect(int left, int top, int right, int bottom, struct bitmap *i
 		}
 	}
 	return count;
-}
-
-/**
- * Clears a rectangular area of pixels with either black or white.
- * @return The number of pixels actually changed from black (dark) to white.
- */
-void clear_rect(int left, int top, int right, int bottom, struct bitmap *img) {
-	int x;
-	int y;
-
-	for (y = top; y <= bottom; y++) {
-		for (x = left; x <= right; x++) {
-			SET_PIXEL(img, x, y, WHOLE_WHITE);
-		}
-	}
 }
 
 
@@ -167,7 +153,7 @@ static void blurfilter_main(const struct bitmap *in, struct bitmap *out)
 				max = count;
 			}
 			if ((((float)max) / total) <= INTENSITY) { // Not enough dark pixels
-				clear_rect(left, top, right, bottom, out);
+				clear_rect(out, left, top, right, bottom);
 				result += cur_counts[block];
 				cur_counts[block] = total; // Update information
 			}

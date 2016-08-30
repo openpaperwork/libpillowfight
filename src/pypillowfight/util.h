@@ -61,6 +61,8 @@
 #define MAX3(a, b, c) MAX(a, MAX(b, c))
 #define MIN3(a, b, c) MIN(a, MIN(b, c))
 
+#define IS_IN(v, a, b) ((a) <= (v) && (v) < (b))
+
 // Careful : multiple evaluation !
 #define GET_PIXEL_DARKNESS_INVERSE(img, x, y) \
 	MAX3( \
@@ -104,5 +106,11 @@ extern const union pixel g_default_white_pixel;
 struct bitmap from_py_buffer(const Py_buffer *buffer, int x, int y);
 
 Py_buffer to_py_buffer(const struct bitmap *bitmap);
+
+/**
+ * Clears a rectangular area of pixels with white.
+ * @return The number of pixels actually changed from black (dark) to white.
+ */
+void clear_rect(struct bitmap *img, int left, int top, int right, int bottom);
 
 #endif

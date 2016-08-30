@@ -30,11 +30,154 @@
  * \brief Algorithm 'mask' from unpaper, partially rewritten.
  */
 
+#define SCAN_SIZE 50
+#define SCAN_STEP 5
+#define SCAN_THRESHOLD 0.1
+#define SCAN_MIN 100
+
+#define MASK_COLOR WHOLE_WHITE
+
+struct mask {
+	int valid;
+
+	struct {
+		int x;
+		int y;
+	} a;
+	struct {
+		int x;
+		int y;
+	} b;
+};
+
+/**
+ * Returns the average brightness of a rectagular area.
+ */
+static int brightness_rect(const struct bitmap *img, int x1, int y1, int x2, int y2)
+{
+    int x;
+    int y;
+    int total = 0;
+    const int count = (x2 - x1) * (y2 - y1);
+
+    for (x = x1; x < x2; x++) {
+        for (y = y1; y < y2; y++) {
+            total += GET_PIXEL_GRAYSCALE(img, x, y);
+        }
+    }
+    return total / count;
+}
+
+/**
+ * Finds one edge of non-black pixels heading from one starting point towards edge direction.
+ *
+ * @return number of shift-steps until blank edge found
+ */
+static int detect_edge(const struct bitmap *img, int start_x, int start_y, int shift_x)
+{
+	int left;
+	int top;
+	int right;
+	int bottom;
+
+	int total = 0;
+	int count = 0;
+	int scan_depth;
+
+	double blackness, threshold;
+
+	assert(shift_x != 0);
+
+	// horizontal border is to be detected, vertical shifting of scan-bar
+	// vertical border is to be detected, horizontal shifting of scan-bar
+	scan_depth = img->size.y;
+	left = start_x - (SCAN_SIZE / 2);
+	top = start_y - (scan_depth / 2);
+	right = start_x + (SCAN_SIZE / 2);
+	bottom = start_y + (scan_depth / 2);
+
+	while (1) {
+		blackness = (double)(((int)WHITE) - brightness_rect(img, left, top, right, bottom));
+		total += blackness;
+		count++;
+		// is blackness below threshold*average?
+		threshold = ((((double)SCAN_THRESHOLD) * total) / count);
+		if ((blackness < threshold)
+				// this will surely become true when pos reaches
+				// the outside of the actual image area and
+				// blacknessRect() will deliver 0 because all
+				// pixels outside are considered white
+				|| (((int)blackness) == 0)) {
+			return count; // return here, return absolute value of shifting difference
+		}
+		left += shift_x;
+		right += shift_x;
+	}
+}
+
+static struct mask detect_mask(const struct bitmap *img, int x, int y)
+{
+	int width;
+	struct mask out;
+	int edge;
+
+	memset(&out, 0, sizeof(out));
+	out.a.x = -1;
+	out.a.y = -1;
+	out.b.x = -1;
+	out.b.y = -1;
+
+	/* we work horizontally only */
+	edge = detect_edge(img, x, y, -SCAN_STEP);
+	out.a.x = (x
+			- (SCAN_STEP * edge)
+			- (SCAN_SIZE / 2));
+	edge = detect_edge(img, x, y, SCAN_STEP);
+	out.b.x = (x
+			+ (SCAN_STEP * edge)
+			+ (SCAN_SIZE / 2));
+
+	// we don't work vertically --> full range of sheet
+	out.a.y = 0;
+	out.b.y = img->size.y;
+
+	// if below minimum or above maximum, set to maximum
+	width = out.b.x - out.a.x;
+	out.valid = 1;
+	if (width < SCAN_MIN || width >= img->size.x) {
+		out.a.x = 0;
+		out.b.x = img->size.x;
+		out.valid = 0;
+	}
+	return out;
+}
+
+/**
+ * Permanently applies image mask. Each pixel which is not covered by at least
+ * one mask is set to maskColor.
+ */
+static void apply_mask(struct bitmap *img, const struct mask *mask) {
+	int x;
+	int y;
+
+	for (y=0 ; y < img->size.y ; y++) {
+		for (x=0 ; x < img->size.x ; x++) {
+			if (!(IS_IN(x, mask->a.x, mask->b.x) && IS_IN(y, mask->a.y, mask->b.y))) {
+				SET_PIXEL(img, x, y, WHOLE_WHITE);
+			}
+		}
+	}
+}
+
 static void masks_main(const struct bitmap *in, struct bitmap *out)
 {
+	struct mask mask;
+
 	memcpy(out->pixels, in->pixels, sizeof(union pixel) * in->size.x * in->size.y);
 
-	// TODO
+	mask = detect_mask(in, in->size.x / 2, in->size.y /2);
+	fprintf(stderr, "MASK: %dx%d - %dx%d\n", mask.a.x, mask.a.y, mask.b.x, mask.b.y);
+	apply_mask(out, &mask);
 }
 
 static PyObject *masks(PyObject *self, PyObject* args)

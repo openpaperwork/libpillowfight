@@ -26,13 +26,166 @@
 
 #include "util.h"
 
+#define SCAN_SIZE 100
+#define SCAN_STEP 50
+#define INTENSITY 0.01
+#define WHITE_THRESHOLD 0.9
+#define WHITE_MIN ((int)(WHITE_THRESHOLD * WHITE))
+
 /*!
  * \brief Algorithm blurfilter from unpaper, partially rewritten.
  */
 
+/**
+ * Counts the number of pixels in a rectangular area whose grayscale
+ * values ranges between minColor and maxBrightness. Optionally, the area can get
+ * cleared with white color while counting.
+ */
+int count_pixels_rect(int left, int top, int right, int bottom, struct bitmap *img) {
+	int x;
+	int y;
+	int count = 0;
+	int pixel;
+
+	for (y = top; y <= bottom; y++) {
+		for (x = left; x <= right; x++) {
+			pixel = GET_PIXEL_GRAYSCALE(img, x, y);
+			if ((pixel >= 0) && (pixel <= WHITE_MIN)) {
+				count++;
+			}
+		}
+	}
+	return count;
+}
+
+/**
+ * Clears a rectangular area of pixels with either black or white.
+ * @return The number of pixels actually changed from black (dark) to white.
+ */
+void clear_rect(int left, int top, int right, int bottom, struct bitmap *img) {
+	int x;
+	int y;
+
+	for (y = top; y <= bottom; y++) {
+		for (x = left; x <= right; x++) {
+			SET_PIXEL(img, x, y, WHOLE_WHITE);
+		}
+	}
+}
+
+
 static void blurfilter_main(const struct bitmap *in, struct bitmap *out)
 {
+	int left;
+	int top;
+	int right;
+	int bottom;
+	int count;
+	int max_left;
+	int max_top;
+	int blocks_per_row;
+	int *prev_counts; // Number of dark pixels in previous row
+	int *cur_counts; // Number of dark pixels in current row
+	int *next_counts; // Number of dark pixels in next row
+	int *tmp_counts; // used for permutations of pointers
+	int block; // Number of block in row; Counting begins with 1
+	int max;
+	int total; // Number of pixels in a block
+	int result;
+
 	memcpy(out->pixels, in->pixels, sizeof(union pixel) * in->size.x * in->size.y);
+
+	result = 0;
+	left = 0;
+	top = 0;
+	right = SCAN_SIZE - 1;
+	bottom = SCAN_SIZE - 1;
+	max_left = out->size.x - SCAN_SIZE;
+	max_top = out->size.y - SCAN_SIZE;
+
+	blocks_per_row = out->size.x / SCAN_SIZE;
+	// allocate one extra block left and right
+	prev_counts = calloc(blocks_per_row + 2, sizeof(int));
+	cur_counts = calloc(blocks_per_row + 2, sizeof(int));
+	next_counts = calloc(blocks_per_row + 2, sizeof(int));
+
+	total = SCAN_SIZE * SCAN_SIZE;
+
+	block = 1;
+	for (left = 0; left <= max_left; left += SCAN_SIZE) {
+		cur_counts[block] = count_pixels_rect(left, top, right, bottom, out);
+		block++;
+		right += SCAN_SIZE;
+	}
+	cur_counts[0] = total;
+	cur_counts[blocks_per_row] = total;
+	next_counts[0] = total;
+	next_counts[blocks_per_row] = total;
+
+	// Loop through all blocks. For a block calculate the number of dark
+	// pixels in this block, the number of dark pixels in the block in the
+	// top-left corner and similarly for the block in the top-right,
+	// bottom-left and bottom-right corner. Take the maximum of these
+	// values. Clear the block if this number is not large enough compared
+	// to the total number of pixels in a block.
+	for (top = 0 ; top <= max_top ; top += SCAN_SIZE) {
+		left = 0;
+		right = SCAN_SIZE - 1;
+		next_counts[0] = count_pixels_rect(
+				left, top + SCAN_STEP, right, bottom + SCAN_SIZE, out
+		);
+
+		block = 1;
+		for (left = 0; left <= max_left; left += SCAN_SIZE) {
+			// current block
+			count = cur_counts[block];
+			max = count;
+			// top left
+			count = prev_counts[block-1];
+			if (count > max) {
+				max = count;
+			}
+			// top right
+			count = prev_counts[block+1];
+			if (count > max) {
+				max = count;
+			}
+			// bottom left
+			count = next_counts[block-1];
+			if (count > max) {
+				max = count;
+			}
+			// bottom right (has still to be calculated)
+			next_counts[block + 1] = count_pixels_rect(
+					left + SCAN_SIZE,
+					top + SCAN_STEP,
+					right + SCAN_SIZE,
+					bottom + SCAN_SIZE,
+					out
+			);
+			if (count > max) {
+				max = count;
+			}
+			if ((((float)max) / total) <= INTENSITY) { // Not enough dark pixels
+				clear_rect(left, top, right, bottom, out);
+				result += cur_counts[block];
+				cur_counts[block] = total; // Update information
+			}
+
+			right += SCAN_SIZE;
+			block++;
+		}
+
+		bottom += SCAN_SIZE;
+		// Switch Buffers
+		tmp_counts = prev_counts;
+		prev_counts = cur_counts;
+		cur_counts = next_counts;
+		next_counts = tmp_counts;
+	}
+	free(prev_counts);
+	free(cur_counts);
+	free(next_counts);
 }
 
 static PyObject *blurfilter(PyObject *self, PyObject* args)

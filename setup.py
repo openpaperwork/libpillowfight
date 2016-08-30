@@ -30,7 +30,7 @@ setup(
     },
     ext_modules=[
         Extension(
-            'pypillowfight._ace', [
+            'pypillowfight._pypillowfight', [
                 'src/pypillowfight/util.c',
                 'src/pypillowfight/_ace.c',
             ],
@@ -43,6 +43,16 @@ setup(
             'pypillowfight._blackfilter', [
                 'src/pypillowfight/util.c',
                 'src/pypillowfight/_blackfilter.c',
+            ],
+            include_dirs=[],
+            libraries=['m'],
+            extra_compile_args=[],
+            undef_macros=['NDEBUG'],
+        ),
+        Extension(
+            'pypillowfight._noisefilter', [
+                'src/pypillowfight/util.c',
+                'src/pypillowfight/_noisefilter.c',
             ],
             include_dirs=[],
             libraries=['m'],

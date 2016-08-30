@@ -9,7 +9,7 @@
 #include "util.h"
 
 /*!
- * \brief Algorythm blackfilter from unpaper, rewritten.
+ * \brief Algorithm blackfilter from unpaper, rewritten.
  */
 
 #define WHITE 0xFF

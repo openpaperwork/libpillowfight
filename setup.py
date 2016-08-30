@@ -69,6 +69,16 @@ setup(
             extra_compile_args=[],
             undef_macros=['NDEBUG'],
         ),
+        Extension(
+            'pypillowfight._masks', [
+                'src/pypillowfight/util.c',
+                'src/pypillowfight/_masks.c',
+            ],
+            include_dirs=[],
+            libraries=['m'],
+            extra_compile_args=[],
+            undef_macros=['NDEBUG'],
+        ),
     ],
     data_files=[],
     scripts=[],

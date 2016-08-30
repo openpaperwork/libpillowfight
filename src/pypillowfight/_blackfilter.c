@@ -6,7 +6,7 @@
 
 #include <Python.h>
 
-#include <util.h>
+#include "util.h"
 
 /*!
  * \brief Algorythm blackfilter from unpaper, rewritten.

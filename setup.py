@@ -4,8 +4,6 @@ from setuptools import Extension, setup
 
 setup(
     name="pypillowfight",
-    # Don't forget to update src/pyocr/pyocr.py:VERSION as well
-    # and download_url
     version="0.1.0",
     description=("Extra image processing algorithms on Pillow images"),
     keywords="image processing algorithm pillow pil",
@@ -26,35 +24,27 @@ setup(
     author_email="jflesch@gmail.com",
     packages=[
         'pypillowfight',
-        'pypillowfight.ace',
-        'pypillowfight.blackfilter',
     ],
     package_dir={
         'pypillowfight': 'src/pypillowfight',
-        'pypillowfight.ace': 'src/pypillowfight/ace',
-        'pypillowfight.blackfilter': 'src/pypillowfight/blackfilter',
     },
     ext_modules=[
         Extension(
-            'pypillowfight.ace._ace', [
+            'pypillowfight._ace', [
                 'src/pypillowfight/util.c',
-                'src/pypillowfight/ace/_ace.c',
+                'src/pypillowfight/_ace.c',
             ],
-            include_dirs=[
-                'src/pypillowfight'
-            ],
+            include_dirs=[],
             libraries=['m'],
             extra_compile_args=[],
             undef_macros=['NDEBUG'],
         ),
         Extension(
-            'pypillowfight.blackfilter._blackfilter', [
+            'pypillowfight._blackfilter', [
                 'src/pypillowfight/util.c',
-                'src/pypillowfight/blackfilter/_blackfilter.c',
+                'src/pypillowfight/_blackfilter.c',
             ],
-            include_dirs=[
-                'src/pypillowfight'
-            ],
+            include_dirs=[],
             libraries=['m'],
             extra_compile_args=[],
             undef_macros=['NDEBUG'],

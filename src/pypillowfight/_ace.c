@@ -7,7 +7,7 @@
 
 #include <Python.h>
 
-#include <util.h>
+#include "util.h"
 
 #define MAX_THREADS 32
 

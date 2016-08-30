@@ -2,6 +2,7 @@
 import unittest
 
 from tests import tests_ace
+from tests import tests_all
 from tests import tests_blackfilter
 from tests import tests_blurfilter
 from tests import tests_border
@@ -17,3 +18,4 @@ if __name__ == '__main__':
     unittest.main(tests_grayfilter, verbosity=2, exit=False)
     unittest.main(tests_masks, verbosity=2, exit=False)
     unittest.main(tests_noisefilter, verbosity=2, exit=False)
+    unittest.main(tests_all, verbosity=2, exit=False)

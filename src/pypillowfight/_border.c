@@ -92,9 +92,6 @@ static struct rectangle detect_border(const struct bitmap *img) {
 	out.b.x = img->size.x - out.b.x;
 	out.b.y = img->size.y - out.b.y;
 
-	fprintf(stderr, "BORDER: %dx%d - %dx%d\n",
-			out.a.x, out.a.y, out.b.x, out.b.y);
-
 	return out;
 }
 

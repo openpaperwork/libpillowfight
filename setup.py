@@ -59,6 +59,16 @@ setup(
             extra_compile_args=[],
             undef_macros=['NDEBUG'],
         ),
+        Extension(
+            'pypillowfight._blurfilter', [
+                'src/pypillowfight/util.c',
+                'src/pypillowfight/_blurfilter.c',
+            ],
+            include_dirs=[],
+            libraries=['m'],
+            extra_compile_args=[],
+            undef_macros=['NDEBUG'],
+        ),
     ],
     data_files=[],
     scripts=[],

@@ -176,7 +176,6 @@ static void masks_main(const struct bitmap *in, struct bitmap *out)
 	memcpy(out->pixels, in->pixels, sizeof(union pixel) * in->size.x * in->size.y);
 
 	mask = detect_mask(in, in->size.x / 2, in->size.y /2);
-	fprintf(stderr, "MASK: %dx%d - %dx%d\n", mask.a.x, mask.a.y, mask.b.x, mask.b.y);
 	apply_mask(out, &mask);
 }
 

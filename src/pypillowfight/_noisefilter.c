@@ -27,13 +27,139 @@
 #include "util.h"
 
 /*!
- * \brief Algorithm noisefilter from unpaper, rewritten.
+ * \brief Algorithm noisefilter from unpaper, partially rewritten.
  */
+
+#define WHITE_THRESHOLD 0.9
+#define WHITE_MIN ((int)(WHITE_THRESHOLD * WHITE))
+#define INTENSITY 4
+
+#define GET_PIXEL_LIGHTNESS(img, x, y) \
+	MIN3( \
+			GET_COLOR_DEF(img, x, y, COLOR_R, g_default_white_pixel), \
+			GET_COLOR_DEF(img, x, y, COLOR_G, g_default_white_pixel), \
+			GET_COLOR_DEF(img, x, y, COLOR_B, g_default_white_pixel) \
+	)
+
+static void callback_count(int x, int y, struct bitmap *img, void *cb_data) {
+	int *count = cb_data;
+	(*count)++;
+}
+
+static void callback_clear(int x, int y, struct bitmap *img, void *cb_data) {
+	int *count = cb_data;
+	(*count)++;
+	SET_PIXEL(img, x, y, WHOLE_WHITE);
+}
+
+/**
+ * Browse the number of dark pixels around the pixel at (x,y), who have a
+ * square-metric distance of 'level' to the (x,y) (thus, testing the values
+ * of 9 pixels if level==1, 16 pixels if level==2 and so on).
+ * Optionally, the pixels can get cleared after counting.
+ */
+static void browse_pixel_neighbors_level(int x, int y,
+		int level, struct bitmap *img,
+		void (*callback)(int x, int y, struct bitmap *img, void *cb_data),
+		void *cb_data) {
+	int xx;
+	int yy;
+	int pixel;
+
+	// upper and lower rows
+	for (xx = x - level; xx <= x + level; xx++) {
+		// upper row
+		pixel = GET_PIXEL_LIGHTNESS(img, xx, y - level);
+		if (pixel < WHITE_MIN) { // non-light pixel found
+			callback(xx, y - level, img, cb_data);
+		}
+		// lower row
+		pixel = GET_PIXEL_LIGHTNESS(img, xx, y + level);
+		if (pixel < WHITE_MIN) {
+			callback(xx, y + level, img, cb_data);
+		}
+	}
+	// middle rows
+	for (yy = y - (level - 1); yy <= y + (level - 1); yy++) {
+		// first col
+		pixel = GET_PIXEL_LIGHTNESS(img, x - level, yy);
+		if (pixel < WHITE_MIN) { // non-light pixel found
+			callback(x - level, yy, img, cb_data);
+		}
+		// last col
+		pixel = GET_PIXEL_LIGHTNESS(img, x + level, yy);
+		if (pixel < WHITE_MIN) {
+			callback(x + level, yy, img, cb_data);
+		}
+	}
+}
+
+
+/**
+ * Count all dark pixels in the distance 0..intensity that are directly
+ * reachable from the dark pixel at (x,y), without having to cross bright
+ * pixels.
+ */
+static int count_pixel_neighbors(int x, int y, struct bitmap *img) {
+	int level;
+	int count = 1; // assume self as set
+	int l_count = -1;
+
+	// can finish when one level is completely zero
+	for (level = 1; (l_count != 0) && (level <= INTENSITY); level++) {
+		l_count = 0;
+		browse_pixel_neighbors_level(x, y, level, img,
+				callback_count, &l_count);
+		count += l_count;
+	}
+	return count;
+}
+
+/**
+ * Clears all dark pixels that are directly reachable from the dark pixel at
+ * (x,y). This should be called only if it has previously been detected that
+ * the amount of pixels to clear will be reasonable small.
+ */
+static void clear_pixel_neighbors(int x, int y, struct bitmap *img) {
+	int level;
+	int l_count = -1;
+
+	SET_PIXEL(img, x, y, WHOLE_WHITE);
+
+	// lCount will become 0, otherwise countPixelNeighbors() would
+	// previously have delivered a bigger value (and this here would not
+	// have been called)
+	for (level = 1; l_count != 0; level++) {
+		l_count = 0;
+		browse_pixel_neighbors_level(x, y, level, img,
+				callback_clear, &l_count);
+	}
+}
 
 static void noisefilter_main(const struct bitmap *in, struct bitmap *out)
 {
 	memcpy(out->pixels, in->pixels, sizeof(union pixel) * in->size.x * in->size.y);
-	/* TODO */
+
+	int x;
+	int y;
+	int count;
+	int pixel;
+	int neighbors;
+
+	count = 0;
+	for (y = 0; y < out->size.y; y++) {
+		for (x = 0; x < out->size.x; x++) {
+			pixel = GET_PIXEL_DARKNESS_INVERSE(out, x, y);
+			if (pixel < WHITE_MIN) { // one dark pixel found
+				// get number of non-light pixels in neighborhood
+				neighbors = count_pixel_neighbors(x, y, out);
+				if (neighbors <= INTENSITY) { // not more than 'intensity'
+					clear_pixel_neighbors(x, y, out); // delete area
+					count++;
+				}
+			}
+		}
+	}
 }
 
 static PyObject *noisefilter(PyObject *self, PyObject* args)

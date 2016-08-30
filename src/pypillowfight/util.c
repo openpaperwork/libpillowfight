@@ -19,6 +19,10 @@
 
 #include "util.h"
 
+const union pixel g_default_white_pixel = {
+	.whole = WHOLE_WHITE,
+};
+
 struct bitmap from_py_buffer(const Py_buffer *buffer, int x, int y)
 {
 	struct bitmap out;

@@ -27,11 +27,8 @@
 #include "util.h"
 
 /*!
- * \brief Algorithm blackfilter from unpaper, rewritten.
+ * \brief Algorithm blackfilter from unpaper, partially rewritten.
  */
-
-#define WHITE 0xFF
-#define WHOLE_WHITE 0xFFFFFFFF
 
 #define THRESHOLD 0.33
 #define SCAN_SIZE 20
@@ -42,29 +39,6 @@
 
 #define ABS_SCAN_THRESHOLD (WHITE * SCAN_THRESHOLD)
 #define ABS_THRESHOLD (WHITE * (1.0 - THRESHOLD))
-
-#define MAX3(a, b, c)                                                   \
-    ({ __typeof__ (a) _a = (a);                                         \
-        __typeof__ (b) _b = (b);                                        \
-        __typeof__ (c) _c = (c);                                        \
-        ( _a > _b ? ( _a > _c ? _a : _c ) : ( _b > _c ? _b : _c ) ); })
-
-#define GET_PIXEL_DARKNESS_INVERSE(img, x, y) \
-	MAX3( \
-			GET_PIXEL_DEF(img, x, y, g_default_pixel).color.r, \
-			GET_PIXEL_DEF(img, x, y, g_default_pixel).color.g, \
-			GET_PIXEL_DEF(img, x, y, g_default_pixel).color.b \
-		);
-
-#define GET_PIXEL_GRAYSCALE(img, x, y) \
-	((GET_PIXEL_DEF(img, x, y, g_default_pixel).color.r \
-	  + GET_PIXEL_DEF(img, x, y, g_default_pixel).color.g \
-	  + GET_PIXEL_DEF(img, x, y, g_default_pixel).color.b) / 3)
-
-
-static const union pixel g_default_pixel = {
-	.whole = WHOLE_WHITE,
-};
 
 
 static uint8_t get_darkness_rect(

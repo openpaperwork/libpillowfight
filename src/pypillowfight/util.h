@@ -31,6 +31,9 @@
 #define COLOR_B 2
 #define NB_COLORS 4 /* to align on 32bits */
 
+#define WHITE 0xFF
+#define WHOLE_WHITE 0xFFFFFFFF
+
 /*!
  * \returns a uint32_t (RGBA)
  */
@@ -49,6 +52,28 @@
 #define GET_COLOR_DEF(bitmap, a, b, color, def) (GET_PIXEL_DEF(bitmap, a, b, def).channels[(color)])
 
 #define SET_COLOR(bitmap, a, b, color, value) (GET_PIXEL(bitmap, a, b).channels[(color)]) = (value)
+
+// Careful: double evaluation !
+#define MIN(a, b) (((a) < (b)) ? (a) : (b))
+#define MAX(a, b) (((a) > (b)) ? (a) : (b))
+
+// Careful : multiple evaluation !
+#define MAX3(a, b, c) MAX(a, MAX(b, c))
+#define MIN3(a, b, c) MIN(a, MIN(b, c))
+
+// Careful : multiple evaluation !
+#define GET_PIXEL_DARKNESS_INVERSE(img, x, y) \
+	MAX3( \
+			GET_PIXEL_DEF(img, x, y, g_default_white_pixel).color.r, \
+			GET_PIXEL_DEF(img, x, y, g_default_white_pixel).color.g, \
+			GET_PIXEL_DEF(img, x, y, g_default_white_pixel).color.b \
+		);
+
+#define GET_PIXEL_GRAYSCALE(img, x, y) \
+	((GET_PIXEL_DEF(img, x, y, g_default_white_pixel).color.r \
+	  + GET_PIXEL_DEF(img, x, y, g_default_white_pixel).color.g \
+	  + GET_PIXEL_DEF(img, x, y, g_default_white_pixel).color.b) / 3)
+
 
 union pixel {
 	uint32_t whole;
@@ -69,6 +94,8 @@ struct bitmap {
 	} size;
 	union pixel *pixels;
 };
+
+extern const union pixel g_default_white_pixel;
 
 /*!
  * \brief convert a py_buffer into a struct bitmap

@@ -138,13 +138,13 @@ static void clear_pixel_neighbors(int x, int y, struct bitmap *img) {
 
 static void noisefilter_main(const struct bitmap *in, struct bitmap *out)
 {
-	memcpy(out->pixels, in->pixels, sizeof(union pixel) * in->size.x * in->size.y);
-
 	int x;
 	int y;
 	int count;
 	int pixel;
 	int neighbors;
+
+	memcpy(out->pixels, in->pixels, sizeof(union pixel) * in->size.x * in->size.y);
 
 	count = 0;
 	for (y = 0; y < out->size.y; y++) {

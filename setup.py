@@ -58,6 +58,15 @@ setup(
             undef_macros=['NDEBUG'],
         ),
         Extension(
+            'pypillowfight._canny', [
+                'src/pypillowfight/util.c',
+                'src/pypillowfight/_canny.c',
+            ],
+            include_dirs=[],
+            extra_compile_args=[],
+            undef_macros=['NDEBUG'],
+        ),
+        Extension(
             'pypillowfight._grayfilter', [
                 'src/pypillowfight/util.c',
                 'src/pypillowfight/_grayfilter.c',

@@ -37,6 +37,7 @@ setup(
                 'src/pypillowfight/_blurfilter.c',
                 'src/pypillowfight/_border.c',
                 'src/pypillowfight/_canny.c',
+                'src/pypillowfight/_gaussian.c',
                 'src/pypillowfight/_grayfilter.c',
                 'src/pypillowfight/_masks.c',
                 'src/pypillowfight/_noisefilter.c',

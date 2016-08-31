@@ -8,6 +8,7 @@ static PyMethodDef clib_methods[] = {
 	{"blurfilter", pyblurfilter, METH_VARARGS, NULL},
 	{"border", pyborder, METH_VARARGS, NULL},
 	{"canny", pycanny, METH_VARARGS, NULL},
+	{"gaussian", pygaussian, METH_VARARGS, NULL},
 	{"grayfilter", pygrayfilter, METH_VARARGS, NULL},
 	{"masks", pymasks, METH_VARARGS, NULL},
 	{"noisefilter", pynoisefilter, METH_VARARGS, NULL},

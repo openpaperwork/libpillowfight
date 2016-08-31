@@ -12,6 +12,7 @@ from tests import tests_masks
 from tests import tests_noisefilter
 from tests import tests_sobel
 
+
 if __name__ == '__main__':
     unittest.main(tests_ace, verbosity=2, exit=False)
     unittest.main(tests_blackfilter, verbosity=2, exit=False)

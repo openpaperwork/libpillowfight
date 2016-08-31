@@ -3,14 +3,14 @@ import unittest
 
 import PIL.Image
 
-from pypillowfight import border
+import pypillowfight
 
 
 class TestBorder(unittest.TestCase):
     def test_border(self):
         with tempfile.NamedTemporaryFile(suffix='.jpg') as tmpfile:
             in_img = PIL.Image.open("tests/data/black_border_problem3.jpg")
-            out_img = border.border(in_img)
+            out_img = pypillowfight.border(in_img)
             in_img.close()
 
             # beware of JPG compression

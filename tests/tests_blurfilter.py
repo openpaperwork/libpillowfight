@@ -3,14 +3,14 @@ import unittest
 
 import PIL.Image
 
-from pypillowfight import blurfilter
+import pypillowfight
 
 
 class TestBlurfilter(unittest.TestCase):
     def test_blurfilter(self):
         with tempfile.NamedTemporaryFile(suffix='.jpg') as tmpfile:
             in_img = PIL.Image.open("tests/data/black_border_problem.jpg")
-            out_img = blurfilter.blurfilter(in_img)
+            out_img = pypillowfight.blurfilter(in_img)
             in_img.close()
 
             # beware of JPG compression

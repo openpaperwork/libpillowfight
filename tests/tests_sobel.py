@@ -3,14 +3,14 @@ import unittest
 
 import PIL.Image
 
-from pypillowfight import sobel
+import pypillowfight
 
 
 class TestSobel(unittest.TestCase):
     def test_sobel(self):
         with tempfile.NamedTemporaryFile(suffix='.jpg') as tmpfile:
             in_img = PIL.Image.open("tests/data/crappy_background.jpg")
-            out_img = sobel.sobel(in_img)
+            out_img = pypillowfight.sobel(in_img)
             in_img.close()
 
             # beware of JPG compression

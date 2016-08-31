@@ -27,6 +27,16 @@
 
 #include "util.h"
 
+/*!
+ * \brief Automatic color equalization algorithm
+ *
+ * A. Rizzi, C. Gatta and D. Marini
+ * - "A new algorithm for unsupervised global and local color correction."
+ *
+ * This is a parallelized version of the algorithm, using all the cores/processors
+ * of the computer (up to 32).
+ */
+
 #define MAX_THREADS 32
 
 #define ACE_COLORS 3 /* we don't use the alpha channel */
@@ -39,7 +49,6 @@
 
 #define MIN(a, b) (((a) < (b)) ? (a) : (b))
 #define MAX(a, b) (((a) > (b)) ? (a) : (b))
-
 
 /*!
  * 2d matrix, with 3 channels for each element of the matrix

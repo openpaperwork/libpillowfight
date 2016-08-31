@@ -40,7 +40,7 @@
 #define LOW_THRESHOLD ((int)(WHITE * 0.47))
 #define HIGH_THRESHOLD ((int)(WHITE * 0.61))
 
-static const struct int_matrix g_kernel_x = {
+static const struct dbl_matrix g_kernel_x = {
 	.size = {
 		.x = 3,
 		.y = 3,
@@ -52,7 +52,7 @@ static const struct int_matrix g_kernel_x = {
 	}
 };
 
-static const struct int_matrix g_kernel_y = {
+static const struct dbl_matrix g_kernel_y = {
 	.size = {
 		.x = 3,
 		.y = 3,
@@ -70,7 +70,7 @@ static const struct int_matrix g_kernel_y = {
  * \param[in,out] a_out matrix used as input *and* output to save memory
  * \param[in] b matrix
  */
-static void dist_matrix(struct int_matrix *matrix_a, const struct int_matrix *matrix_b)
+static void dist_matrix(struct dbl_matrix *matrix_a, const struct dbl_matrix *matrix_b)
 {
 	int x, y;
 	int a, b;
@@ -94,23 +94,23 @@ static
 #endif
 void sobel(const struct bitmap *in_img, struct bitmap *out_img)
 {
-	struct int_matrix in;
-	struct int_matrix g_horizontal, g_vertical;
+	struct dbl_matrix in;
+	struct dbl_matrix g_horizontal, g_vertical;
 
-	in = int_matrix_new(in_img->size.x, in_img->size.y);
-	rgb_bitmap_to_grayscale_int_matrix(in_img, &in);
+	in = dbl_matrix_new(in_img->size.x, in_img->size.y);
+	rgb_bitmap_to_grayscale_dbl_matrix(in_img, &in);
 
-	g_horizontal = int_matrix_convolution(&in, &g_kernel_x);
-	g_vertical = int_matrix_convolution(&in, &g_kernel_y);
+	g_horizontal = dbl_matrix_convolution(&in, &g_kernel_x);
+	g_vertical = dbl_matrix_convolution(&in, &g_kernel_y);
 
 	dist_matrix(&g_horizontal, &g_vertical);
 
-	int_matrix_free(&g_vertical);
-	int_matrix_free(&in);
+	dbl_matrix_free(&g_vertical);
+	dbl_matrix_free(&in);
 
-	grayscale_int_matrix_to_rgb_bitmap(&g_horizontal, out_img);
+	grayscale_dbl_matrix_to_rgb_bitmap(&g_horizontal, out_img);
 
-	int_matrix_free(&g_horizontal);
+	dbl_matrix_free(&g_horizontal);
 }
 
 #ifndef NO_PYTHON

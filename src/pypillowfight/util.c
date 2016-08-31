@@ -97,9 +97,9 @@ void apply_mask(struct bitmap *img, const struct rectangle *mask) {
 }
 
 
-struct int_matrix int_matrix_new(int x, int y)
+struct dbl_matrix dbl_matrix_new(int x, int y)
 {
-	struct int_matrix out;
+	struct dbl_matrix out;
 	out.size.x = x;
 	out.size.y = y;
 	out.values = calloc(x * y, sizeof(out.values[0]));
@@ -107,7 +107,7 @@ struct int_matrix int_matrix_new(int x, int y)
 }
 
 
-void int_matrix_free(struct int_matrix *matrix)
+void dbl_matrix_free(struct dbl_matrix *matrix)
 {
 	free(matrix->values);
 }
@@ -116,16 +116,16 @@ void int_matrix_free(struct int_matrix *matrix)
  * Ref: https://en.wikipedia.org/wiki/Kernel_%28image_processing%29#Convolution
  * Ref: http://www.songho.ca/dsp/convolution/convolution2d_example.html
  */
-struct int_matrix int_matrix_convolution(
-		const struct int_matrix *img,
-		const struct int_matrix *kernel)
+struct dbl_matrix dbl_matrix_convolution(
+		const struct dbl_matrix *img,
+		const struct dbl_matrix *kernel)
 {
-	struct int_matrix out;
+	struct dbl_matrix out;
 	int img_y, kernel_y;
 	int img_x, kernel_x;
 	int val;
 
-	out = int_matrix_new(img->size.x, img->size.y);
+	out = dbl_matrix_new(img->size.x, img->size.y);
 
 	for (img_x = 0 ; img_x < img->size.x ; img_x++) {
 		for (img_y = 0 ; img_y < img->size.y ; img_y++) {
@@ -162,7 +162,7 @@ struct int_matrix int_matrix_convolution(
 	return out;
 }
 
-void rgb_bitmap_to_grayscale_int_matrix(const struct bitmap *in, struct int_matrix *out)
+void rgb_bitmap_to_grayscale_dbl_matrix(const struct bitmap *in, struct dbl_matrix *out)
 {
 	int x, y;
 
@@ -179,7 +179,7 @@ void rgb_bitmap_to_grayscale_int_matrix(const struct bitmap *in, struct int_matr
 	}
 }
 
-void grayscale_int_matrix_to_rgb_bitmap(const struct int_matrix *in, struct bitmap *out)
+void grayscale_dbl_matrix_to_rgb_bitmap(const struct dbl_matrix *in, struct bitmap *out)
 {
 	int x, y;
 	int value;

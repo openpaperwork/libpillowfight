@@ -111,7 +111,7 @@ struct bitmap {
 /*!
  * \brief matrix of integers
  */
-struct int_matrix {
+struct dbl_matrix {
 	struct {
 		int x;
 		int y;
@@ -149,19 +149,19 @@ Py_buffer to_py_buffer(const struct bitmap *bitmap);
 #endif
 
 
-struct int_matrix int_matrix_new(int x, int y);
-void int_matrix_free(struct int_matrix *matrix);
+struct dbl_matrix dbl_matrix_new(int x, int y);
+void dbl_matrix_free(struct dbl_matrix *matrix);
 
 /*!
  * \see https://en.wikipedia.org/wiki/Kernel_%28image_processing%29#Convolution
  */
-struct int_matrix int_matrix_convolution(
-		const struct int_matrix *image,
-		const struct int_matrix *kernel
+struct dbl_matrix dbl_matrix_convolution(
+		const struct dbl_matrix *image,
+		const struct dbl_matrix *kernel
 	);
 
-void rgb_bitmap_to_grayscale_int_matrix(const struct bitmap *in, struct int_matrix *out);
-void grayscale_int_matrix_to_rgb_bitmap(const struct int_matrix *in, struct bitmap *out);
+void rgb_bitmap_to_grayscale_dbl_matrix(const struct bitmap *in, struct dbl_matrix *out);
+void grayscale_dbl_matrix_to_rgb_bitmap(const struct dbl_matrix *in, struct bitmap *out);
 
 /**
  * Clears a rectangular area of pixels with white.

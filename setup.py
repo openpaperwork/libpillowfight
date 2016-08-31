@@ -108,6 +108,7 @@ setup(
                 'src/pypillowfight/_sobel.c',
             ],
             include_dirs=[],
+            libraries=['m'],
             extra_compile_args=[],
             undef_macros=['NDEBUG'],
         ),

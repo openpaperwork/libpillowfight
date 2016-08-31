@@ -98,7 +98,7 @@ struct int_matrix int_matrix_new(int x, int y)
 	struct int_matrix out;
 	out.size.x = x;
 	out.size.y = y;
-	out.values = calloc(x, y);
+	out.values = calloc(x * y, sizeof(out.values[0]));
 	return out;
 }
 
@@ -166,7 +166,7 @@ void rgb_bitmap_to_grayscale_int_matrix(const struct bitmap *in, struct int_matr
 	assert(out->size.y == in->size.y);
 
 	for (x = 0 ; x < in->size.x ; x++) {
-		for (y = 0 ; in->size.y ; y++) {
+		for (y = 0 ; y < in->size.y ; y++) {
 			INT_MATRIX_SET(
 				out, x, y,
 				GET_PIXEL_GRAYSCALE(in, x, y)
@@ -184,9 +184,12 @@ void grayscale_int_matrix_to_rgb_bitmap(const struct int_matrix *in, struct bitm
 	assert(out->size.y == in->size.y);
 
 	for (x = 0 ; x < in->size.x ; x++) {
-		for (y = 0 ; in->size.y ; y++) {
+		for (y = 0 ; y < in->size.y ; y++) {
 			value = INT_MATRIX_GET(in, x, y);
-			assert(value >= 0 && value < 256);
+			if (value < 0)
+				value = 0;
+			if (value >= 256)
+				value = 255;
 			SET_COLOR(out, x, y, COLOR_R, value);
 			SET_COLOR(out, x, y, COLOR_G, value);
 			SET_COLOR(out, x, y, COLOR_B, value);

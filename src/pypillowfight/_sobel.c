@@ -36,10 +36,74 @@
 #define LOW_THRESHOLD ((int)(WHITE * 0.47))
 #define HIGH_THRESHOLD ((int)(WHITE * 0.61))
 
-static void sobel_main(const struct bitmap *in, struct bitmap *out)
+static const struct int_matrix g_kernel_x = {
+	.size = {
+		.x = 3,
+		.y = 3,
+	},
+	.values = (int[]) {
+		-1, 0, 1,
+		-2, 0, 2,
+		-1, 0, 1
+	}
+};
+
+static const struct int_matrix g_kernel_y = {
+	.size = {
+		.x = 3,
+		.y = 3,
+	},
+	.values = (int[]) {
+		-1, -2, -1,
+		0, 0, 0,
+		+1, +2, +1,
+	}
+};
+
+/*!
+ * \brief for each matrix point (x, y), compute the distance between (0, 0)
+ *		and (matrix_a[x][y], matrix_b[x][y])
+ * \param[in,out] a_out matrix used as input *and* output to save memory
+ * \param[in] b matrix
+ */
+static void dist_matrix(struct int_matrix *matrix_a, const struct int_matrix *matrix_b)
 {
-	memset(out->pixels, 0, sizeof(union pixel) * out->size.x * out->size.y);
-	// TODO
+	int x, y;
+	int a, b;
+	int dist;
+
+	assert(matrix_a->size.x == matrix_b->size.x);
+	assert(matrix_a->size.y == matrix_b->size.y);
+
+	for (x = 0 ; x < matrix_a->size.x ; x++) {
+		for (y = 0 ; y < matrix_a->size.y ; y++) {
+			a = INT_MATRIX_GET(matrix_a, x, y);
+			b = INT_MATRIX_GET(matrix_b, x, y);
+			dist = sqrt((a * a) + (b * b));
+			INT_MATRIX_SET(matrix_a, x, y, dist);
+		}
+	}
+}
+
+static void sobel_main(const struct bitmap *in_img, struct bitmap *out_img)
+{
+	struct int_matrix in;
+	struct int_matrix g_horizontal, g_vertical;
+
+	in = int_matrix_new(in_img->size.x, in_img->size.y);
+	rgb_bitmap_to_grayscale_int_matrix(in_img, &in);
+
+	g_horizontal = int_matrix_convolution(&in, &g_kernel_x);
+	g_vertical = int_matrix_convolution(&in, &g_kernel_y);
+
+	dist_matrix(&g_horizontal, &g_vertical);
+
+	int_matrix_free(&g_vertical);
+	int_matrix_free(&in);
+
+	grayscale_int_matrix_to_rgb_bitmap(&g_horizontal, out_img);
+
+	int_matrix_free(&g_horizontal);
 }
 
 static PyObject *sobel(PyObject *self, PyObject* args)

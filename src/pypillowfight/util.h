@@ -111,14 +111,14 @@ struct bitmap {
  */
 struct int_matrix {
 	struct {
-		size_t x;
-		size_t y;
+		int x;
+		int y;
 	} size;
 	int32_t *values;
 };
 
 #define INT_MATRIX_GET(matrix, a, b) ((matrix)->values[((b) * (matrix)->size.x) + (a)])
-#define INT_MATRIX_SET(matrix, a, b, val) ((matrix)->values[((b) * (matrix)->size.x) + (a)]) = (val);
+#define INT_MATRIX_SET(matrix, a, b, val) INT_MATRIX_GET(matrix, a, b) = (val);
 
 
 struct rectangle {

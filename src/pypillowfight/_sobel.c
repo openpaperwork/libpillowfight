@@ -22,9 +22,13 @@
 #include <stdio.h>
 #include <values.h>
 
-#include <Python.h>
+#ifdef NO_PYTHON
+#include <pillowfight/pillowfight.h>
+#else
+#include "_pymod.h"
+#endif
 
-#include "util.h"
+#include <pillowfight/util.h>
 
 /*!
  * \brief Sobel filter
@@ -85,7 +89,10 @@ static void dist_matrix(struct int_matrix *matrix_a, const struct int_matrix *ma
 	}
 }
 
-static void sobel_main(const struct bitmap *in_img, struct bitmap *out_img)
+#ifndef NO_PYTHON
+static
+#endif
+void sobel(const struct bitmap *in_img, struct bitmap *out_img)
 {
 	struct int_matrix in;
 	struct int_matrix g_horizontal, g_vertical;
@@ -106,7 +113,9 @@ static void sobel_main(const struct bitmap *in_img, struct bitmap *out_img)
 	int_matrix_free(&g_horizontal);
 }
 
-static PyObject *sobel(PyObject *self, PyObject* args)
+#ifndef NO_PYTHON
+
+PyObject *pysobel(PyObject *self, PyObject* args)
 {
 	int img_x, img_y;
 	Py_buffer img_in, img_out;
@@ -127,39 +136,11 @@ static PyObject *sobel(PyObject *self, PyObject* args)
 	bitmap_out = from_py_buffer(&img_out, img_x, img_y);
 
 	memset(bitmap_out.pixels, 0xFFFFFFFF, img_out.len);
-	sobel_main(&bitmap_in, &bitmap_out);
+	sobel(&bitmap_in, &bitmap_out);
 
 	PyBuffer_Release(&img_in);
 	PyBuffer_Release(&img_out);
 	Py_RETURN_NONE;
 }
 
-static PyMethodDef sobel_methods[] = {
-	{"sobel", sobel, METH_VARARGS, NULL},
-	{NULL, NULL, 0, NULL},
-};
-
-#if PY_VERSION_HEX < 0x03000000
-
-PyMODINIT_FUNC
-init_sobel(void)
-{
-    PyObject* m = Py_InitModule("_sobel", sobel_methods);
-}
-
-#else
-
-static struct PyModuleDef sobel_module = {
-	PyModuleDef_HEAD_INIT,
-	"_sobel",
-	NULL /* doc */,
-	-1,
-	sobel_methods,
-};
-
-PyMODINIT_FUNC PyInit__sobel(void)
-{
-	return PyModule_Create(&sobel_module);
-}
-
-#endif
+#endif // !NO_PYTHON

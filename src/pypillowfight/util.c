@@ -17,11 +17,13 @@
 #include <assert.h>
 #include <stdlib.h>
 
-#include "util.h"
+#include <pillowfight/util.h>
 
 const union pixel g_default_white_pixel = {
 	.whole = WHOLE_WHITE,
 };
+
+#ifndef NO_PYTHON
 
 struct bitmap from_py_buffer(const Py_buffer *buffer, int x, int y)
 {
@@ -35,6 +37,8 @@ struct bitmap from_py_buffer(const Py_buffer *buffer, int x, int y)
 
 	return out;
 }
+
+#endif
 
 
 void clear_rect(struct bitmap *img, int left, int top, int right, int bottom)

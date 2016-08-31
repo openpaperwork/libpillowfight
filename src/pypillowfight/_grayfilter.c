@@ -20,11 +20,16 @@
 #include <math.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <string.h>
 #include <values.h>
 
-#include <Python.h>
+#ifdef NO_PYTHON
+#include <pillowfight/pillowfight.h>
+#else
+#include "_pymod.h"
+#endif
 
-#include "util.h"
+#include <pillowfight/util.h>
 
 /*!
  * \brief Algorithm 'grayfilter' from unpaper, partially rewritten.
@@ -55,7 +60,10 @@ static int lightness_rect(int x1, int y1, int x2, int y2, const struct bitmap *i
 	return total / count;
 }
 
-static void grayfilter_main(const struct bitmap *in, struct bitmap *out)
+#ifndef NO_PYTHON
+static
+#endif
+void grayfilter(const struct bitmap *in, struct bitmap *out)
 {
 	int left;
 	int top;
@@ -94,7 +102,9 @@ static void grayfilter_main(const struct bitmap *in, struct bitmap *out)
 	}
 }
 
-static PyObject *grayfilter(PyObject *self, PyObject* args)
+
+#ifndef NO_PYTHON
+PyObject *pygrayfilter(PyObject *self, PyObject* args)
 {
 	int img_x, img_y;
 	Py_buffer img_in, img_out;
@@ -115,39 +125,11 @@ static PyObject *grayfilter(PyObject *self, PyObject* args)
 	bitmap_out = from_py_buffer(&img_out, img_x, img_y);
 
 	memset(bitmap_out.pixels, 0xFFFFFFFF, img_out.len);
-	grayfilter_main(&bitmap_in, &bitmap_out);
+	grayfilter(&bitmap_in, &bitmap_out);
 
 	PyBuffer_Release(&img_in);
 	PyBuffer_Release(&img_out);
 	Py_RETURN_NONE;
-}
-
-static PyMethodDef grayfilter_methods[] = {
-	{"grayfilter", grayfilter, METH_VARARGS, NULL},
-	{NULL, NULL, 0, NULL},
-};
-
-#if PY_VERSION_HEX < 0x03000000
-
-PyMODINIT_FUNC
-init_grayfilter(void)
-{
-    PyObject* m = Py_InitModule("_grayfilter", grayfilter_methods);
-}
-
-#else
-
-static struct PyModuleDef grayfilter_module = {
-	PyModuleDef_HEAD_INIT,
-	"_grayfilter",
-	NULL /* doc */,
-	-1,
-	grayfilter_methods,
-};
-
-PyMODINIT_FUNC PyInit__grayfilter(void)
-{
-	return PyModule_Create(&grayfilter_module);
 }
 
 #endif

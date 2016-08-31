@@ -20,11 +20,16 @@
 #include <math.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <string.h>
 #include <values.h>
 
-#include <Python.h>
+#ifdef NO_PYTHON
+#include <pillowfight/pillowfight.h>
+#else
+#include "_pymod.h"
+#endif
 
-#include "util.h"
+#include <pillowfight/util.h>
 
 /*!
  * \brief Algorithm 'mask' from unpaper, partially rewritten.
@@ -137,7 +142,10 @@ static struct rectangle detect_mask(const struct bitmap *img, int x, int y)
 	return out;
 }
 
-static void masks_main(const struct bitmap *in, struct bitmap *out)
+#ifndef NO_PYTHON
+static
+#endif
+void masks(const struct bitmap *in, struct bitmap *out)
 {
 	struct rectangle mask;
 
@@ -147,7 +155,9 @@ static void masks_main(const struct bitmap *in, struct bitmap *out)
 	apply_mask(out, &mask);
 }
 
-static PyObject *masks(PyObject *self, PyObject* args)
+#ifndef NO_PYTHON
+
+PyObject *pymasks(PyObject *self, PyObject* args)
 {
 	int img_x, img_y;
 	Py_buffer img_in, img_out;
@@ -168,39 +178,11 @@ static PyObject *masks(PyObject *self, PyObject* args)
 	bitmap_out = from_py_buffer(&img_out, img_x, img_y);
 
 	memset(bitmap_out.pixels, 0xFFFFFFFF, img_out.len);
-	masks_main(&bitmap_in, &bitmap_out);
+	masks(&bitmap_in, &bitmap_out);
 
 	PyBuffer_Release(&img_in);
 	PyBuffer_Release(&img_out);
 	Py_RETURN_NONE;
 }
 
-static PyMethodDef masks_methods[] = {
-	{"masks", masks, METH_VARARGS, NULL},
-	{NULL, NULL, 0, NULL},
-};
-
-#if PY_VERSION_HEX < 0x03000000
-
-PyMODINIT_FUNC
-init_masks(void)
-{
-    PyObject* m = Py_InitModule("_masks", masks_methods);
-}
-
-#else
-
-static struct PyModuleDef masks_module = {
-	PyModuleDef_HEAD_INIT,
-	"_masks",
-	NULL /* doc */,
-	-1,
-	masks_methods,
-};
-
-PyMODINIT_FUNC PyInit__masks(void)
-{
-	return PyModule_Create(&masks_module);
-}
-
-#endif
+#endif // !NO_PYTHON

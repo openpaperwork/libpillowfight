@@ -14,12 +14,14 @@
  * along with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __PYPILLOWFIGHT_UTIL_H
-#define __PYPILLOWFIGHT_UTIL_H
+#ifndef __PILLOWFIGHT_UTIL_H
+#define __PILLOWFIGHT_UTIL_H
 
 #include <stdint.h>
 
+#ifndef NO_PYTHON
 #include <Python.h>
+#endif
 
 /*!<
  * - Everything here assume we work with RGBA images
@@ -135,6 +137,8 @@ struct rectangle {
 
 extern const union pixel g_default_white_pixel;
 
+
+#ifndef NO_PYTHON
 /*!
  * \brief convert a py_buffer into a struct bitmap
  * \warning assumes the py_buffer is a RGBA image
@@ -142,6 +146,7 @@ extern const union pixel g_default_white_pixel;
 struct bitmap from_py_buffer(const Py_buffer *buffer, int x, int y);
 
 Py_buffer to_py_buffer(const struct bitmap *bitmap);
+#endif
 
 
 struct int_matrix int_matrix_new(int x, int y);

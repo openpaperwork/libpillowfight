@@ -1,12 +1,12 @@
 import PIL.Image
 
-from . import _sobel
+from . import _clib
 
 
 def sobel(img_in):
     img_in = img_in.convert("RGBA")  # Add alpha to align on 32bits
     img_out = bytes(img_in.size[0] * img_in.size[1] * 4 * [0])
-    _sobel.sobel(
+    _clib.sobel(
         img_in.size[0],
         img_in.size[1],
         img_in.tobytes(),

@@ -1,12 +1,12 @@
 import PIL.Image
 
-from . import _canny
+from . import _clib
 
 
 def canny(img_in):
     img_in = img_in.convert("RGBA")  # Add alpha to align on 32bits
     img_out = bytes(img_in.size[0] * img_in.size[1] * 4 * [0])
-    _canny.canny(
+    _clib.canny(
         img_in.size[0],
         img_in.size[1],
         img_in.tobytes(),

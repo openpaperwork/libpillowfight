@@ -1,12 +1,12 @@
 import PIL.Image
 
-from . import _blurfilter
+from . import _clib
 
 
 def blurfilter(img_in):
     img_in = img_in.convert("RGBA")  # Add alpha to align on 32bits
     img_out = bytes(img_in.size[0] * img_in.size[1] * 4 * [0])
-    _blurfilter.blurfilter(
+    _clib.blurfilter(
         img_in.size[0],
         img_in.size[1],
         img_in.tobytes(),

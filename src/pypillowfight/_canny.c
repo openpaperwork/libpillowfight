@@ -20,11 +20,16 @@
 #include <math.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <string.h>
 #include <values.h>
 
-#include <Python.h>
+#ifdef NO_PYTHON
+#include <pillowfight/pillowfight.h>
+#else
+#include "_pymod.h"
+#endif
 
-#include "util.h"
+#include <pillowfight/util.h>
 
 /*!
  * \brief Canny edge detection
@@ -36,13 +41,17 @@
 #define LOW_THRESHOLD ((int)(WHITE * 0.47))
 #define HIGH_THRESHOLD ((int)(WHITE * 0.61))
 
-static void canny_main(const struct bitmap *in, struct bitmap *out)
+#ifndef NO_PYTHON
+static
+#endif
+void canny(const struct bitmap *in, struct bitmap *out)
 {
 	memset(out->pixels, 0, sizeof(union pixel) * out->size.x * out->size.y);
 	// TODO
 }
 
-static PyObject *canny(PyObject *self, PyObject* args)
+#ifndef NO_PYTHON
+PyObject *pycanny(PyObject *self, PyObject* args)
 {
 	int img_x, img_y;
 	Py_buffer img_in, img_out;
@@ -63,39 +72,11 @@ static PyObject *canny(PyObject *self, PyObject* args)
 	bitmap_out = from_py_buffer(&img_out, img_x, img_y);
 
 	memset(bitmap_out.pixels, 0xFFFFFFFF, img_out.len);
-	canny_main(&bitmap_in, &bitmap_out);
+	canny(&bitmap_in, &bitmap_out);
 
 	PyBuffer_Release(&img_in);
 	PyBuffer_Release(&img_out);
 	Py_RETURN_NONE;
-}
-
-static PyMethodDef canny_methods[] = {
-	{"canny", canny, METH_VARARGS, NULL},
-	{NULL, NULL, 0, NULL},
-};
-
-#if PY_VERSION_HEX < 0x03000000
-
-PyMODINIT_FUNC
-init_canny(void)
-{
-    PyObject* m = Py_InitModule("_canny", canny_methods);
-}
-
-#else
-
-static struct PyModuleDef canny_module = {
-	PyModuleDef_HEAD_INIT,
-	"_canny",
-	NULL /* doc */,
-	-1,
-	canny_methods,
-};
-
-PyMODINIT_FUNC PyInit__canny(void)
-{
-	return PyModule_Create(&canny_module);
 }
 
 #endif

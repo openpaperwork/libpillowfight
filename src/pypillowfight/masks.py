@@ -1,12 +1,12 @@
 import PIL.Image
 
-from . import _masks
+from . import _clib
 
 
 def masks(img_in):
     img_in = img_in.convert("RGBA")  # Add alpha to align on 32bits
     img_out = bytes(img_in.size[0] * img_in.size[1] * 4 * [0])
-    _masks.masks(
+    _clib.masks(
         img_in.size[0],
         img_in.size[1],
         img_in.tobytes(),

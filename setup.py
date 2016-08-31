@@ -30,84 +30,20 @@ setup(
     },
     ext_modules=[
         Extension(
-            'pypillowfight._ace', [
+            'pypillowfight._clib', [
                 'src/pypillowfight/util.c',
                 'src/pypillowfight/_ace.c',
-            ],
-            include_dirs=[],
-            libraries=['m'],
-            extra_compile_args=[],
-            undef_macros=['NDEBUG'],
-        ),
-        Extension(
-            'pypillowfight._blackfilter', [
-                'src/pypillowfight/util.c',
                 'src/pypillowfight/_blackfilter.c',
-            ],
-            include_dirs=[],
-            extra_compile_args=[],
-            undef_macros=['NDEBUG'],
-        ),
-        Extension(
-            'pypillowfight._border', [
-                'src/pypillowfight/util.c',
-                'src/pypillowfight/_border.c',
-            ],
-            include_dirs=[],
-            extra_compile_args=[],
-            undef_macros=['NDEBUG'],
-        ),
-        Extension(
-            'pypillowfight._canny', [
-                'src/pypillowfight/util.c',
-                'src/pypillowfight/_canny.c',
-            ],
-            include_dirs=[],
-            extra_compile_args=[],
-            undef_macros=['NDEBUG'],
-        ),
-        Extension(
-            'pypillowfight._grayfilter', [
-                'src/pypillowfight/util.c',
-                'src/pypillowfight/_grayfilter.c',
-            ],
-            include_dirs=[],
-            extra_compile_args=[],
-            undef_macros=['NDEBUG'],
-        ),
-        Extension(
-            'pypillowfight._noisefilter', [
-                'src/pypillowfight/util.c',
-                'src/pypillowfight/_noisefilter.c',
-            ],
-            include_dirs=[],
-            extra_compile_args=[],
-            undef_macros=['NDEBUG'],
-        ),
-        Extension(
-            'pypillowfight._blurfilter', [
-                'src/pypillowfight/util.c',
                 'src/pypillowfight/_blurfilter.c',
-            ],
-            include_dirs=[],
-            extra_compile_args=[],
-            undef_macros=['NDEBUG'],
-        ),
-        Extension(
-            'pypillowfight._masks', [
-                'src/pypillowfight/util.c',
+                'src/pypillowfight/_border.c',
+                'src/pypillowfight/_canny.c',
+                'src/pypillowfight/_grayfilter.c',
                 'src/pypillowfight/_masks.c',
-            ],
-            include_dirs=[],
-            extra_compile_args=[],
-            undef_macros=['NDEBUG'],
-        ),
-        Extension(
-            'pypillowfight._sobel', [
-                'src/pypillowfight/util.c',
+                'src/pypillowfight/_noisefilter.c',
+                'src/pypillowfight/_pymod.c',
                 'src/pypillowfight/_sobel.c',
             ],
-            include_dirs=[],
+            include_dirs=["include"],
             libraries=['m'],
             extra_compile_args=[],
             undef_macros=['NDEBUG'],

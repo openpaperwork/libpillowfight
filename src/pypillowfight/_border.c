@@ -20,11 +20,16 @@
 #include <math.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <string.h>
 #include <values.h>
 
-#include <Python.h>
+#ifdef NO_PYTHON
+#include <pillowfight/pillowfight.h>
+#else
+#include "_pymod.h"
+#endif
 
-#include "util.h"
+#include <pillowfight/util.h>
 
 /*!
  * \brief Algorithm 'border detection' from unpaper, partially rewritten.
@@ -95,7 +100,10 @@ static struct rectangle detect_border(const struct bitmap *img) {
 	return out;
 }
 
-static void border_main(const struct bitmap *in, struct bitmap *out)
+#ifndef NO_PYTHON
+static
+#endif
+void border(const struct bitmap *in, struct bitmap *out)
 {
 	struct rectangle border;
 
@@ -105,7 +113,8 @@ static void border_main(const struct bitmap *in, struct bitmap *out)
 	apply_mask(out, &border);
 }
 
-static PyObject *border(PyObject *self, PyObject* args)
+#ifndef NO_PYTHON
+PyObject *pyborder(PyObject *self, PyObject* args)
 {
 	int img_x, img_y;
 	Py_buffer img_in, img_out;
@@ -126,39 +135,11 @@ static PyObject *border(PyObject *self, PyObject* args)
 	bitmap_out = from_py_buffer(&img_out, img_x, img_y);
 
 	memset(bitmap_out.pixels, 0xFFFFFFFF, img_out.len);
-	border_main(&bitmap_in, &bitmap_out);
+	border(&bitmap_in, &bitmap_out);
 
 	PyBuffer_Release(&img_in);
 	PyBuffer_Release(&img_out);
 	Py_RETURN_NONE;
 }
 
-static PyMethodDef border_methods[] = {
-	{"border", border, METH_VARARGS, NULL},
-	{NULL, NULL, 0, NULL},
-};
-
-#if PY_VERSION_HEX < 0x03000000
-
-PyMODINIT_FUNC
-init_border(void)
-{
-    PyObject* m = Py_InitModule("_border", border_methods);
-}
-
-#else
-
-static struct PyModuleDef border_module = {
-	PyModuleDef_HEAD_INIT,
-	"_border",
-	NULL /* doc */,
-	-1,
-	border_methods,
-};
-
-PyMODINIT_FUNC PyInit__border(void)
-{
-	return PyModule_Create(&border_module);
-}
-
-#endif
+#endif // !NO_PYTHON

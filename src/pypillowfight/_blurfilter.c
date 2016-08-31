@@ -20,11 +20,17 @@
 #include <math.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <values.h>
 
-#include <Python.h>
+#ifdef NO_PYTHON
+#include <pillowfight/pillowfight.h>
+#else
+#include "_pymod.h"
+#endif
 
-#include "util.h"
+#include <pillowfight/util.h>
 
 #define SCAN_SIZE 100
 #define SCAN_STEP 50
@@ -36,7 +42,10 @@
  * \brief Algorithm blurfilter from unpaper, partially rewritten.
  */
 
-static void blurfilter_main(const struct bitmap *in, struct bitmap *out)
+#ifndef NO_PYTHON
+static
+#endif
+void blurfilter(const struct bitmap *in, struct bitmap *out)
 {
 	int left;
 	int top;
@@ -151,7 +160,8 @@ static void blurfilter_main(const struct bitmap *in, struct bitmap *out)
 	free(next_counts);
 }
 
-static PyObject *blurfilter(PyObject *self, PyObject* args)
+#ifndef NO_PYTHON
+PyObject *pyblurfilter(PyObject *self, PyObject* args)
 {
 	int img_x, img_y;
 	Py_buffer img_in, img_out;
@@ -172,39 +182,11 @@ static PyObject *blurfilter(PyObject *self, PyObject* args)
 	bitmap_out = from_py_buffer(&img_out, img_x, img_y);
 
 	memset(bitmap_out.pixels, 0xFFFFFFFF, img_out.len);
-	blurfilter_main(&bitmap_in, &bitmap_out);
+	blurfilter(&bitmap_in, &bitmap_out);
 
 	PyBuffer_Release(&img_in);
 	PyBuffer_Release(&img_out);
 	Py_RETURN_NONE;
 }
 
-static PyMethodDef blurfilter_methods[] = {
-	{"blurfilter", blurfilter, METH_VARARGS, NULL},
-	{NULL, NULL, 0, NULL},
-};
-
-#if PY_VERSION_HEX < 0x03000000
-
-PyMODINIT_FUNC
-init_blurfilter(void)
-{
-    PyObject* m = Py_InitModule("_blurfilter", blurfilter_methods);
-}
-
-#else
-
-static struct PyModuleDef blurfilter_module = {
-	PyModuleDef_HEAD_INIT,
-	"_blurfilter",
-	NULL /* doc */,
-	-1,
-	blurfilter_methods,
-};
-
-PyMODINIT_FUNC PyInit__blurfilter(void)
-{
-	return PyModule_Create(&blurfilter_module);
-}
-
-#endif
+#endif // !NO_PYTHON

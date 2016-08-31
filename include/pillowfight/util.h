@@ -35,6 +35,7 @@ enum color {
 	COLOR_A,
 };
 #define NB_COLORS 4 /* to align on 32bits */
+#define NB_RGB_COLORS 3 /* when we want explicitly to ignore the alpha channel */
 
 #define WHITE 0xFF
 #define WHOLE_WHITE 0xFFFFFFFF
@@ -160,8 +161,15 @@ struct dbl_matrix dbl_matrix_convolution(
 		const struct dbl_matrix *kernel
 	);
 
+struct dbl_matrix dbl_matrix_transpose(const struct dbl_matrix *in);
+
 void rgb_bitmap_to_grayscale_dbl_matrix(const struct bitmap *in, struct dbl_matrix *out);
 void grayscale_dbl_matrix_to_rgb_bitmap(const struct dbl_matrix *in, struct bitmap *out);
+
+void bitmap_channel_to_dbl_matrix(
+		const struct bitmap *in, struct dbl_matrix *out, enum color
+);
+void matrixes_to_rgb_bitmap(const struct dbl_matrix in[NB_RGB_COLORS], struct bitmap *out);
 
 /**
  * Clears a rectangular area of pixels with white.

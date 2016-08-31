@@ -112,6 +112,23 @@ void dbl_matrix_free(struct dbl_matrix *matrix)
 	free(matrix->values);
 }
 
+struct dbl_matrix dbl_matrix_transpose(const struct dbl_matrix *in)
+{
+	struct dbl_matrix out;
+	int x, y;
+	double val;
+
+	out = dbl_matrix_new(in->size.y, in->size.x);
+	for (x = 0 ; x < in->size.x ; x++) {
+		for (y = 0; y < in->size.y ; y++) {
+			val = MATRIX_GET(in, x, y);
+			MATRIX_SET(&out, y, x, val);
+		}
+	}
+
+	return out;
+}
+
 /*!
  * Ref: https://en.wikipedia.org/wiki/Kernel_%28image_processing%29#Convolution
  * Ref: http://www.songho.ca/dsp/convolution/convolution2d_example.html
@@ -203,6 +220,55 @@ void grayscale_dbl_matrix_to_rgb_bitmap(const struct dbl_matrix *in, struct bitm
 			SET_COLOR(out, x, y, COLOR_R, value);
 			SET_COLOR(out, x, y, COLOR_G, value);
 			SET_COLOR(out, x, y, COLOR_B, value);
+			SET_COLOR(out, x, y, COLOR_A, 0xFF);
+		}
+	}
+}
+
+
+void bitmap_channel_to_dbl_matrix(
+		const struct bitmap *in, struct dbl_matrix *out, enum color color
+)
+{
+	int x, y;
+	int value;
+
+	assert(out->size.x == in->size.x);
+	assert(out->size.y == in->size.y);
+
+	for (x = 0 ; x < in->size.x ; x++) {
+		for (y = 0 ; y < in->size.y ; y++) {
+			value = GET_COLOR(in, x, y, color);
+			MATRIX_SET(
+				out, x, y,
+				value
+			);
+		}
+	}
+}
+
+
+void matrixes_to_rgb_bitmap(const struct dbl_matrix in[NB_RGB_COLORS], struct bitmap *out)
+{
+	int x, y;
+	int value;
+	enum color color;
+
+	for (color = 0 ; color < NB_RGB_COLORS ; color++) {
+		assert(out->size.x == in[color].size.x);
+		assert(out->size.y == in[color].size.y);
+	}
+
+	for (x = 0 ; x < out->size.x ; x++) {
+		for (y = 0 ; y < out->size.y ; y++) {
+			for (color = 0 ; color < NB_RGB_COLORS ; color++) {
+				value = MATRIX_GET(&in[color], x, y);
+				if (value < 0)
+					value = 0;
+				if (value >= 256)
+					value = 255;
+				SET_COLOR(out, x, y, color, value);
+			}
 			SET_COLOR(out, x, y, COLOR_A, 0xFF);
 		}
 	}

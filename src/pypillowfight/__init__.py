@@ -101,7 +101,7 @@ def canny(img_in):
     return img_in
 
 
-def gaussian(img_in, sigma=2.0):
+def gaussian(img_in, sigma=2.0, nb_stddev=5):
     img_in = img_in.convert("RGBA")  # Add alpha to align on 32bits
     img_out = bytes(img_in.size[0] * img_in.size[1] * 4 * [0])
     _clib.gaussian(
@@ -109,7 +109,8 @@ def gaussian(img_in, sigma=2.0):
         img_in.size[1],
         img_in.tobytes(),
         img_out,
-        sigma
+        sigma,
+        nb_stddev
     )
     return PIL.Image.frombytes(
         mode="RGBA",

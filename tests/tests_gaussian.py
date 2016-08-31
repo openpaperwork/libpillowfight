@@ -10,7 +10,7 @@ class TestGaussian(unittest.TestCase):
     def test_gaussian(self):
         with tempfile.NamedTemporaryFile(suffix='.jpg') as tmpfile:
             in_img = PIL.Image.open("tests/data/crappy_background.jpg")
-            out_img = pypillowfight.gaussian(in_img, stddev=2)
+            out_img = pypillowfight.gaussian(in_img, sigma=20.0, nb_stddev=10)
             in_img.close()
 
             # beware of JPG compression

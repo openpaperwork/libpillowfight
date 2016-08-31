@@ -30,7 +30,7 @@ setup(
     },
     ext_modules=[
         Extension(
-            'pypillowfight._pypillowfight', [
+            'pypillowfight._ace', [
                 'src/pypillowfight/util.c',
                 'src/pypillowfight/_ace.c',
             ],

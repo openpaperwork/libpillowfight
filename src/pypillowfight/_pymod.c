@@ -20,7 +20,7 @@ static PyMethodDef clib_methods[] = {
 PyMODINIT_FUNC
 init_clib(void)
 {
-    PyObject* m = Py_InitModule("_clib", clib_methods);
+    Py_InitModule("_clib", clib_methods);
 }
 
 #else

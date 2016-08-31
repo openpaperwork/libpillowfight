@@ -102,6 +102,15 @@ setup(
             extra_compile_args=[],
             undef_macros=['NDEBUG'],
         ),
+        Extension(
+            'pypillowfight._sobel', [
+                'src/pypillowfight/util.c',
+                'src/pypillowfight/_sobel.c',
+            ],
+            include_dirs=[],
+            extra_compile_args=[],
+            undef_macros=['NDEBUG'],
+        ),
     ],
     data_files=[],
     scripts=[],

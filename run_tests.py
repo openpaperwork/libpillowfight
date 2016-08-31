@@ -10,6 +10,7 @@ from tests import tests_canny
 from tests import tests_grayfilter
 from tests import tests_masks
 from tests import tests_noisefilter
+from tests import tests_sobel
 
 if __name__ == '__main__':
     unittest.main(tests_ace, verbosity=2, exit=False)
@@ -21,3 +22,4 @@ if __name__ == '__main__':
     unittest.main(tests_noisefilter, verbosity=2, exit=False)
     unittest.main(tests_all, verbosity=2, exit=False)
     unittest.main(tests_canny, verbosity=2, exit=False)
+    unittest.main(tests_sobel, verbosity=2, exit=False)

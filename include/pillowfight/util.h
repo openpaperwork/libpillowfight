@@ -119,8 +119,8 @@ struct int_matrix {
 	int32_t *values;
 };
 
-#define INT_MATRIX_GET(matrix, a, b) ((matrix)->values[((b) * (matrix)->size.x) + (a)])
-#define INT_MATRIX_SET(matrix, a, b, val) INT_MATRIX_GET(matrix, a, b) = (val);
+#define MATRIX_GET(matrix, a, b) ((matrix)->values[((b) * (matrix)->size.x) + (a)])
+#define MATRIX_SET(matrix, a, b, val) MATRIX_GET(matrix, a, b) = (val);
 
 
 struct rectangle {

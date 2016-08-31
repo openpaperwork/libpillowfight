@@ -81,10 +81,10 @@ static void dist_matrix(struct int_matrix *matrix_a, const struct int_matrix *ma
 
 	for (x = 0 ; x < matrix_a->size.x ; x++) {
 		for (y = 0 ; y < matrix_a->size.y ; y++) {
-			a = INT_MATRIX_GET(matrix_a, x, y);
-			b = INT_MATRIX_GET(matrix_b, x, y);
+			a = MATRIX_GET(matrix_a, x, y);
+			b = MATRIX_GET(matrix_b, x, y);
 			dist = sqrt((a * a) + (b * b));
-			INT_MATRIX_SET(matrix_a, x, y, dist);
+			MATRIX_SET(matrix_a, x, y, dist);
 		}
 	}
 }

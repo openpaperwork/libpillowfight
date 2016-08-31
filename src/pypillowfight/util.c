@@ -142,11 +142,11 @@ struct int_matrix int_matrix_convolution(
 						break;
 
 					val += (
-							INT_MATRIX_GET(img,
+							MATRIX_GET(img,
 								img_x - kernel_x,
 								img_y - kernel_y
 							)
-							* INT_MATRIX_GET(kernel,
+							* MATRIX_GET(kernel,
 								kernel_x,
 								kernel_y
 							)
@@ -155,7 +155,7 @@ struct int_matrix int_matrix_convolution(
 				}
 			}
 
-			INT_MATRIX_SET(&out, img_x, img_y, val);
+			MATRIX_SET(&out, img_x, img_y, val);
 		}
 	}
 
@@ -171,7 +171,7 @@ void rgb_bitmap_to_grayscale_int_matrix(const struct bitmap *in, struct int_matr
 
 	for (x = 0 ; x < in->size.x ; x++) {
 		for (y = 0 ; y < in->size.y ; y++) {
-			INT_MATRIX_SET(
+			MATRIX_SET(
 				out, x, y,
 				GET_PIXEL_GRAYSCALE(in, x, y)
 			);
@@ -189,7 +189,7 @@ void grayscale_int_matrix_to_rgb_bitmap(const struct int_matrix *in, struct bitm
 
 	for (x = 0 ; x < in->size.x ; x++) {
 		for (y = 0 ; y < in->size.y ; y++) {
-			value = INT_MATRIX_GET(in, x, y);
+			value = MATRIX_GET(in, x, y);
 			if (value < 0)
 				value = 0;
 			if (value >= 256)

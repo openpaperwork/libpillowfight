@@ -26,13 +26,46 @@
  * - In position (x, y): x = width, y = height.
  */
 
-#define COLOR_R 0
-#define COLOR_G 1
-#define COLOR_B 2
+enum color {
+	COLOR_R = 0,
+	COLOR_G,
+	COLOR_B,
+	COLOR_A,
+};
 #define NB_COLORS 4 /* to align on 32bits */
 
 #define WHITE 0xFF
 #define WHOLE_WHITE 0xFFFFFFFF
+
+// Careful: double evaluation !
+#define MIN(a, b) (((a) < (b)) ? (a) : (b))
+#define MAX(a, b) (((a) > (b)) ? (a) : (b))
+
+// Careful : multiple evaluation !
+#define MAX3(a, b, c) MAX(a, MAX(b, c))
+#define MIN3(a, b, c) MIN(a, MIN(b, c))
+
+#define IS_IN(v, a, b) ((a) <= (v) && (v) < (b))
+
+union pixel {
+	uint32_t whole;
+	struct {
+		uint8_t r;
+		uint8_t g;
+		uint8_t b;
+		uint8_t a;
+	} color;
+	uint8_t channels[4];
+};
+
+
+struct bitmap {
+	struct {
+		size_t x;
+		size_t y;
+	} size;
+	union pixel *pixels;
+};
 
 /*!
  * \returns a uint32_t (RGBA)
@@ -52,16 +85,6 @@
 #define GET_COLOR_DEF(bitmap, a, b, color, def) (GET_PIXEL_DEF(bitmap, a, b, def).channels[(color)])
 
 #define SET_COLOR(bitmap, a, b, color, value) (GET_PIXEL(bitmap, a, b).channels[(color)]) = (value)
-
-// Careful: double evaluation !
-#define MIN(a, b) (((a) < (b)) ? (a) : (b))
-#define MAX(a, b) (((a) > (b)) ? (a) : (b))
-
-// Careful : multiple evaluation !
-#define MAX3(a, b, c) MAX(a, MAX(b, c))
-#define MIN3(a, b, c) MIN(a, MIN(b, c))
-
-#define IS_IN(v, a, b) ((a) <= (v) && (v) < (b))
 
 // Careful : multiple evaluation !
 #define GET_PIXEL_DARKNESS_INVERSE(img, x, y) \
@@ -83,26 +106,20 @@
 		GET_COLOR_DEF(img, x, y, COLOR_B, g_default_white_pixel) \
 	)
 
-
-union pixel {
-	uint32_t whole;
-	struct {
-		uint8_t r;
-		uint8_t g;
-		uint8_t b;
-		uint8_t a;
-	} color;
-	uint8_t channels[4];
-};
-
-
-struct bitmap {
+/*!
+ * \brief matrix of integers
+ */
+struct int_matrix {
 	struct {
 		size_t x;
 		size_t y;
 	} size;
-	union pixel *pixels;
+	int32_t *values;
 };
+
+#define INT_MATRIX_GET(matrix, a, b) ((matrix)->values[((b) * (matrix)->size.x) + (a)])
+#define INT_MATRIX_SET(matrix, a, b, val) ((matrix)->values[((b) * (matrix)->size.x) + (a)]) = (val);
+
 
 struct rectangle {
 	struct {
@@ -125,6 +142,21 @@ extern const union pixel g_default_white_pixel;
 struct bitmap from_py_buffer(const Py_buffer *buffer, int x, int y);
 
 Py_buffer to_py_buffer(const struct bitmap *bitmap);
+
+
+struct int_matrix int_matrix_new(int x, int y);
+void int_matrix_free(struct int_matrix *matrix);
+
+/*!
+ * \see https://en.wikipedia.org/wiki/Kernel_%28image_processing%29#Convolution
+ */
+struct int_matrix int_matrix_convolution(
+		const struct int_matrix *image,
+		const struct int_matrix *kernel
+	);
+
+void rgb_bitmap_to_grayscale_int_matrix(const struct bitmap *in, struct int_matrix *out);
+void grayscale_int_matrix_to_rgb_bitmap(const struct int_matrix *in, struct bitmap *out);
 
 /**
  * Clears a rectangular area of pixels with white.

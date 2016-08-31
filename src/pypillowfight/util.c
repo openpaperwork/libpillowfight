@@ -123,7 +123,8 @@ struct dbl_matrix dbl_matrix_convolution(
 	struct dbl_matrix out;
 	int img_y, kernel_y;
 	int img_x, kernel_x;
-	int val;
+	double img_val, kernel_val;
+	double val;
 
 	out = dbl_matrix_new(img->size.x, img->size.y);
 
@@ -141,16 +142,19 @@ struct dbl_matrix dbl_matrix_convolution(
 					if (img_y - kernel_y < 0)
 						break;
 
-					val += (
-							MATRIX_GET(img,
-								img_x - kernel_x,
-								img_y - kernel_y
-							)
-							* MATRIX_GET(kernel,
-								kernel_x,
-								kernel_y
-							)
+					img_val = MATRIX_GET(
+							img,
+							img_x - kernel_x,
+							img_y - kernel_y
 						);
+
+					kernel_val = MATRIX_GET(
+							kernel,
+							kernel_x,
+							kernel_y
+						);
+
+					val += (img_val * kernel_val);
 
 				}
 			}
@@ -165,15 +169,17 @@ struct dbl_matrix dbl_matrix_convolution(
 void rgb_bitmap_to_grayscale_dbl_matrix(const struct bitmap *in, struct dbl_matrix *out)
 {
 	int x, y;
+	int value;
 
 	assert(out->size.x == in->size.x);
 	assert(out->size.y == in->size.y);
 
 	for (x = 0 ; x < in->size.x ; x++) {
 		for (y = 0 ; y < in->size.y ; y++) {
+			value = GET_PIXEL_GRAYSCALE(in, x, y);
 			MATRIX_SET(
 				out, x, y,
-				GET_PIXEL_GRAYSCALE(in, x, y)
+				value
 			);
 		}
 	}

@@ -45,10 +45,10 @@ static const struct dbl_matrix g_kernel_x = {
 		.x = 3,
 		.y = 3,
 	},
-	.values = (int[]) {
-		-1, 0, 1,
-		-2, 0, 2,
-		-1, 0, 1
+	.values = (double[]) {
+		-1.0, 0, 1.0,
+		-2.0, 0, 2.0,
+		-1.0, 0, 1.0
 	}
 };
 
@@ -57,10 +57,10 @@ static const struct dbl_matrix g_kernel_y = {
 		.x = 3,
 		.y = 3,
 	},
-	.values = (int[]) {
-		-1, -2, -1,
+	.values = (double[]) {
+		-1.0, -2.0, -1.0,
 		0, 0, 0,
-		+1, +2, +1,
+		1.0, 2.0, 1.0,
 	}
 };
 

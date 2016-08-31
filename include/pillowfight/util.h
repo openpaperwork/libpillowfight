@@ -116,7 +116,7 @@ struct dbl_matrix {
 		int x;
 		int y;
 	} size;
-	int32_t *values;
+	double *values;
 };
 
 #define MATRIX_GET(matrix, a, b) ((matrix)->values[((b) * (matrix)->size.x) + (a)])

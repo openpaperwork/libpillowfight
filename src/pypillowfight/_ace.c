@@ -31,11 +31,11 @@
 
 #define ACE_COLORS 3 /* we don't use the alpha channel */
 
-#define MATRIX_GET(matrix, a, b, color) \
+#define DBL_MATRIX_GET(matrix, a, b, color) \
 	((matrix)->values[((b) * (matrix)->size.x) + (a)].channels[color])
 
-#define MATRIX_SET(matrix, a, b, color, val) \
-	MATRIX_GET(matrix, a, b, color) = (val)
+#define DBL_MATRIX_SET(matrix, a, b, color, val) \
+	DBL_MATRIX_GET(matrix, a, b, color) = (val)
 
 #define MIN(a, b) (((a) < (b)) ? (a) : (b))
 #define MAX(a, b) (((a) > (b)) ? (a) : (b))
@@ -45,7 +45,7 @@
  * 2d matrix, with 3 channels for each element of the matrix
  * (so .. basically a 3d matrix)
  */
-struct matrix {
+struct dbl_matrix {
 	struct {
 		int x;
 		int y;
@@ -64,7 +64,7 @@ struct matrix {
 struct rscore {
 	double max[NB_COLORS];
 	double min[NB_COLORS];
-	struct matrix *scores;
+	struct dbl_matrix *scores;
 };
 
 struct pair {
@@ -72,9 +72,9 @@ struct pair {
 	int y;
 };
 
-static struct matrix *new_matrix(int x, int y) {
-	struct matrix *out = calloc(1,
-			sizeof(struct matrix) + (x * y * NB_COLORS * sizeof(double))
+static struct dbl_matrix *new_matrix(int x, int y) {
+	struct dbl_matrix *out = calloc(1,
+			sizeof(struct dbl_matrix) + (x * y * NB_COLORS * sizeof(double))
 	);
 	if (out == NULL)
 		abort();
@@ -83,7 +83,7 @@ static struct matrix *new_matrix(int x, int y) {
 	return out;
 }
 
-static void free_matrix(struct matrix *matrix) {
+static void free_matrix(struct dbl_matrix *matrix) {
 	free(matrix);
 }
 
@@ -197,7 +197,7 @@ static void *ace_thread_adjustment(void *_thread_params)
 
 			for (color = 0 ; color < ACE_COLORS ; color++) {
 				rscore_sums[color] /= denominator;
-				MATRIX_SET(params->rscore.scores, i, j, color, rscore_sums[color]);
+				DBL_MATRIX_SET(params->rscore.scores, i, j, color, rscore_sums[color]);
 
 				params->rscore.max[color] = MAX(
 						params->rscore.max[color], rscore_sums[color]
@@ -235,7 +235,7 @@ void *ace_thread_scaling(void *_params) {
 	for (i = params->start.x ; i < params->stop.x ; i++) {
 		for (j = params->start.y ; j < params->stop.y ; j++) {
 			for (color = 0 ; color < ACE_COLORS ; color++) {
-				scaled = MATRIX_GET(params->rscore->scores, i, j, color);
+				scaled = DBL_MATRIX_GET(params->rscore->scores, i, j, color);
 				scaled = GET_LINEAR_SCALING(
 					scaled,
 					params->rscore->max[color],

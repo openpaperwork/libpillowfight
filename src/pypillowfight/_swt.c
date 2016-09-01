@@ -20,6 +20,8 @@
 #include <math.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <values.h>
 
 #include <pillowfight/pillowfight.h>
@@ -36,6 +38,37 @@
  * Ref: https://github.com/aperrau/DetectText
  */
 
+#define DARK_ON_LIGHT 1
+
+#define DEFAULT_NB_POINTS_PER_RAY 16
+
+struct swt_point {
+	int x;
+	int y;
+};
+
+struct swt_ray {
+	struct swt_point *points;
+	int nb_points;
+
+	struct swt_point *beginning;
+	struct swt_point *end;
+
+	struct swt_ray *next;
+};
+
+struct swt_output {
+	struct pf_dbl_matrix swt; // The width of the strokes detected
+	struct swt_ray *rays;
+};
+
+struct swt_output swt(const struct pf_dbl_matrix *edge, const struct pf_gradient_matrixes *gradient)
+{
+	struct swt_output out;
+
+	return out;
+}
+
 #ifndef NO_PYTHON
 static
 #endif
@@ -44,6 +77,7 @@ void pf_swt(const struct pf_bitmap *img_in, struct pf_bitmap *img_out)
 	struct pf_dbl_matrix in, out;
 	struct pf_gradient_matrixes gradient;
 	struct pf_dbl_matrix edge;
+	struct swt_output swt_out;
 
 	in = pf_dbl_matrix_new(img_in->size.x, img_in->size.y);
 	pf_rgb_bitmap_to_grayscale_dbl_matrix(img_in, &in);
@@ -61,7 +95,11 @@ void pf_swt(const struct pf_bitmap *img_in, struct pf_bitmap *img_out)
 	pf_dbl_matrix_free(&in);
 	pf_dbl_matrix_free(&out);
 
-	// TODO: SWT + Median filter
+	swt_out = swt(&edge, &gradient);
+	pf_dbl_matrix_free(&gradient.intensity);
+	pf_dbl_matrix_free(&gradient.direction);
+	pf_dbl_matrix_free(&edge);
+
 	// TODO: normalize ?
 	// TODO: Find letter candidates
 	// TODO: Filter letter candidates
@@ -69,10 +107,7 @@ void pf_swt(const struct pf_bitmap *img_in, struct pf_bitmap *img_out)
 	// TODO: Word detection
 	// TODO: Mask
 
-	pf_grayscale_dbl_matrix_to_rgb_bitmap(&out, img_out);
-	pf_dbl_matrix_free(&gradient.intensity);
-	pf_dbl_matrix_free(&gradient.direction);
-	pf_dbl_matrix_free(&edge);
+	//pf_grayscale_dbl_matrix_to_rgb_bitmap(XXX, img_out);
 }
 
 #ifndef NO_PYTHON

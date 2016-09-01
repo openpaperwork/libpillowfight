@@ -99,9 +99,8 @@ void pf_gaussian(const struct pf_bitmap *in, struct pf_bitmap *out, double sigma
 	pf_dbl_matrix_free(&kernel_x);
 	pf_dbl_matrix_free(&kernel_y);
 
-	pf_matrixes_to_rgb_bitmap(colors, out);
-
 	for (color = 0 ; color < PF_NB_RGB_COLORS ; color++) {
+		pf_matrix_to_rgb_bitmap(&colors[color], out, color);
 		pf_dbl_matrix_free(&colors[color]);
 	}
 }

@@ -177,7 +177,7 @@ void pf_grayscale_dbl_matrix_to_rgb_bitmap(const struct pf_dbl_matrix *in, struc
 void pf_bitmap_channel_to_dbl_matrix(
 		const struct pf_bitmap *in, struct pf_dbl_matrix *out, enum pf_color
 );
-void pf_matrixes_to_rgb_bitmap(const struct pf_dbl_matrix in[PF_NB_RGB_COLORS], struct pf_bitmap *out);
+void pf_matrix_to_rgb_bitmap(const struct pf_dbl_matrix *in, struct pf_bitmap *out, enum pf_color color);
 
 /**
  * Clears a rectangular area of pixels with PF_WHITE.

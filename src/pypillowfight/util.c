@@ -248,27 +248,22 @@ void pf_bitmap_channel_to_dbl_matrix(
 }
 
 
-void pf_matrixes_to_rgb_bitmap(const struct pf_dbl_matrix in[PF_NB_RGB_COLORS], struct pf_bitmap *out)
+void pf_matrix_to_rgb_bitmap(const struct pf_dbl_matrix *in, struct pf_bitmap *out, enum pf_color color)
 {
 	int x, y;
 	int value;
-	enum pf_color color;
 
-	for (color = 0 ; color < PF_NB_RGB_COLORS ; color++) {
-		assert(out->size.x == in[color].size.x);
-		assert(out->size.y == in[color].size.y);
-	}
+	assert(out->size.x == in->size.x);
+	assert(out->size.y == in->size.y);
 
 	for (x = 0 ; x < out->size.x ; x++) {
 		for (y = 0 ; y < out->size.y ; y++) {
-			for (color = 0 ; color < PF_NB_RGB_COLORS ; color++) {
-				value = PF_MATRIX_GET(&in[color], x, y);
-				if (value < 0)
-					value = 0;
-				if (value >= 256)
-					value = 255;
-				PF_SET_COLOR(out, x, y, color, value);
-			}
+			value = PF_MATRIX_GET(in, x, y);
+			if (value < 0)
+				value = 0;
+			if (value >= 256)
+				value = 255;
+			PF_SET_COLOR(out, x, y, color, value);
 			PF_SET_COLOR(out, x, y, COLOR_A, 0xFF);
 		}
 	}

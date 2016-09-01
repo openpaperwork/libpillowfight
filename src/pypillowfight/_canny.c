@@ -155,6 +155,34 @@ static void apply_thresholds(struct pf_dbl_matrix *intensity) {
 	}
 }
 
+void pf_canny_on_matrix(const struct pf_dbl_matrix *in,
+		struct pf_gradient_matrixes *_out_gradient,
+		struct pf_dbl_matrix *_out_edge)
+{
+	struct pf_dbl_matrix out;
+	struct pf_gradient_matrixes out_gradient;
+	struct pf_dbl_matrix out_edge;
+
+	// Remove details from the image to reduce filter sensitivity to crappy details
+	out = pf_gaussian_on_matrix(in, PF_GAUSSIAN_DEFAULT_SIGMA, PF_GAUSSIAN_DEFAULT_NB_STDDEV);
+
+	// Compute the gradient intensity and direction
+	out_gradient = pf_sobel_on_matrix(&out);
+	pf_dbl_matrix_free(&out);
+
+	// Edge thinning
+	out_edge = pf_dbl_matrix_copy(&out_gradient.intensity);
+	non_maximum_suppression(&out_edge, &out_gradient.direction);
+
+	// Apply thresholds to remove indecisive values
+	apply_thresholds(&out_edge);
+
+	if (_out_gradient != NULL)
+		memcpy(_out_gradient, &out_gradient, sizeof(out_gradient));
+	if (_out_edge != NULL)
+		memcpy(_out_edge, &out_edge, sizeof(out_edge));
+}
+
 #ifndef NO_PYTHON
 static
 #endif

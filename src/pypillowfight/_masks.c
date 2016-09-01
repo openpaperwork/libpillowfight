@@ -144,7 +144,7 @@ static struct rectangle detect_mask(const struct bitmap *img, int x, int y)
 #ifndef NO_PYTHON
 static
 #endif
-void masks(const struct bitmap *in, struct bitmap *out)
+void pf_unpaper_masks(const struct bitmap *in, struct bitmap *out)
 {
 	struct rectangle mask;
 
@@ -177,7 +177,7 @@ PyObject *pymasks(PyObject *self, PyObject* args)
 	bitmap_out = from_py_buffer(&img_out, img_x, img_y);
 
 	memset(bitmap_out.pixels, 0xFFFFFFFF, img_out.len);
-	masks(&bitmap_in, &bitmap_out);
+	pf_unpaper_masks(&bitmap_in, &bitmap_out);
 
 	PyBuffer_Release(&img_in);
 	PyBuffer_Release(&img_out);

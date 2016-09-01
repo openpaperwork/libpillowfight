@@ -44,7 +44,7 @@
 #ifndef NO_PYTHON
 static
 #endif
-void blurfilter(const struct bitmap *in, struct bitmap *out)
+void pf_unpaper_blurfilter(const struct bitmap *in, struct bitmap *out)
 {
 	int left;
 	int top;
@@ -181,7 +181,7 @@ PyObject *pyblurfilter(PyObject *self, PyObject* args)
 	bitmap_out = from_py_buffer(&img_out, img_x, img_y);
 
 	memset(bitmap_out.pixels, 0xFFFFFFFF, img_out.len);
-	blurfilter(&bitmap_in, &bitmap_out);
+	pf_unpaper_blurfilter(&bitmap_in, &bitmap_out);
 
 	PyBuffer_Release(&img_in);
 	PyBuffer_Release(&img_out);

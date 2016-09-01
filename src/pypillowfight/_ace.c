@@ -267,7 +267,7 @@ void *ace_thread_scaling(void *_params) {
 #ifndef NO_PYTHON
 static
 #endif
-void ace(const struct bitmap *in, struct bitmap *out,
+void pf_ace(const struct bitmap *in, struct bitmap *out,
 		int nb_samples, double slope, double limit,
 		int nb_threads)
 {
@@ -372,7 +372,7 @@ PyObject *pyace(PyObject *self, PyObject* args)
 	bitmap_in = from_py_buffer(&img_in, img_x, img_y);
 	bitmap_out = from_py_buffer(&img_out, img_x, img_y);
 
-	ace(&bitmap_in, &bitmap_out, samples, slope, limit, nb_threads);
+	pf_ace(&bitmap_in, &bitmap_out, samples, slope, limit, nb_threads);
 
 	PyBuffer_Release(&img_in);
 	PyBuffer_Release(&img_out);

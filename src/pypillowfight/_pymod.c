@@ -4,15 +4,15 @@
 
 static PyMethodDef clib_methods[] = {
 	{"ace", pyace, METH_VARARGS, NULL},
-	{"blackfilter", pyblackfilter, METH_VARARGS, NULL},
-	{"blurfilter", pyblurfilter, METH_VARARGS, NULL},
-	{"border", pyborder, METH_VARARGS, NULL},
 	{"canny", pycanny, METH_VARARGS, NULL},
 	{"gaussian", pygaussian, METH_VARARGS, NULL},
-	{"grayfilter", pygrayfilter, METH_VARARGS, NULL},
-	{"masks", pymasks, METH_VARARGS, NULL},
-	{"noisefilter", pynoisefilter, METH_VARARGS, NULL},
 	{"sobel", pysobel, METH_VARARGS, NULL},
+	{"unpaper_blackfilter", pyblackfilter, METH_VARARGS, NULL},
+	{"unpaper_blurfilter", pyblurfilter, METH_VARARGS, NULL},
+	{"unpaper_border", pyborder, METH_VARARGS, NULL},
+	{"unpaper_grayfilter", pygrayfilter, METH_VARARGS, NULL},
+	{"unpaper_masks", pymasks, METH_VARARGS, NULL},
+	{"unpaper_noisefilter", pynoisefilter, METH_VARARGS, NULL},
 	{NULL, NULL, 0, NULL},
 };
 

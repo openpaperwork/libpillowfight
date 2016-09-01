@@ -10,7 +10,7 @@ class TestNoisefilter(unittest.TestCase):
     def test_noisefilter(self):
         with tempfile.NamedTemporaryFile(suffix='.jpg') as tmpfile:
             in_img = PIL.Image.open("tests/data/black_border_problem.jpg")
-            out_img = pypillowfight.noisefilter(in_img)
+            out_img = pypillowfight.unpaper_noisefilter(in_img)
             in_img.close()
 
             # beware of JPG compression

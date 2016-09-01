@@ -62,7 +62,7 @@ static int lightness_rect(int x1, int y1, int x2, int y2, const struct bitmap *i
 #ifndef NO_PYTHON
 static
 #endif
-void grayfilter(const struct bitmap *in, struct bitmap *out)
+void pf_unpaper_grayfilter(const struct bitmap *in, struct bitmap *out)
 {
 	int left;
 	int top;
@@ -124,7 +124,7 @@ PyObject *pygrayfilter(PyObject *self, PyObject* args)
 	bitmap_out = from_py_buffer(&img_out, img_x, img_y);
 
 	memset(bitmap_out.pixels, 0xFFFFFFFF, img_out.len);
-	grayfilter(&bitmap_in, &bitmap_out);
+	pf_unpaper_grayfilter(&bitmap_in, &bitmap_out);
 
 	PyBuffer_Release(&img_in);
 	PyBuffer_Release(&img_out);

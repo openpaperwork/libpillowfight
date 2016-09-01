@@ -91,7 +91,7 @@ static void dist_matrix(struct dbl_matrix *matrix_a, const struct dbl_matrix *ma
 #ifndef NO_PYTHON
 static
 #endif
-void sobel(const struct bitmap *in_img, struct bitmap *out_img)
+void pf_sobel(const struct bitmap *in_img, struct bitmap *out_img)
 {
 	struct dbl_matrix in;
 	struct dbl_matrix g_horizontal, g_vertical;
@@ -135,7 +135,7 @@ PyObject *pysobel(PyObject *self, PyObject* args)
 	bitmap_out = from_py_buffer(&img_out, img_x, img_y);
 
 	memset(bitmap_out.pixels, 0xFFFFFFFF, img_out.len);
-	sobel(&bitmap_in, &bitmap_out);
+	pf_sobel(&bitmap_in, &bitmap_out);
 
 	PyBuffer_Release(&img_in);
 	PyBuffer_Release(&img_out);

@@ -71,7 +71,7 @@ struct dbl_matrix generate_gaussian_1d_kernel(double sigma, int nb_stddev)
 	return out;
 }
 
-void gaussian(const struct bitmap *in, struct bitmap *out, double sigma, int nb_stddev)
+void pf_gaussian(const struct bitmap *in, struct bitmap *out, double sigma, int nb_stddev)
 {
 	struct dbl_matrix kernel_x, kernel_y;
 	struct dbl_matrix colors[NB_RGB_COLORS];
@@ -132,7 +132,7 @@ PyObject *pygaussian(PyObject *self, PyObject* args)
 	bitmap_out = from_py_buffer(&img_out, img_x, img_y);
 
 	memset(bitmap_out.pixels, 0xFFFFFFFF, img_out.len);
-	gaussian(&bitmap_in, &bitmap_out, sigma, nb_stddev);
+	pf_gaussian(&bitmap_in, &bitmap_out, sigma, nb_stddev);
 
 	PyBuffer_Release(&img_in);
 	PyBuffer_Release(&img_out);

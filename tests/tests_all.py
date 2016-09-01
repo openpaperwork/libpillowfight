@@ -14,12 +14,12 @@ class TestAll(unittest.TestCase):
             out_img = pypillowfight.ace(in_img, seed=0xDEADBEE)
 
             # unpaper order
-            out_img = pypillowfight.blackfilter(out_img)
-            out_img = pypillowfight.noisefilter(out_img)
-            out_img = pypillowfight.blurfilter(out_img)
-            out_img = pypillowfight.masks(out_img)
-            out_img = pypillowfight.grayfilter(out_img)
-            out_img = pypillowfight.border(out_img)
+            out_img = pypillowfight.unpaper_blackfilter(out_img)
+            out_img = pypillowfight.unpaper_noisefilter(out_img)
+            out_img = pypillowfight.unpaper_blurfilter(out_img)
+            out_img = pypillowfight.unpaper_masks(out_img)
+            out_img = pypillowfight.unpaper_grayfilter(out_img)
+            out_img = pypillowfight.unpaper_border(out_img)
 
             in_img.close()
 
@@ -41,12 +41,12 @@ class TestAll(unittest.TestCase):
             out_img = pypillowfight.ace(in_img, seed=0xBEEDEAD)
 
             # unpaper order
-            out_img = pypillowfight.blackfilter(out_img)
-            out_img = pypillowfight.noisefilter(out_img)
-            out_img = pypillowfight.blurfilter(out_img)
-            out_img = pypillowfight.masks(out_img)
-            out_img = pypillowfight.grayfilter(out_img)
-            out_img = pypillowfight.border(out_img)
+            out_img = pypillowfight.unpaper_blackfilter(out_img)
+            out_img = pypillowfight.unpaper_noisefilter(out_img)
+            out_img = pypillowfight.unpaper_blurfilter(out_img)
+            out_img = pypillowfight.unpaper_masks(out_img)
+            out_img = pypillowfight.unpaper_grayfilter(out_img)
+            out_img = pypillowfight.unpaper_border(out_img)
 
             in_img.close()
 

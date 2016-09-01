@@ -234,7 +234,7 @@ static void blackfilter_scan(
 #ifndef NO_PYTHON
 static
 #endif
-void blackfilter(const struct bitmap *in, struct bitmap *out)
+void pf_unpaper_blackfilter(const struct bitmap *in, struct bitmap *out)
 {
 	memcpy(out->pixels, in->pixels, sizeof(union pixel) * in->size.x * in->size.y);
 
@@ -264,7 +264,7 @@ PyObject *pyblackfilter(PyObject *self, PyObject* args)
 	bitmap_out = from_py_buffer(&img_out, img_x, img_y);
 
 	memset(bitmap_out.pixels, 0xFFFFFFFF, img_out.len);
-	blackfilter(&bitmap_in, &bitmap_out);
+	pf_unpaper_blackfilter(&bitmap_in, &bitmap_out);
 
 	PyBuffer_Release(&img_in);
 	PyBuffer_Release(&img_out);

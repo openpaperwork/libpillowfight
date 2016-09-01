@@ -33,10 +33,10 @@ def ace(img_in, slope=10, limit=1000, samples=100, seed=None):
     )
 
 
-def blackfilter(img_in):
+def unpaper_blackfilter(img_in):
     img_in = img_in.convert("RGBA")  # Add alpha to align on 32bits
     img_out = bytes(img_in.size[0] * img_in.size[1] * 4 * [0])
-    _clib.blackfilter(
+    _clib.unpaper_blackfilter(
         img_in.size[0],
         img_in.size[1],
         img_in.tobytes(),
@@ -50,10 +50,10 @@ def blackfilter(img_in):
     return img_in
 
 
-def blurfilter(img_in):
+def unpaper_blurfilter(img_in):
     img_in = img_in.convert("RGBA")  # Add alpha to align on 32bits
     img_out = bytes(img_in.size[0] * img_in.size[1] * 4 * [0])
-    _clib.blurfilter(
+    _clib.unpaper_blurfilter(
         img_in.size[0],
         img_in.size[1],
         img_in.tobytes(),
@@ -67,10 +67,10 @@ def blurfilter(img_in):
     return img_in
 
 
-def border(img_in):
+def unpaper_border(img_in):
     img_in = img_in.convert("RGBA")  # Add alpha to align on 32bits
     img_out = bytes(img_in.size[0] * img_in.size[1] * 4 * [0])
-    _clib.border(
+    _clib.unpaper_border(
         img_in.size[0],
         img_in.size[1],
         img_in.tobytes(),
@@ -120,10 +120,10 @@ def gaussian(img_in, sigma=2.0, nb_stddev=5):
     return img_in
 
 
-def grayfilter(img_in):
+def unpaper_grayfilter(img_in):
     img_in = img_in.convert("RGBA")  # Add alpha to align on 32bits
     img_out = bytes(img_in.size[0] * img_in.size[1] * 4 * [0])
-    _clib.grayfilter(
+    _clib.unpaper_grayfilter(
         img_in.size[0],
         img_in.size[1],
         img_in.tobytes(),
@@ -137,10 +137,10 @@ def grayfilter(img_in):
     return img_in
 
 
-def masks(img_in):
+def unpaper_masks(img_in):
     img_in = img_in.convert("RGBA")  # Add alpha to align on 32bits
     img_out = bytes(img_in.size[0] * img_in.size[1] * 4 * [0])
-    _clib.masks(
+    _clib.unpaper_masks(
         img_in.size[0],
         img_in.size[1],
         img_in.tobytes(),
@@ -154,10 +154,10 @@ def masks(img_in):
     return img_in
 
 
-def noisefilter(img_in):
+def unpaper_noisefilter(img_in):
     img_in = img_in.convert("RGBA")  # Add alpha to align on 32bits
     img_out = bytes(img_in.size[0] * img_in.size[1] * 4 * [0])
-    _clib.noisefilter(
+    _clib.unpaper_noisefilter(
         img_in.size[0],
         img_in.size[1],
         img_in.tobytes(),

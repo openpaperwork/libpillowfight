@@ -103,7 +103,7 @@ static struct rectangle detect_border(const struct bitmap *img) {
 #ifndef NO_PYTHON
 static
 #endif
-void border(const struct bitmap *in, struct bitmap *out)
+void pf_unpaper_border(const struct bitmap *in, struct bitmap *out)
 {
 	struct rectangle border;
 
@@ -135,7 +135,7 @@ PyObject *pyborder(PyObject *self, PyObject* args)
 	bitmap_out = from_py_buffer(&img_out, img_x, img_y);
 
 	memset(bitmap_out.pixels, 0xFFFFFFFF, img_out.len);
-	border(&bitmap_in, &bitmap_out);
+	pf_unpaper_border(&bitmap_in, &bitmap_out);
 
 	PyBuffer_Release(&img_in);
 	PyBuffer_Release(&img_out);

@@ -19,15 +19,15 @@
 
 #include <pillowfight/util.h>
 
-const union pixel g_default_white_pixel = {
-	.whole = WHOLE_WHITE,
+const union pf_pixel g_pf_default_white_pixel = {
+	.whole = PF_WHOLE_WHITE,
 };
 
 #ifndef NO_PYTHON
 
-struct bitmap from_py_buffer(const Py_buffer *buffer, int x, int y)
+struct pf_bitmap from_py_buffer(const Py_buffer *buffer, int x, int y)
 {
-	struct bitmap out;
+	struct pf_bitmap out;
 
 	assert(x * y * 4 == buffer->len);
 
@@ -41,7 +41,7 @@ struct bitmap from_py_buffer(const Py_buffer *buffer, int x, int y)
 #endif
 
 
-void clear_rect(struct bitmap *img, int left, int top, int right, int bottom)
+void pf_clear_rect(struct pf_bitmap *img, int left, int top, int right, int bottom)
 {
 	int x;
 	int y;
@@ -57,14 +57,14 @@ void clear_rect(struct bitmap *img, int left, int top, int right, int bottom)
 
 	for (y = top; y < bottom; y++) {
 		for (x = left; x < right; x++) {
-			SET_PIXEL(img, x, y, WHOLE_WHITE);
+			PF_SET_PIXEL(img, x, y, PF_WHOLE_WHITE);
 		}
 	}
 }
 
 
-int count_pixels_rect(int left, int top, int right, int bottom,
-		int max_brightness, const struct bitmap *img)
+int pf_count_pixels_rect(int left, int top, int right, int bottom,
+		int max_brightness, const struct pf_bitmap *img)
 {
 	int x;
 	int y;
@@ -73,7 +73,7 @@ int count_pixels_rect(int left, int top, int right, int bottom,
 
 	for (y = top; y <= bottom; y++) {
 		for (x = left; x <= right; x++) {
-			pixel = GET_PIXEL_GRAYSCALE(img, x, y);
+			pixel = PF_GET_PIXEL_GRAYSCALE(img, x, y);
 			if ((pixel >= 0) && (pixel <= max_brightness)) {
 				count++;
 			}
@@ -83,23 +83,23 @@ int count_pixels_rect(int left, int top, int right, int bottom,
 }
 
 
-void apply_mask(struct bitmap *img, const struct rectangle *mask) {
+void pf_apply_mask(struct pf_bitmap *img, const struct pf_rectangle *mask) {
 	int x;
 	int y;
 
 	for (y=0 ; y < img->size.y ; y++) {
 		for (x=0 ; x < img->size.x ; x++) {
 			if (!(IS_IN(x, mask->a.x, mask->b.x) && IS_IN(y, mask->a.y, mask->b.y))) {
-				SET_PIXEL(img, x, y, WHOLE_WHITE);
+				PF_SET_PIXEL(img, x, y, PF_WHOLE_WHITE);
 			}
 		}
 	}
 }
 
 
-struct dbl_matrix dbl_matrix_new(int x, int y)
+struct pf_dbl_matrix pf_dbl_matrix_new(int x, int y)
 {
-	struct dbl_matrix out;
+	struct pf_dbl_matrix out;
 	out.size.x = x;
 	out.size.y = y;
 	out.values = calloc(x * y, sizeof(out.values[0]));
@@ -107,22 +107,22 @@ struct dbl_matrix dbl_matrix_new(int x, int y)
 }
 
 
-void dbl_matrix_free(struct dbl_matrix *matrix)
+void pf_dbl_matrix_free(struct pf_dbl_matrix *matrix)
 {
 	free(matrix->values);
 }
 
-struct dbl_matrix dbl_matrix_transpose(const struct dbl_matrix *in)
+struct pf_dbl_matrix dbl_matrix_transpose(const struct pf_dbl_matrix *in)
 {
-	struct dbl_matrix out;
+	struct pf_dbl_matrix out;
 	int x, y;
 	double val;
 
-	out = dbl_matrix_new(in->size.y, in->size.x);
+	out = pf_dbl_matrix_new(in->size.y, in->size.x);
 	for (x = 0 ; x < in->size.x ; x++) {
 		for (y = 0; y < in->size.y ; y++) {
-			val = MATRIX_GET(in, x, y);
-			MATRIX_SET(&out, y, x, val);
+			val = PF_MATRIX_GET(in, x, y);
+			PF_MATRIX_SET(&out, y, x, val);
 		}
 	}
 
@@ -133,17 +133,17 @@ struct dbl_matrix dbl_matrix_transpose(const struct dbl_matrix *in)
  * Ref: https://en.wikipedia.org/wiki/Kernel_%28image_processing%29#Convolution
  * Ref: http://www.songho.ca/dsp/convolution/convolution2d_example.html
  */
-struct dbl_matrix dbl_matrix_convolution(
-		const struct dbl_matrix *img,
-		const struct dbl_matrix *kernel)
+struct pf_dbl_matrix pf_dbl_matrix_convolution(
+		const struct pf_dbl_matrix *img,
+		const struct pf_dbl_matrix *kernel)
 {
-	struct dbl_matrix out;
+	struct pf_dbl_matrix out;
 	int img_y, kernel_y;
 	int img_x, kernel_x;
 	double img_val, kernel_val;
 	double val;
 
-	out = dbl_matrix_new(img->size.x, img->size.y);
+	out = pf_dbl_matrix_new(img->size.x, img->size.y);
 
 	for (img_x = 0 ; img_x < img->size.x ; img_x++) {
 		for (img_y = 0 ; img_y < img->size.y ; img_y++) {
@@ -159,13 +159,13 @@ struct dbl_matrix dbl_matrix_convolution(
 					if (img_y - kernel_y < 0)
 						break;
 
-					img_val = MATRIX_GET(
+					img_val = PF_MATRIX_GET(
 							img,
 							img_x - kernel_x,
 							img_y - kernel_y
 						);
 
-					kernel_val = MATRIX_GET(
+					kernel_val = PF_MATRIX_GET(
 							kernel,
 							kernel_x,
 							kernel_y
@@ -176,14 +176,14 @@ struct dbl_matrix dbl_matrix_convolution(
 				}
 			}
 
-			MATRIX_SET(&out, img_x, img_y, val);
+			PF_MATRIX_SET(&out, img_x, img_y, val);
 		}
 	}
 
 	return out;
 }
 
-void rgb_bitmap_to_grayscale_dbl_matrix(const struct bitmap *in, struct dbl_matrix *out)
+void pf_rgb_bitmap_grayscale_dbl_matrix(const struct pf_bitmap *in, struct pf_dbl_matrix *out)
 {
 	int x, y;
 	int value;
@@ -193,8 +193,8 @@ void rgb_bitmap_to_grayscale_dbl_matrix(const struct bitmap *in, struct dbl_matr
 
 	for (x = 0 ; x < in->size.x ; x++) {
 		for (y = 0 ; y < in->size.y ; y++) {
-			value = GET_PIXEL_GRAYSCALE(in, x, y);
-			MATRIX_SET(
+			value = PF_GET_PIXEL_GRAYSCALE(in, x, y);
+			PF_MATRIX_SET(
 				out, x, y,
 				value
 			);
@@ -202,7 +202,7 @@ void rgb_bitmap_to_grayscale_dbl_matrix(const struct bitmap *in, struct dbl_matr
 	}
 }
 
-void grayscale_dbl_matrix_to_rgb_bitmap(const struct dbl_matrix *in, struct bitmap *out)
+void pf_grayscale_dbl_matrix_to_rgb_bitmap(const struct pf_dbl_matrix *in, struct pf_bitmap *out)
 {
 	int x, y;
 	int value;
@@ -212,22 +212,22 @@ void grayscale_dbl_matrix_to_rgb_bitmap(const struct dbl_matrix *in, struct bitm
 
 	for (x = 0 ; x < in->size.x ; x++) {
 		for (y = 0 ; y < in->size.y ; y++) {
-			value = MATRIX_GET(in, x, y);
+			value = PF_MATRIX_GET(in, x, y);
 			if (value < 0)
 				value = 0;
 			if (value >= 256)
 				value = 255;
-			SET_COLOR(out, x, y, COLOR_R, value);
-			SET_COLOR(out, x, y, COLOR_G, value);
-			SET_COLOR(out, x, y, COLOR_B, value);
-			SET_COLOR(out, x, y, COLOR_A, 0xFF);
+			PF_SET_COLOR(out, x, y, COLOR_R, value);
+			PF_SET_COLOR(out, x, y, COLOR_G, value);
+			PF_SET_COLOR(out, x, y, COLOR_B, value);
+			PF_SET_COLOR(out, x, y, COLOR_A, 0xFF);
 		}
 	}
 }
 
 
-void bitmap_channel_to_dbl_matrix(
-		const struct bitmap *in, struct dbl_matrix *out, enum color color
+void pf_bitmap_channel_to_dbl_matrix(
+		const struct pf_bitmap *in, struct pf_dbl_matrix *out, enum pf_color color
 )
 {
 	int x, y;
@@ -238,8 +238,8 @@ void bitmap_channel_to_dbl_matrix(
 
 	for (x = 0 ; x < in->size.x ; x++) {
 		for (y = 0 ; y < in->size.y ; y++) {
-			value = GET_COLOR(in, x, y, color);
-			MATRIX_SET(
+			value = PF_GET_COLOR(in, x, y, color);
+			PF_MATRIX_SET(
 				out, x, y,
 				value
 			);
@@ -248,28 +248,28 @@ void bitmap_channel_to_dbl_matrix(
 }
 
 
-void matrixes_to_rgb_bitmap(const struct dbl_matrix in[NB_RGB_COLORS], struct bitmap *out)
+void pf_matrixes_to_rgb_bitmap(const struct pf_dbl_matrix in[PF_NB_RGB_COLORS], struct pf_bitmap *out)
 {
 	int x, y;
 	int value;
-	enum color color;
+	enum pf_color color;
 
-	for (color = 0 ; color < NB_RGB_COLORS ; color++) {
+	for (color = 0 ; color < PF_NB_RGB_COLORS ; color++) {
 		assert(out->size.x == in[color].size.x);
 		assert(out->size.y == in[color].size.y);
 	}
 
 	for (x = 0 ; x < out->size.x ; x++) {
 		for (y = 0 ; y < out->size.y ; y++) {
-			for (color = 0 ; color < NB_RGB_COLORS ; color++) {
-				value = MATRIX_GET(&in[color], x, y);
+			for (color = 0 ; color < PF_NB_RGB_COLORS ; color++) {
+				value = PF_MATRIX_GET(&in[color], x, y);
 				if (value < 0)
 					value = 0;
 				if (value >= 256)
 					value = 255;
-				SET_COLOR(out, x, y, color, value);
+				PF_SET_COLOR(out, x, y, color, value);
 			}
-			SET_COLOR(out, x, y, COLOR_A, 0xFF);
+			PF_SET_COLOR(out, x, y, COLOR_A, 0xFF);
 		}
 	}
 }

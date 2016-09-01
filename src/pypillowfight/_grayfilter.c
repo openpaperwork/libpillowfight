@@ -39,13 +39,13 @@
 #define THRESHOLD 0.5
 #define BLACK_THRESHOLD 0.33
 
-#define BLACK_MAX (WHITE * (1.0 - BLACK_THRESHOLD))
-#define THRESHOLD_ABS (WHITE * THRESHOLD)
+#define BLACK_MAX (PF_WHITE * (1.0 - BLACK_THRESHOLD))
+#define THRESHOLD_ABS (PF_WHITE * THRESHOLD)
 
 /**
  * Returns the average lightness of a rectangular area.
  */
-static int lightness_rect(int x1, int y1, int x2, int y2, const struct bitmap *img) {
+static int lightness_rect(int x1, int y1, int x2, int y2, const struct pf_bitmap *img) {
 	int x;
 	int y;
 	int total = 0;
@@ -53,7 +53,7 @@ static int lightness_rect(int x1, int y1, int x2, int y2, const struct bitmap *i
 
 	for (x = x1; x < x2; x++) {
 		for (y = y1; y < y2; y++) {
-			total += GET_PIXEL_LIGHTNESS(img, x, y);
+			total += PF_GET_PIXEL_LIGHTNESS(img, x, y);
 		}
 	}
 	return total / count;
@@ -62,7 +62,7 @@ static int lightness_rect(int x1, int y1, int x2, int y2, const struct bitmap *i
 #ifndef NO_PYTHON
 static
 #endif
-void pf_unpaper_grayfilter(const struct bitmap *in, struct bitmap *out)
+void pf_unpaper_grayfilter(const struct pf_bitmap *in, struct pf_bitmap *out)
 {
 	int left;
 	int top;
@@ -71,7 +71,7 @@ void pf_unpaper_grayfilter(const struct bitmap *in, struct bitmap *out)
 	int count;
 	int lightness;
 
-	memcpy(out->pixels, in->pixels, sizeof(union pixel) * in->size.x * in->size.y);
+	memcpy(out->pixels, in->pixels, sizeof(union pf_pixel) * in->size.x * in->size.y);
 
 	left = 0;
 	top = 0;
@@ -79,11 +79,11 @@ void pf_unpaper_grayfilter(const struct bitmap *in, struct bitmap *out)
 	bottom = SCAN_SIZE - 1;
 
 	while (1) {
-		count = count_pixels_rect(left, top, right, bottom, BLACK_MAX, out);
+		count = pf_count_pixels_rect(left, top, right, bottom, BLACK_MAX, out);
 		if (count == 0) {
 			lightness = lightness_rect(left, top, right, bottom, out);
-			if ((WHITE - lightness) < THRESHOLD_ABS) {
-				clear_rect(out, left, top, right, bottom);
+			if ((PF_WHITE - lightness) < THRESHOLD_ABS) {
+				pf_clear_rect(out, left, top, right, bottom);
 			}
 		}
 		if (left < out->size.x) {
@@ -107,8 +107,8 @@ PyObject *pygrayfilter(PyObject *self, PyObject* args)
 {
 	int img_x, img_y;
 	Py_buffer img_in, img_out;
-	struct bitmap bitmap_in;
-	struct bitmap bitmap_out;
+	struct pf_bitmap bitmap_in;
+	struct pf_bitmap bitmap_out;
 
 	if (!PyArg_ParseTuple(args, "iiy*y*",
 				&img_x, &img_y,
@@ -123,7 +123,6 @@ PyObject *pygrayfilter(PyObject *self, PyObject* args)
 	bitmap_in = from_py_buffer(&img_in, img_x, img_y);
 	bitmap_out = from_py_buffer(&img_out, img_x, img_y);
 
-	memset(bitmap_out.pixels, 0xFFFFFFFF, img_out.len);
 	pf_unpaper_grayfilter(&bitmap_in, &bitmap_out);
 
 	PyBuffer_Release(&img_in);

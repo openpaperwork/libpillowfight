@@ -34,8 +34,8 @@
 #define SCAN_SIZE 100
 #define SCAN_STEP 50
 #define INTENSITY 0.01
-#define WHITE_THRESHOLD 0.9
-#define WHITE_MIN ((int)(WHITE_THRESHOLD * WHITE))
+#define PF_WHITE_THRESHOLD 0.9
+#define PF_WHITE_MIN ((int)(PF_WHITE_THRESHOLD * PF_WHITE))
 
 /*!
  * \brief Algorithm blurfilter from unpaper, partially rewritten.
@@ -44,7 +44,7 @@
 #ifndef NO_PYTHON
 static
 #endif
-void pf_unpaper_blurfilter(const struct bitmap *in, struct bitmap *out)
+void pf_unpaper_blurfilter(const struct pf_bitmap *in, struct pf_bitmap *out)
 {
 	int left;
 	int top;
@@ -63,7 +63,7 @@ void pf_unpaper_blurfilter(const struct bitmap *in, struct bitmap *out)
 	int total; // Number of pixels in a block
 	int result;
 
-	memcpy(out->pixels, in->pixels, sizeof(union pixel) * in->size.x * in->size.y);
+	memcpy(out->pixels, in->pixels, sizeof(union pf_pixel) * in->size.x * in->size.y);
 
 	result = 0;
 	left = 0;
@@ -83,7 +83,7 @@ void pf_unpaper_blurfilter(const struct bitmap *in, struct bitmap *out)
 
 	block = 1;
 	for (left = 0; left <= max_left; left += SCAN_SIZE) {
-		cur_counts[block] = count_pixels_rect(left, top, right, bottom, WHITE_MIN, out);
+		cur_counts[block] = pf_count_pixels_rect(left, top, right, bottom, PF_WHITE_MIN, out);
 		block++;
 		right += SCAN_SIZE;
 	}
@@ -101,8 +101,8 @@ void pf_unpaper_blurfilter(const struct bitmap *in, struct bitmap *out)
 	for (top = 0 ; top <= max_top ; top += SCAN_SIZE) {
 		left = 0;
 		right = SCAN_SIZE - 1;
-		next_counts[0] = count_pixels_rect(
-				left, top + SCAN_STEP, right, bottom + SCAN_SIZE, WHITE_MIN, out
+		next_counts[0] = pf_count_pixels_rect(
+				left, top + SCAN_STEP, right, bottom + SCAN_SIZE, PF_WHITE_MIN, out
 		);
 
 		block = 1;
@@ -126,19 +126,19 @@ void pf_unpaper_blurfilter(const struct bitmap *in, struct bitmap *out)
 				max = count;
 			}
 			// bottom right (has still to be calculated)
-			next_counts[block + 1] = count_pixels_rect(
+			next_counts[block + 1] = pf_count_pixels_rect(
 					left + SCAN_SIZE,
 					top + SCAN_STEP,
 					right + SCAN_SIZE,
 					bottom + SCAN_SIZE,
-					WHITE_MIN,
+					PF_WHITE_MIN,
 					out
 			);
 			if (count > max) {
 				max = count;
 			}
 			if ((((float)max) / total) <= INTENSITY) { // Not enough dark pixels
-				clear_rect(out, left, top, right, bottom);
+				pf_clear_rect(out, left, top, right, bottom);
 				result += cur_counts[block];
 				cur_counts[block] = total; // Update information
 			}
@@ -164,8 +164,8 @@ PyObject *pyblurfilter(PyObject *self, PyObject* args)
 {
 	int img_x, img_y;
 	Py_buffer img_in, img_out;
-	struct bitmap bitmap_in;
-	struct bitmap bitmap_out;
+	struct pf_bitmap bitmap_in;
+	struct pf_bitmap bitmap_out;
 
 	if (!PyArg_ParseTuple(args, "iiy*y*",
 				&img_x, &img_y,
@@ -180,7 +180,6 @@ PyObject *pyblurfilter(PyObject *self, PyObject* args)
 	bitmap_in = from_py_buffer(&img_in, img_x, img_y);
 	bitmap_out = from_py_buffer(&img_out, img_x, img_y);
 
-	memset(bitmap_out.pixels, 0xFFFFFFFF, img_out.len);
 	pf_unpaper_blurfilter(&bitmap_in, &bitmap_out);
 
 	PyBuffer_Release(&img_in);

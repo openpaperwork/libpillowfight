@@ -38,15 +38,15 @@
  */
 
 #define SIZE 3
-#define LOW_THRESHOLD ((int)(WHITE * 0.47))
-#define HIGH_THRESHOLD ((int)(WHITE * 0.61))
+#define LOW_THRESHOLD ((int)(PF_WHITE * 0.47))
+#define HIGH_THRESHOLD ((int)(PF_WHITE * 0.61))
 
 #ifndef NO_PYTHON
 static
 #endif
-void pf_canny(const struct bitmap *in, struct bitmap *out)
+void pf_canny(const struct pf_bitmap *in, struct pf_bitmap *out)
 {
-	memset(out->pixels, 0, sizeof(union pixel) * out->size.x * out->size.y);
+	memset(out->pixels, 0, sizeof(union pf_pixel) * out->size.x * out->size.y);
 	// TODO
 }
 
@@ -55,8 +55,8 @@ PyObject *pycanny(PyObject *self, PyObject* args)
 {
 	int img_x, img_y;
 	Py_buffer img_in, img_out;
-	struct bitmap bitmap_in;
-	struct bitmap bitmap_out;
+	struct pf_bitmap bitmap_in;
+	struct pf_bitmap bitmap_out;
 
 	if (!PyArg_ParseTuple(args, "iiy*y*",
 				&img_x, &img_y,

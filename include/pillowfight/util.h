@@ -28,29 +28,37 @@
  * - In position (x, y): x = width, y = height.
  */
 
-enum color {
+enum pf_color {
 	COLOR_R = 0,
 	COLOR_G,
 	COLOR_B,
 	COLOR_A,
 };
-#define NB_COLORS 4 /* to align on 32bits */
-#define NB_RGB_COLORS 3 /* when we want explicitly to ignore the alpha channel */
+#define PF_NB_COLORS 4 /* to align on 32bits */
+#define PF_NB_RGB_COLORS 3 /* when we want explicitly to ignore the alpha channel */
 
-#define WHITE 0xFF
-#define WHOLE_WHITE 0xFFFFFFFF
+#define PF_WHITE 0xFF
+#define PF_WHOLE_WHITE 0xFFFFFFFF
 
 // Careful: double evaluation !
+#ifndef MIN
 #define MIN(a, b) (((a) < (b)) ? (a) : (b))
+#endif
+#ifndef MAX
 #define MAX(a, b) (((a) > (b)) ? (a) : (b))
+#endif
 
 // Careful : multiple evaluation !
+#ifndef MAX3
 #define MAX3(a, b, c) MAX(a, MAX(b, c))
+#endif
+#ifndef MIN3
 #define MIN3(a, b, c) MIN(a, MIN(b, c))
+#endif
 
 #define IS_IN(v, a, b) ((a) <= (v) && (v) < (b))
 
-union pixel {
+union pf_pixel {
 	uint32_t whole;
 	struct {
 		uint8_t r;
@@ -62,57 +70,57 @@ union pixel {
 };
 
 
-struct bitmap {
+struct pf_bitmap {
 	struct {
 		size_t x;
 		size_t y;
 	} size;
-	union pixel *pixels;
+	union pf_pixel *pixels;
 };
 
 /*!
  * \returns a uint32_t (RGBA)
  */
-#define GET_PIXEL(bitmap, a, b) ((bitmap)->pixels[((b) * (bitmap)->size.x) + (a)])
-#define GET_PIXEL_DEF(bitmap, a, b, def) \
+#define PF_GET_PIXEL(bitmap, a, b) ((bitmap)->pixels[((b) * (bitmap)->size.x) + (a)])
+#define PF_GET_PIXEL_DEF(bitmap, a, b, def) \
 	((a < 0 || a >= bitmap->size.x) ? def : \
 	 ((b < 0 || b >= bitmap->size.y) ? def : \
-	  GET_PIXEL(bitmap, a, b)))
+	  PF_GET_PIXEL(bitmap, a, b)))
 
-#define SET_PIXEL(bitmap, a, b, value) GET_PIXEL(bitmap, a, b).whole = (value);
+#define PF_SET_PIXEL(bitmap, a, b, value) PF_GET_PIXEL(bitmap, a, b).whole = (value);
 
 /*!
  * \returns a uint8_t
  */
-#define GET_COLOR(bitmap, a, b, color) (GET_PIXEL(bitmap, a, b).channels[(color)])
-#define GET_COLOR_DEF(bitmap, a, b, color, def) (GET_PIXEL_DEF(bitmap, a, b, def).channels[(color)])
+#define PF_GET_COLOR(bitmap, a, b, color) (PF_GET_PIXEL(bitmap, a, b).channels[(color)])
+#define PF_GET_COLOR_DEF(bitmap, a, b, color, def) (PF_GET_PIXEL_DEF(bitmap, a, b, def).channels[(color)])
 
-#define SET_COLOR(bitmap, a, b, color, value) (GET_PIXEL(bitmap, a, b).channels[(color)]) = (value)
+#define PF_SET_COLOR(bitmap, a, b, color, value) (PF_GET_PIXEL(bitmap, a, b).channels[(color)]) = (value)
 
 // Careful : multiple evaluation !
-#define GET_PIXEL_DARKNESS_INVERSE(img, x, y) \
+#define PF_GET_PIXEL_DARKNESS_INVERSE(img, x, y) \
 	MAX3( \
-			GET_PIXEL_DEF(img, x, y, g_default_white_pixel).color.r, \
-			GET_PIXEL_DEF(img, x, y, g_default_white_pixel).color.g, \
-			GET_PIXEL_DEF(img, x, y, g_default_white_pixel).color.b \
+			PF_GET_PIXEL_DEF(img, x, y, g_pf_default_white_pixel).color.r, \
+			PF_GET_PIXEL_DEF(img, x, y, g_pf_default_white_pixel).color.g, \
+			PF_GET_PIXEL_DEF(img, x, y, g_pf_default_white_pixel).color.b \
 		);
 
-#define GET_PIXEL_GRAYSCALE(img, x, y) \
-	((GET_PIXEL_DEF(img, x, y, g_default_white_pixel).color.r \
-	  + GET_PIXEL_DEF(img, x, y, g_default_white_pixel).color.g \
-	  + GET_PIXEL_DEF(img, x, y, g_default_white_pixel).color.b) / 3)
+#define PF_GET_PIXEL_GRAYSCALE(img, x, y) \
+	((PF_GET_PIXEL_DEF(img, x, y, g_pf_default_white_pixel).color.r \
+	  + PF_GET_PIXEL_DEF(img, x, y, g_pf_default_white_pixel).color.g \
+	  + PF_GET_PIXEL_DEF(img, x, y, g_pf_default_white_pixel).color.b) / 3)
 
-#define GET_PIXEL_LIGHTNESS(img, x, y) \
+#define PF_GET_PIXEL_LIGHTNESS(img, x, y) \
 	MIN3( \
-		GET_COLOR_DEF(img, x, y, COLOR_R, g_default_white_pixel), \
-		GET_COLOR_DEF(img, x, y, COLOR_G, g_default_white_pixel), \
-		GET_COLOR_DEF(img, x, y, COLOR_B, g_default_white_pixel) \
+		PF_GET_COLOR_DEF(img, x, y, COLOR_R, g_pf_default_white_pixel), \
+		PF_GET_COLOR_DEF(img, x, y, COLOR_G, g_pf_default_white_pixel), \
+		PF_GET_COLOR_DEF(img, x, y, COLOR_B, g_pf_default_white_pixel) \
 	)
 
 /*!
  * \brief matrix of integers
  */
-struct dbl_matrix {
+struct pf_dbl_matrix {
 	struct {
 		int x;
 		int y;
@@ -120,11 +128,11 @@ struct dbl_matrix {
 	double *values;
 };
 
-#define MATRIX_GET(matrix, a, b) ((matrix)->values[((b) * (matrix)->size.x) + (a)])
-#define MATRIX_SET(matrix, a, b, val) MATRIX_GET(matrix, a, b) = (val);
+#define PF_MATRIX_GET(matrix, a, b) ((matrix)->values[((b) * (matrix)->size.x) + (a)])
+#define PF_MATRIX_SET(matrix, a, b, val) PF_MATRIX_GET(matrix, a, b) = (val);
 
 
-struct rectangle {
+struct pf_rectangle {
 	struct {
 		int x;
 		int y;
@@ -136,59 +144,59 @@ struct rectangle {
 };
 
 
-extern const union pixel g_default_white_pixel;
+extern const union pf_pixel g_pf_default_white_pixel;
 
 
 #ifndef NO_PYTHON
 /*!
- * \brief convert a py_buffer into a struct bitmap
+ * \brief convert a py_buffer into a struct pf_bitmap
  * \warning assumes the py_buffer is a RGBA image
  */
-struct bitmap from_py_buffer(const Py_buffer *buffer, int x, int y);
+struct pf_bitmap from_py_buffer(const Py_buffer *buffer, int x, int y);
 
-Py_buffer to_py_buffer(const struct bitmap *bitmap);
+Py_buffer to_py_buffer(const struct pf_bitmap *bitmap);
 #endif
 
 
-struct dbl_matrix dbl_matrix_new(int x, int y);
-void dbl_matrix_free(struct dbl_matrix *matrix);
+struct pf_dbl_matrix pf_dbl_matrix_new(int x, int y);
+void pf_dbl_matrix_free(struct pf_dbl_matrix *matrix);
 
 /*!
  * \see https://en.wikipedia.org/wiki/Kernel_%28image_processing%29#Convolution
  */
-struct dbl_matrix dbl_matrix_convolution(
-		const struct dbl_matrix *image,
-		const struct dbl_matrix *kernel
+struct pf_dbl_matrix pf_dbl_matrix_convolution(
+		const struct pf_dbl_matrix *image,
+		const struct pf_dbl_matrix *kernel
 	);
 
-struct dbl_matrix dbl_matrix_transpose(const struct dbl_matrix *in);
+struct pf_dbl_matrix dbl_matrix_transpose(const struct pf_dbl_matrix *in);
 
-void rgb_bitmap_to_grayscale_dbl_matrix(const struct bitmap *in, struct dbl_matrix *out);
-void grayscale_dbl_matrix_to_rgb_bitmap(const struct dbl_matrix *in, struct bitmap *out);
+void pf_rgb_bitmap_grayscale_dbl_matrix(const struct pf_bitmap *in, struct pf_dbl_matrix *out);
+void pf_grayscale_dbl_matrix_to_rgb_bitmap(const struct pf_dbl_matrix *in, struct pf_bitmap *out);
 
-void bitmap_channel_to_dbl_matrix(
-		const struct bitmap *in, struct dbl_matrix *out, enum color
+void pf_bitmap_channel_to_dbl_matrix(
+		const struct pf_bitmap *in, struct pf_dbl_matrix *out, enum pf_color
 );
-void matrixes_to_rgb_bitmap(const struct dbl_matrix in[NB_RGB_COLORS], struct bitmap *out);
+void pf_matrixes_to_rgb_bitmap(const struct pf_dbl_matrix in[PF_NB_RGB_COLORS], struct pf_bitmap *out);
 
 /**
- * Clears a rectangular area of pixels with white.
- * @return The number of pixels actually changed from black (dark) to white.
+ * Clears a rectangular area of pixels with PF_WHITE.
+ * @return The number of pixels actually changed from black (dark) to PF_WHITE.
  */
-void clear_rect(struct bitmap *img, int left, int top, int right, int bottom);
+void pf_clear_rect(struct pf_bitmap *img, int left, int top, int right, int bottom);
 
 /**
  * Counts the number of pixels in a rectangular area whose grayscale
  * values ranges between minColor and maxBrightness. Optionally, the area can get
- * cleared with white color while counting.
+ * cleared with PF_WHITE color while counting.
  */
-int count_pixels_rect(int left, int top, int right, int bottom,
-		int max_brightness, const struct bitmap *img);
+int pf_count_pixels_rect(int left, int top, int right, int bottom,
+		int max_brightness, const struct pf_bitmap *img);
 
 /**
  * Permanently applies image mask. Each pixel which is not covered by at least
  * one mask is set to maskColor.
  */
-void apply_mask(struct bitmap *img, const struct rectangle *mask);
+void pf_apply_mask(struct pf_bitmap *img, const struct pf_rectangle *mask);
 
 #endif

@@ -46,11 +46,11 @@
 
 #define ACE_COLORS 3 /* we don't use the alpha channel */
 
-#define DBL_RGB_MATRIX_GET(matrix, a, b, color) \
+#define PF_DBL_RGB_MATRIX_GET(matrix, a, b, color) \
 	((matrix)->values[((b) * (matrix)->size.x) + (a)].channels[color])
 
-#define DBL_RGB_MATRIX_SET(matrix, a, b, color, val) \
-	DBL_RGB_MATRIX_GET(matrix, a, b, color) = (val)
+#define PF_DBL_RGB_MATRIX_SET(matrix, a, b, color, val) \
+	PF_DBL_RGB_MATRIX_GET(matrix, a, b, color) = (val)
 
 #define MIN(a, b) (((a) < (b)) ? (a) : (b))
 #define MAX(a, b) (((a) > (b)) ? (a) : (b))
@@ -71,13 +71,13 @@ struct dbl_rgb_matrix {
 			double b;
 			double a;
 		};
-		double channels[NB_COLORS];
+		double channels[PF_NB_COLORS];
 	} values[];
 };
 
 struct rscore {
-	double max[NB_COLORS];
-	double min[NB_COLORS];
+	double max[PF_NB_COLORS];
+	double min[PF_NB_COLORS];
 	struct dbl_rgb_matrix *scores;
 };
 
@@ -88,7 +88,7 @@ struct pair {
 
 static struct dbl_rgb_matrix *new_matrix(int x, int y) {
 	struct dbl_rgb_matrix *out = calloc(1,
-			sizeof(struct dbl_rgb_matrix) + (x * y * NB_COLORS * sizeof(double))
+			sizeof(struct dbl_rgb_matrix) + (x * y * PF_NB_COLORS * sizeof(double))
 	);
 	if (out == NULL)
 		abort();
@@ -107,9 +107,9 @@ static struct rscore new_rscore(int x, int y) {
 	int i;
 
 	memset(&out, 0, sizeof(out));
-	for (i = 0 ; i < NB_COLORS ; i++)
+	for (i = 0 ; i < PF_NB_COLORS ; i++)
 		out.max[i] = 0.0;
-	for (i = 0 ; i < NB_COLORS ; i++)
+	for (i = 0 ; i < PF_NB_COLORS ; i++)
 		out.min[i] = MAXDOUBLE;
 	out.scores = new_matrix(x, y);
 
@@ -165,7 +165,7 @@ struct ace_thread_adjustment_params {
 
 	double slope;
 	double limit;
-	const struct bitmap *in;
+	const struct pf_bitmap *in;
 	const struct pair *samples;
 	int nb_samples;
 
@@ -199,8 +199,8 @@ static void *ace_thread_adjustment(void *_thread_params)
 					continue;
 				for (color = 0 ; color < ACE_COLORS ; color++) {
 					GET_SATURATION(saturation,
-							GET_COLOR(params->in, i, j, color)
-							- GET_COLOR(params->in, sample.x, sample.y, color),
+							PF_GET_COLOR(params->in, i, j, color)
+							- PF_GET_COLOR(params->in, sample.x, sample.y, color),
 							params->slope,
 							params->limit);
 					saturation /= dist;
@@ -211,7 +211,7 @@ static void *ace_thread_adjustment(void *_thread_params)
 
 			for (color = 0 ; color < ACE_COLORS ; color++) {
 				rscore_sums[color] /= denominator;
-				DBL_RGB_MATRIX_SET(params->rscore.scores, i, j, color, rscore_sums[color]);
+				PF_DBL_RGB_MATRIX_SET(params->rscore.scores, i, j, color, rscore_sums[color]);
 
 				params->rscore.max[color] = MAX(
 						params->rscore.max[color], rscore_sums[color]
@@ -238,7 +238,7 @@ struct ace_thread_scaling_params {
 
 	const struct rscore *rscore;
 
-	const struct bitmap *out;
+	const struct pf_bitmap *out;
 };
 
 void *ace_thread_scaling(void *_params) {
@@ -249,14 +249,14 @@ void *ace_thread_scaling(void *_params) {
 	for (i = params->start.x ; i < params->stop.x ; i++) {
 		for (j = params->start.y ; j < params->stop.y ; j++) {
 			for (color = 0 ; color < ACE_COLORS ; color++) {
-				scaled = DBL_RGB_MATRIX_GET(params->rscore->scores, i, j, color);
+				scaled = PF_DBL_RGB_MATRIX_GET(params->rscore->scores, i, j, color);
 				scaled = GET_LINEAR_SCALING(
 					scaled,
 					params->rscore->max[color],
 					params->rscore->min[color],
 					255.0, 0.0
 				);
-				SET_COLOR(params->out, i, j, color, (uint8_t)scaled);
+				PF_SET_COLOR(params->out, i, j, color, (uint8_t)scaled);
 			}
 		}
 	}
@@ -267,7 +267,7 @@ void *ace_thread_scaling(void *_params) {
 #ifndef NO_PYTHON
 static
 #endif
-void pf_ace(const struct bitmap *in, struct bitmap *out,
+void pf_ace(const struct pf_bitmap *in, struct pf_bitmap *out,
 		int nb_samples, double slope, double limit,
 		int nb_threads)
 {
@@ -353,8 +353,8 @@ PyObject *pyace(PyObject *self, PyObject* args)
 	double slope, limit;
 	int samples, seed;
 	int nb_threads;
-	struct bitmap bitmap_in;
-	struct bitmap bitmap_out;
+	struct pf_bitmap bitmap_in;
+	struct pf_bitmap bitmap_out;
 
 	if (!PyArg_ParseTuple(args, "iiy*ddiiiy*",
 				&img_x, &img_y,

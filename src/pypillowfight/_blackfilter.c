@@ -41,14 +41,14 @@
 #define SCAN_THRESHOLD 0.95
 #define INTENSITY 20
 
-#define ABS_SCAN_THRESHOLD (WHITE * SCAN_THRESHOLD)
-#define ABS_THRESHOLD (WHITE * (1.0 - THRESHOLD))
+#define ABS_SCAN_THRESHOLD (PF_WHITE * SCAN_THRESHOLD)
+#define ABS_THRESHOLD (PF_WHITE * (1.0 - THRESHOLD))
 
 
 static uint8_t get_darkness_rect(
 			const int x1, const int y1,
 			const int x2, const int y2,
-			struct bitmap *img
+			struct pf_bitmap *img
 		) {
 	unsigned int total = 0;
 	const int count = (x2 - x1) * (y2 - y1);
@@ -56,10 +56,10 @@ static uint8_t get_darkness_rect(
 
 	for (y = y1; y < y2; y++) {
 		for (x = x1; x < x2; x++) {
-			total += GET_PIXEL_DARKNESS_INVERSE(img, x, y);
+			total += PF_GET_PIXEL_DARKNESS_INVERSE(img, x, y);
 		}
 	}
-	return WHITE - (total / count);
+	return PF_WHITE - (total / count);
 }
 
 /**
@@ -73,7 +73,7 @@ static uint8_t get_darkness_rect(
 static int fill_line(
 		int x, int y,
 		int step_x, int step_y,
-		const struct bitmap *img) {
+		const struct pf_bitmap *img) {
 	int distance = 0;
 	int intensity_count = 1; // first pixel must match, otherwise directly exit
 	uint8_t pixel;
@@ -81,7 +81,7 @@ static int fill_line(
 	while (1) {
 		x += step_x;
 		y += step_y;
-		pixel = GET_PIXEL_GRAYSCALE(img, x, y);
+		pixel = PF_GET_PIXEL_GRAYSCALE(img, x, y);
 		if ((pixel >= 0) && (pixel <= ABS_THRESHOLD)) {
 			intensity_count = INTENSITY; // reset counter
 		} else {
@@ -93,7 +93,7 @@ static int fill_line(
 				&& (x < img->size.x)
 				&& (y >= 0)
 				&& (y < img->size.y)) {
-			SET_PIXEL(img, x, y, WHOLE_WHITE);
+			PF_SET_PIXEL(img, x, y, PF_WHOLE_WHITE);
 			distance++;
 		} else {
 			return distance; // exit here
@@ -102,7 +102,7 @@ static int fill_line(
 }
 
 
-static void flood_fill(int x, int y, struct bitmap *img);
+static void flood_fill(int x, int y, struct pf_bitmap *img);
 
 
 /**
@@ -118,7 +118,7 @@ static void flood_fill_around_line(
 		int x, int y,
 		int step_x, int step_y,
 		int distance,
-		struct bitmap *img) {
+		struct pf_bitmap *img) {
 
 	int d;
 
@@ -137,15 +137,15 @@ static void flood_fill_around_line(
 }
 
 
-static void flood_fill(int x, int y, struct bitmap *img) {
+static void flood_fill(int x, int y, struct pf_bitmap *img) {
 
 	// is current pixel to be filled?
-	const int pixel = GET_PIXEL_GRAYSCALE(img, x, y);
+	const int pixel = PF_GET_PIXEL_GRAYSCALE(img, x, y);
 	int left, top, right, bottom;
 
 	if ((pixel >= 0) && (pixel <= ABS_THRESHOLD)) {
 		// first, fill a 'cross' (both vertical, horizontal line)
-		SET_PIXEL(img, x, y, WHOLE_WHITE);
+		PF_SET_PIXEL(img, x, y, PF_WHOLE_WHITE);
 		left = fill_line(x, y, -1, 0, img);
 		top = fill_line(x, y, 0, -1, img);
 		right = fill_line(x, y, 1, 0, img);
@@ -161,7 +161,7 @@ static void flood_fill(int x, int y, struct bitmap *img) {
 
 static void blackfilter_scan(
 		int step_x, int step_y,
-		struct bitmap *img)
+		struct pf_bitmap *img)
 {
 	int left;
 	int top;
@@ -219,7 +219,7 @@ static void blackfilter_scan(
 			) {
 			blackness = get_darkness_rect(l, t, r, b, img);
 			if (blackness >= abs_scan_threshold) {
-				// fill the black part with white
+				// fill the black part with PF_WHITE
 				for (y = t ; y < b ; y++) {
 					for (x = l ; x < r; x++) {
 						flood_fill(x, y, img);
@@ -234,9 +234,9 @@ static void blackfilter_scan(
 #ifndef NO_PYTHON
 static
 #endif
-void pf_unpaper_blackfilter(const struct bitmap *in, struct bitmap *out)
+void pf_unpaper_blackfilter(const struct pf_bitmap *in, struct pf_bitmap *out)
 {
-	memcpy(out->pixels, in->pixels, sizeof(union pixel) * in->size.x * in->size.y);
+	memcpy(out->pixels, in->pixels, sizeof(union pf_pixel) * in->size.x * in->size.y);
 
 	blackfilter_scan(SCAN_STEP, 0, out);
 	blackfilter_scan(0, SCAN_STEP, out);
@@ -247,8 +247,8 @@ PyObject *pyblackfilter(PyObject *self, PyObject* args)
 {
 	int img_x, img_y;
 	Py_buffer img_in, img_out;
-	struct bitmap bitmap_in;
-	struct bitmap bitmap_out;
+	struct pf_bitmap bitmap_in;
+	struct pf_bitmap bitmap_out;
 
 	if (!PyArg_ParseTuple(args, "iiy*y*",
 				&img_x, &img_y,
@@ -263,7 +263,6 @@ PyObject *pyblackfilter(PyObject *self, PyObject* args)
 	bitmap_in = from_py_buffer(&img_in, img_x, img_y);
 	bitmap_out = from_py_buffer(&img_out, img_x, img_y);
 
-	memset(bitmap_out.pixels, 0xFFFFFFFF, img_out.len);
 	pf_unpaper_blackfilter(&bitmap_in, &bitmap_out);
 
 	PyBuffer_Release(&img_in);

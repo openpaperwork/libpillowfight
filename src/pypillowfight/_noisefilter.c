@@ -34,19 +34,19 @@
  * \brief Algorithm noisefilter from unpaper, partially rewritten.
  */
 
-#define WHITE_THRESHOLD 0.9
-#define WHITE_MIN ((int)(WHITE_THRESHOLD * WHITE))
+#define PF_WHITE_THRESHOLD 0.9
+#define PF_WHITE_MIN ((int)(PF_WHITE_THRESHOLD * PF_WHITE))
 #define INTENSITY 4
 
-static void callback_count(int x, int y, struct bitmap *img, void *cb_data) {
+static void callback_count(int x, int y, struct pf_bitmap *img, void *cb_data) {
 	int *count = cb_data;
 	(*count)++;
 }
 
-static void callback_clear(int x, int y, struct bitmap *img, void *cb_data) {
+static void callback_clear(int x, int y, struct pf_bitmap *img, void *cb_data) {
 	int *count = cb_data;
 	(*count)++;
-	SET_PIXEL(img, x, y, WHOLE_WHITE);
+	PF_SET_PIXEL(img, x, y, PF_WHOLE_WHITE);
 }
 
 /**
@@ -56,8 +56,8 @@ static void callback_clear(int x, int y, struct bitmap *img, void *cb_data) {
  * Optionally, the pixels can get cleared after counting.
  */
 static void browse_pixel_neighbors_level(int x, int y,
-		int level, struct bitmap *img,
-		void (*callback)(int x, int y, struct bitmap *img, void *cb_data),
+		int level, struct pf_bitmap *img,
+		void (*callback)(int x, int y, struct pf_bitmap *img, void *cb_data),
 		void *cb_data) {
 	int xx;
 	int yy;
@@ -66,26 +66,26 @@ static void browse_pixel_neighbors_level(int x, int y,
 	// upper and lower rows
 	for (xx = x - level; xx <= x + level; xx++) {
 		// upper row
-		pixel = GET_PIXEL_LIGHTNESS(img, xx, y - level);
-		if (pixel < WHITE_MIN) { // non-light pixel found
+		pixel = PF_GET_PIXEL_LIGHTNESS(img, xx, y - level);
+		if (pixel < PF_WHITE_MIN) { // non-light pixel found
 			callback(xx, y - level, img, cb_data);
 		}
 		// lower row
-		pixel = GET_PIXEL_LIGHTNESS(img, xx, y + level);
-		if (pixel < WHITE_MIN) {
+		pixel = PF_GET_PIXEL_LIGHTNESS(img, xx, y + level);
+		if (pixel < PF_WHITE_MIN) {
 			callback(xx, y + level, img, cb_data);
 		}
 	}
 	// middle rows
 	for (yy = y - (level - 1); yy <= y + (level - 1); yy++) {
 		// first col
-		pixel = GET_PIXEL_LIGHTNESS(img, x - level, yy);
-		if (pixel < WHITE_MIN) { // non-light pixel found
+		pixel = PF_GET_PIXEL_LIGHTNESS(img, x - level, yy);
+		if (pixel < PF_WHITE_MIN) { // non-light pixel found
 			callback(x - level, yy, img, cb_data);
 		}
 		// last col
-		pixel = GET_PIXEL_LIGHTNESS(img, x + level, yy);
-		if (pixel < WHITE_MIN) {
+		pixel = PF_GET_PIXEL_LIGHTNESS(img, x + level, yy);
+		if (pixel < PF_WHITE_MIN) {
 			callback(x + level, yy, img, cb_data);
 		}
 	}
@@ -97,7 +97,7 @@ static void browse_pixel_neighbors_level(int x, int y,
  * reachable from the dark pixel at (x,y), without having to cross bright
  * pixels.
  */
-static int count_pixel_neighbors(int x, int y, struct bitmap *img) {
+static int count_pixel_neighbors(int x, int y, struct pf_bitmap *img) {
 	int level;
 	int count = 1; // assume self as set
 	int l_count = -1;
@@ -117,11 +117,11 @@ static int count_pixel_neighbors(int x, int y, struct bitmap *img) {
  * (x,y). This should be called only if it has previously been detected that
  * the amount of pixels to clear will be reasonable small.
  */
-static void clear_pixel_neighbors(int x, int y, struct bitmap *img) {
+static void clear_pixel_neighbors(int x, int y, struct pf_bitmap *img) {
 	int level;
 	int l_count = -1;
 
-	SET_PIXEL(img, x, y, WHOLE_WHITE);
+	PF_SET_PIXEL(img, x, y, PF_WHOLE_WHITE);
 
 	// lCount will become 0, otherwise countPixelNeighbors() would
 	// previously have delivered a bigger value (and this here would not
@@ -136,7 +136,7 @@ static void clear_pixel_neighbors(int x, int y, struct bitmap *img) {
 #ifndef NO_PYTHON
 static
 #endif
-void pf_unpaper_noisefilter(const struct bitmap *in, struct bitmap *out)
+void pf_unpaper_noisefilter(const struct pf_bitmap *in, struct pf_bitmap *out)
 {
 	int x;
 	int y;
@@ -144,13 +144,13 @@ void pf_unpaper_noisefilter(const struct bitmap *in, struct bitmap *out)
 	int pixel;
 	int neighbors;
 
-	memcpy(out->pixels, in->pixels, sizeof(union pixel) * in->size.x * in->size.y);
+	memcpy(out->pixels, in->pixels, sizeof(union pf_pixel) * in->size.x * in->size.y);
 
 	count = 0;
 	for (y = 0; y < out->size.y; y++) {
 		for (x = 0; x < out->size.x; x++) {
-			pixel = GET_PIXEL_DARKNESS_INVERSE(out, x, y);
-			if (pixel < WHITE_MIN) { // one dark pixel found
+			pixel = PF_GET_PIXEL_DARKNESS_INVERSE(out, x, y);
+			if (pixel < PF_WHITE_MIN) { // one dark pixel found
 				// get number of non-light pixels in neighborhood
 				neighbors = count_pixel_neighbors(x, y, out);
 				if (neighbors <= INTENSITY) { // not more than 'intensity'
@@ -168,8 +168,8 @@ PyObject *pynoisefilter(PyObject *self, PyObject* args)
 {
 	int img_x, img_y;
 	Py_buffer img_in, img_out;
-	struct bitmap bitmap_in;
-	struct bitmap bitmap_out;
+	struct pf_bitmap bitmap_in;
+	struct pf_bitmap bitmap_out;
 
 	if (!PyArg_ParseTuple(args, "iiy*y*",
 				&img_x, &img_y,
@@ -184,7 +184,6 @@ PyObject *pynoisefilter(PyObject *self, PyObject* args)
 	bitmap_in = from_py_buffer(&img_in, img_x, img_y);
 	bitmap_out = from_py_buffer(&img_out, img_x, img_y);
 
-	memset(bitmap_out.pixels, 0xFFFFFFFF, img_out.len);
 	pf_unpaper_noisefilter(&bitmap_in, &bitmap_out);
 
 	PyBuffer_Release(&img_in);

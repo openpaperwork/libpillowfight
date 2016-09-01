@@ -39,12 +39,12 @@
 #define SCAN_THRESHOLD 0.1
 #define SCAN_MIN 100
 
-#define MASK_COLOR WHOLE_WHITE
+#define MASK_COLOR PF_WHOLE_WHITE
 
 /**
  * Returns the average brightness of a rectagular area.
  */
-static int brightness_rect(const struct bitmap *img, int x1, int y1, int x2, int y2)
+static int brightness_rect(const struct pf_bitmap *img, int x1, int y1, int x2, int y2)
 {
     int x;
     int y;
@@ -53,7 +53,7 @@ static int brightness_rect(const struct bitmap *img, int x1, int y1, int x2, int
 
     for (x = x1; x < x2; x++) {
         for (y = y1; y < y2; y++) {
-            total += GET_PIXEL_GRAYSCALE(img, x, y);
+            total += PF_GET_PIXEL_GRAYSCALE(img, x, y);
         }
     }
     return total / count;
@@ -64,7 +64,7 @@ static int brightness_rect(const struct bitmap *img, int x1, int y1, int x2, int
  *
  * @return number of shift-steps until blank edge found
  */
-static int detect_edge(const struct bitmap *img, int start_x, int start_y, int shift_x)
+static int detect_edge(const struct pf_bitmap *img, int start_x, int start_y, int shift_x)
 {
 	int left;
 	int top;
@@ -88,7 +88,7 @@ static int detect_edge(const struct bitmap *img, int start_x, int start_y, int s
 	bottom = start_y + (scan_depth / 2);
 
 	while (1) {
-		blackness = (double)(((int)WHITE) - brightness_rect(img, left, top, right, bottom));
+		blackness = (double)(((int)PF_WHITE) - brightness_rect(img, left, top, right, bottom));
 		total += blackness;
 		count++;
 		// is blackness below threshold*average?
@@ -106,10 +106,10 @@ static int detect_edge(const struct bitmap *img, int start_x, int start_y, int s
 	}
 }
 
-static struct rectangle detect_mask(const struct bitmap *img, int x, int y)
+static struct pf_rectangle detect_mask(const struct pf_bitmap *img, int x, int y)
 {
 	int width;
-	struct rectangle out;
+	struct pf_rectangle out;
 	int edge;
 
 	memset(&out, 0, sizeof(out));
@@ -144,14 +144,14 @@ static struct rectangle detect_mask(const struct bitmap *img, int x, int y)
 #ifndef NO_PYTHON
 static
 #endif
-void pf_unpaper_masks(const struct bitmap *in, struct bitmap *out)
+void pf_unpaper_masks(const struct pf_bitmap *in, struct pf_bitmap *out)
 {
-	struct rectangle mask;
+	struct pf_rectangle mask;
 
-	memcpy(out->pixels, in->pixels, sizeof(union pixel) * in->size.x * in->size.y);
+	memcpy(out->pixels, in->pixels, sizeof(union pf_pixel) * in->size.x * in->size.y);
 
 	mask = detect_mask(in, in->size.x / 2, in->size.y /2);
-	apply_mask(out, &mask);
+	pf_apply_mask(out, &mask);
 }
 
 #ifndef NO_PYTHON
@@ -160,8 +160,8 @@ PyObject *pymasks(PyObject *self, PyObject* args)
 {
 	int img_x, img_y;
 	Py_buffer img_in, img_out;
-	struct bitmap bitmap_in;
-	struct bitmap bitmap_out;
+	struct pf_bitmap bitmap_in;
+	struct pf_bitmap bitmap_out;
 
 	if (!PyArg_ParseTuple(args, "iiy*y*",
 				&img_x, &img_y,

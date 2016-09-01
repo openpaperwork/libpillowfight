@@ -35,74 +35,74 @@
  *
  */
 
-struct dbl_matrix generate_gaussian_1d_kernel(double sigma, int nb_stddev)
+struct pf_dbl_matrix generate_gaussian_1d_kernel(double sigma, int nb_stddev)
 {
-	struct dbl_matrix out;
+	struct pf_dbl_matrix out;
 	int pos;
 	double x;
 	double val;
 
-	out = dbl_matrix_new(nb_stddev, 1);
+	out = pf_dbl_matrix_new(nb_stddev, 1);
 
 	// Basic gaussian
 	for (pos = 0 ; pos < nb_stddev ; pos++) {
 		x = ((int)(pos - (nb_stddev / 2)));
 		val = 1 / sqrt(M_PI * 2 * sigma * sigma);
 		val *= exp((-x * x) / (2 * sigma * sigma));
-		MATRIX_SET(&out, pos, 0, val);
+		PF_MATRIX_SET(&out, pos, 0, val);
 	}
 	for (pos = 0 ; pos < nb_stddev ; pos++) {
-		val = MATRIX_GET(&out, pos, 0);
+		val = PF_MATRIX_GET(&out, pos, 0);
 	}
 
 	// Normalize
 	x = 0.0;
 	for (pos = 0 ; pos < nb_stddev ; pos++) {
-		val = MATRIX_GET(&out, pos, 0);
+		val = PF_MATRIX_GET(&out, pos, 0);
 		x += val;
 	}
 	x = 1.0 / x;
 	for (pos = 0 ; pos < nb_stddev ; pos++) {
-		val = MATRIX_GET(&out, pos, 0);
+		val = PF_MATRIX_GET(&out, pos, 0);
 		val *= x;
-		MATRIX_SET(&out, pos, 0, val);
+		PF_MATRIX_SET(&out, pos, 0, val);
 	}
 
 	return out;
 }
 
-void pf_gaussian(const struct bitmap *in, struct bitmap *out, double sigma, int nb_stddev)
+void pf_gaussian(const struct pf_bitmap *in, struct pf_bitmap *out, double sigma, int nb_stddev)
 {
-	struct dbl_matrix kernel_x, kernel_y;
-	struct dbl_matrix colors[NB_RGB_COLORS];
-	struct dbl_matrix color_out;
-	enum color color;
+	struct pf_dbl_matrix kernel_x, kernel_y;
+	struct pf_dbl_matrix colors[PF_NB_RGB_COLORS];
+	struct pf_dbl_matrix color_out;
+	enum pf_color color;
 
 	kernel_x = generate_gaussian_1d_kernel(sigma, nb_stddev);
 	kernel_y = dbl_matrix_transpose(&kernel_x);
 
-	for (color = 0 ; color < NB_RGB_COLORS ; color++) {
-		colors[color] = dbl_matrix_new(in->size.x, in->size.y);
-		bitmap_channel_to_dbl_matrix(in, &colors[color], color);
+	for (color = 0 ; color < PF_NB_RGB_COLORS ; color++) {
+		colors[color] = pf_dbl_matrix_new(in->size.x, in->size.y);
+		pf_bitmap_channel_to_dbl_matrix(in, &colors[color], color);
 
 		// x
-		color_out = dbl_matrix_convolution(&colors[color], &kernel_x);
-		dbl_matrix_free(&colors[color]);
+		color_out = pf_dbl_matrix_convolution(&colors[color], &kernel_x);
+		pf_dbl_matrix_free(&colors[color]);
 		colors[color] = color_out;
 
 		// y
-		color_out = dbl_matrix_convolution(&colors[color], &kernel_y);
-		dbl_matrix_free(&colors[color]);
+		color_out = pf_dbl_matrix_convolution(&colors[color], &kernel_y);
+		pf_dbl_matrix_free(&colors[color]);
 		colors[color] = color_out;
 	}
 
-	dbl_matrix_free(&kernel_x);
-	dbl_matrix_free(&kernel_y);
+	pf_dbl_matrix_free(&kernel_x);
+	pf_dbl_matrix_free(&kernel_y);
 
-	matrixes_to_rgb_bitmap(colors, out);
+	pf_matrixes_to_rgb_bitmap(colors, out);
 
-	for (color = 0 ; color < NB_RGB_COLORS ; color++) {
-		dbl_matrix_free(&colors[color]);
+	for (color = 0 ; color < PF_NB_RGB_COLORS ; color++) {
+		pf_dbl_matrix_free(&colors[color]);
 	}
 }
 
@@ -111,8 +111,8 @@ PyObject *pygaussian(PyObject *self, PyObject* args)
 {
 	int img_x, img_y;
 	Py_buffer img_in, img_out;
-	struct bitmap bitmap_in;
-	struct bitmap bitmap_out;
+	struct pf_bitmap bitmap_in;
+	struct pf_bitmap bitmap_out;
 	double sigma;
 	int nb_stddev;
 

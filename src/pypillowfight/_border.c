@@ -40,7 +40,7 @@
 #define SCAN_THRESHOLD 5
 #define BLACK_THRESHOLD 0.33
 
-#define ABS_BLACK_THRESHOLD ((int)(WHITE * (1.0 - BLACK_THRESHOLD)))
+#define ABS_BLACK_THRESHOLD ((int)(PF_WHITE * (1.0 - BLACK_THRESHOLD)))
 
 
 /* we only scan in the vertical direction */
@@ -50,7 +50,7 @@
  *
  * @param x1..y2 area inside of which border is to be detected
  */
-static int detect_border_edge(const struct bitmap *img, int step_y) {
+static int detect_border_edge(const struct pf_bitmap *img, int step_y) {
 	int left;
 	int right;
 	int top;
@@ -71,7 +71,7 @@ static int detect_border_edge(const struct bitmap *img, int step_y) {
 
 	result = 0;
 	while (result < img->size.y) {
-		cnt = count_pixels_rect(left, top, right, bottom, ABS_BLACK_THRESHOLD, img);
+		cnt = pf_count_pixels_rect(left, top, right, bottom, ABS_BLACK_THRESHOLD, img);
 		if (cnt >= SCAN_THRESHOLD) {
 			return result; // border has been found: regular exit here
 		}
@@ -86,8 +86,8 @@ static int detect_border_edge(const struct bitmap *img, int step_y) {
 /**
  * Detects a border of completely non-black pixels
  */
-static struct rectangle detect_border(const struct bitmap *img) {
-	struct rectangle out;
+static struct pf_rectangle detect_border(const struct pf_bitmap *img) {
+	struct pf_rectangle out;
 
 	memset(&out, 0, sizeof(out));
 
@@ -103,14 +103,14 @@ static struct rectangle detect_border(const struct bitmap *img) {
 #ifndef NO_PYTHON
 static
 #endif
-void pf_unpaper_border(const struct bitmap *in, struct bitmap *out)
+void pf_unpaper_border(const struct pf_bitmap *in, struct pf_bitmap *out)
 {
-	struct rectangle border;
+	struct pf_rectangle border;
 
-	memcpy(out->pixels, in->pixels, sizeof(union pixel) * in->size.x * in->size.y);
+	memcpy(out->pixels, in->pixels, sizeof(union pf_pixel) * in->size.x * in->size.y);
 
 	border = detect_border(in);
-	apply_mask(out, &border);
+	pf_apply_mask(out, &border);
 }
 
 #ifndef NO_PYTHON
@@ -118,8 +118,8 @@ PyObject *pyborder(PyObject *self, PyObject* args)
 {
 	int img_x, img_y;
 	Py_buffer img_in, img_out;
-	struct bitmap bitmap_in;
-	struct bitmap bitmap_out;
+	struct pf_bitmap bitmap_in;
+	struct pf_bitmap bitmap_out;
 
 	if (!PyArg_ParseTuple(args, "iiy*y*",
 				&img_x, &img_y,

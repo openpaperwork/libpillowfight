@@ -36,10 +36,10 @@
  */
 
 #define SIZE 3
-#define LOW_THRESHOLD ((int)(WHITE * 0.47))
-#define HIGH_THRESHOLD ((int)(WHITE * 0.61))
+#define LOW_THRESHOLD ((int)(PF_WHITE * 0.47))
+#define HIGH_THRESHOLD ((int)(PF_WHITE * 0.61))
 
-static const struct dbl_matrix g_kernel_x = {
+static const struct pf_dbl_matrix g_kernel_x = {
 	.size = {
 		.x = 3,
 		.y = 3,
@@ -51,7 +51,7 @@ static const struct dbl_matrix g_kernel_x = {
 	}
 };
 
-static const struct dbl_matrix g_kernel_y = {
+static const struct pf_dbl_matrix g_kernel_y = {
 	.size = {
 		.x = 3,
 		.y = 3,
@@ -69,7 +69,7 @@ static const struct dbl_matrix g_kernel_y = {
  * \param[in,out] a_out matrix used as input *and* output to save memory
  * \param[in] b matrix
  */
-static void dist_matrix(struct dbl_matrix *matrix_a, const struct dbl_matrix *matrix_b)
+static void dist_matrix(struct pf_dbl_matrix *matrix_a, const struct pf_dbl_matrix *matrix_b)
 {
 	int x, y;
 	int a, b;
@@ -80,10 +80,10 @@ static void dist_matrix(struct dbl_matrix *matrix_a, const struct dbl_matrix *ma
 
 	for (x = 0 ; x < matrix_a->size.x ; x++) {
 		for (y = 0 ; y < matrix_a->size.y ; y++) {
-			a = MATRIX_GET(matrix_a, x, y);
-			b = MATRIX_GET(matrix_b, x, y);
+			a = PF_MATRIX_GET(matrix_a, x, y);
+			b = PF_MATRIX_GET(matrix_b, x, y);
 			dist = sqrt((a * a) + (b * b));
-			MATRIX_SET(matrix_a, x, y, dist);
+			PF_MATRIX_SET(matrix_a, x, y, dist);
 		}
 	}
 }
@@ -91,25 +91,25 @@ static void dist_matrix(struct dbl_matrix *matrix_a, const struct dbl_matrix *ma
 #ifndef NO_PYTHON
 static
 #endif
-void pf_sobel(const struct bitmap *in_img, struct bitmap *out_img)
+void pf_sobel(const struct pf_bitmap *in_img, struct pf_bitmap *out_img)
 {
-	struct dbl_matrix in;
-	struct dbl_matrix g_horizontal, g_vertical;
+	struct pf_dbl_matrix in;
+	struct pf_dbl_matrix g_horizontal, g_vertical;
 
-	in = dbl_matrix_new(in_img->size.x, in_img->size.y);
-	rgb_bitmap_to_grayscale_dbl_matrix(in_img, &in);
+	in = pf_dbl_matrix_new(in_img->size.x, in_img->size.y);
+	pf_rgb_bitmap_grayscale_dbl_matrix(in_img, &in);
 
-	g_horizontal = dbl_matrix_convolution(&in, &g_kernel_x);
-	g_vertical = dbl_matrix_convolution(&in, &g_kernel_y);
+	g_horizontal = pf_dbl_matrix_convolution(&in, &g_kernel_x);
+	g_vertical = pf_dbl_matrix_convolution(&in, &g_kernel_y);
 
 	dist_matrix(&g_horizontal, &g_vertical);
 
-	dbl_matrix_free(&g_vertical);
-	dbl_matrix_free(&in);
+	pf_dbl_matrix_free(&g_vertical);
+	pf_dbl_matrix_free(&in);
 
-	grayscale_dbl_matrix_to_rgb_bitmap(&g_horizontal, out_img);
+	pf_grayscale_dbl_matrix_to_rgb_bitmap(&g_horizontal, out_img);
 
-	dbl_matrix_free(&g_horizontal);
+	pf_dbl_matrix_free(&g_horizontal);
 }
 
 #ifndef NO_PYTHON
@@ -118,8 +118,8 @@ PyObject *pysobel(PyObject *self, PyObject* args)
 {
 	int img_x, img_y;
 	Py_buffer img_in, img_out;
-	struct bitmap bitmap_in;
-	struct bitmap bitmap_out;
+	struct pf_bitmap bitmap_in;
+	struct pf_bitmap bitmap_out;
 
 	if (!PyArg_ParseTuple(args, "iiy*y*",
 				&img_x, &img_y,

@@ -71,6 +71,25 @@ struct pf_dbl_matrix generate_gaussian_1d_kernel(double sigma, int nb_stddev)
 	return out;
 }
 
+struct pf_dbl_matrix pf_gaussian_on_matrix(
+		const struct pf_dbl_matrix *grayscale_matrix, double sigma, int nb_stddev)
+{
+	struct pf_dbl_matrix kernel_x, kernel_y;
+	struct pf_dbl_matrix out_x, out_y;
+
+	kernel_x = generate_gaussian_1d_kernel(sigma, nb_stddev);
+	kernel_y = dbl_matrix_transpose(&kernel_x);
+
+	out_x = pf_dbl_matrix_convolution(grayscale_matrix, &kernel_x);
+	pf_dbl_matrix_free(&kernel_x);
+
+	out_y = pf_dbl_matrix_convolution(&out_x, &kernel_y);
+	pf_dbl_matrix_free(&out_x);
+	pf_dbl_matrix_free(&kernel_y);
+
+	return out_y;
+}
+
 void pf_gaussian(const struct pf_bitmap *in, struct pf_bitmap *out, double sigma, int nb_stddev)
 {
 	struct pf_dbl_matrix kernel_x, kernel_y;

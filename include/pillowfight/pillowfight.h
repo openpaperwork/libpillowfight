@@ -15,6 +15,9 @@ extern void pf_canny(const struct pf_bitmap *in, struct pf_bitmap *out);
 #define PF_GAUSSIAN_DEFAULT_NB_STDDEV 5
 extern void pf_gaussian(const struct pf_bitmap *in, struct pf_bitmap *out, double sigma, int nb_stddev);
 
+extern struct pf_dbl_matrix pf_gaussian_on_matrix(
+		const struct pf_dbl_matrix *grayscale_matrix, double sigma, int nb_stddev);
+
 #ifdef NO_PYTHON
 extern void pf_grayfilter(const struct pf_bitmap *in, struct pf_bitmap *out);
 

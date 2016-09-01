@@ -71,7 +71,6 @@ PyObject *pycanny(PyObject *self, PyObject* args)
 	bitmap_in = from_py_buffer(&img_in, img_x, img_y);
 	bitmap_out = from_py_buffer(&img_out, img_x, img_y);
 
-	memset(bitmap_out.pixels, 0xFFFFFFFF, img_out.len);
 	pf_canny(&bitmap_in, &bitmap_out);
 
 	PyBuffer_Release(&img_in);

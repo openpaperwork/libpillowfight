@@ -69,23 +69,73 @@ static const struct pf_dbl_matrix g_kernel_y = {
  * \param[in,out] a_out matrix used as input *and* output to save memory
  * \param[in] b matrix
  */
-static void dist_matrix(struct pf_dbl_matrix *matrix_a, const struct pf_dbl_matrix *matrix_b)
+static struct pf_dbl_matrix compute_intensity_matrix(
+		struct pf_dbl_matrix *matrix_a, const struct pf_dbl_matrix *matrix_b
+	)
 {
 	int x, y;
 	int a, b;
-	int dist;
+	double dist;
+	struct pf_dbl_matrix out;
 
 	assert(matrix_a->size.x == matrix_b->size.x);
 	assert(matrix_a->size.y == matrix_b->size.y);
+
+	out = pf_dbl_matrix_new(matrix_a->size.x, matrix_a->size.y);
 
 	for (x = 0 ; x < matrix_a->size.x ; x++) {
 		for (y = 0 ; y < matrix_a->size.y ; y++) {
 			a = PF_MATRIX_GET(matrix_a, x, y);
 			b = PF_MATRIX_GET(matrix_b, x, y);
-			dist = sqrt((a * a) + (b * b));
-			PF_MATRIX_SET(matrix_a, x, y, dist);
+			dist = hypot(a, b);
+			PF_MATRIX_SET(&out, x, y, dist);
 		}
 	}
+
+	return out;
+}
+
+static struct pf_dbl_matrix compute_direction_matrix(
+		struct pf_dbl_matrix *matrix_a, const struct pf_dbl_matrix *matrix_b
+	)
+{
+	int x, y;
+	int val_a, val_b;
+	double direction;
+	struct pf_dbl_matrix out;
+
+	assert(matrix_a->size.x == matrix_b->size.x);
+	assert(matrix_a->size.y == matrix_b->size.y);
+
+	out = pf_dbl_matrix_new(matrix_a->size.x, matrix_a->size.y);
+
+	for (x = 0 ; x < matrix_a->size.x ; x++) {
+		for (y = 0 ; y < matrix_a->size.y ; y++) {
+			val_a = PF_MATRIX_GET(matrix_a, x, y);
+			val_b = PF_MATRIX_GET(matrix_b, x, y);
+			direction = atan2(val_b, val_a);
+			PF_MATRIX_SET(&out, x, y, direction);
+		}
+	}
+
+	return out;
+}
+
+struct pf_gradient_matrixes pf_sobel_on_matrix(const struct pf_dbl_matrix *in)
+{
+	struct pf_gradient_matrixes out;
+	struct pf_dbl_matrix g_x, g_y;
+
+	g_x = pf_dbl_matrix_convolution(in, &g_kernel_x);
+	g_y = pf_dbl_matrix_convolution(in, &g_kernel_y);
+
+	out.intensity = compute_intensity_matrix(&g_x, &g_y);
+	out.direction = compute_direction_matrix(&g_x, &g_y);
+
+	pf_dbl_matrix_free(&g_x);
+	pf_dbl_matrix_free(&g_y);
+
+	return out;
 }
 
 #ifndef NO_PYTHON
@@ -95,6 +145,7 @@ void pf_sobel(const struct pf_bitmap *in_img, struct pf_bitmap *out_img)
 {
 	struct pf_dbl_matrix in;
 	struct pf_dbl_matrix g_horizontal, g_vertical;
+	struct pf_dbl_matrix intensity;
 
 	in = pf_dbl_matrix_new(in_img->size.x, in_img->size.y);
 	pf_rgb_bitmap_to_grayscale_dbl_matrix(in_img, &in);
@@ -102,12 +153,13 @@ void pf_sobel(const struct pf_bitmap *in_img, struct pf_bitmap *out_img)
 	g_horizontal = pf_dbl_matrix_convolution(&in, &g_kernel_x);
 	g_vertical = pf_dbl_matrix_convolution(&in, &g_kernel_y);
 
-	dist_matrix(&g_horizontal, &g_vertical);
+	intensity = compute_intensity_matrix(&g_horizontal, &g_vertical);
 
+	pf_dbl_matrix_free(&g_horizontal);
 	pf_dbl_matrix_free(&g_vertical);
 	pf_dbl_matrix_free(&in);
 
-	pf_grayscale_dbl_matrix_to_rgb_bitmap(&g_horizontal, out_img);
+	pf_grayscale_dbl_matrix_to_rgb_bitmap(&intensity, out_img);
 
 	pf_dbl_matrix_free(&g_horizontal);
 }

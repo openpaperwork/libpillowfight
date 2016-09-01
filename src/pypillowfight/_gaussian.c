@@ -44,7 +44,7 @@ struct pf_dbl_matrix generate_gaussian_1d_kernel(double sigma, int nb_stddev)
 
 	out = pf_dbl_matrix_new(nb_stddev, 1);
 
-	// Basic gaussian
+	// Basic gaussian function
 	for (pos = 0 ; pos < nb_stddev ; pos++) {
 		x = ((int)(pos - (nb_stddev / 2)));
 		val = 1 / sqrt(M_PI * 2 * sigma * sigma);
@@ -90,6 +90,9 @@ struct pf_dbl_matrix pf_gaussian_on_matrix(
 	return out_y;
 }
 
+#ifndef NO_PYTHON
+static
+#endif
 void pf_gaussian(const struct pf_bitmap *in, struct pf_bitmap *out, double sigma, int nb_stddev)
 {
 	struct pf_dbl_matrix kernel_x, kernel_y;

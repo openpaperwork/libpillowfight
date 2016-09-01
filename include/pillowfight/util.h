@@ -39,6 +39,7 @@ enum pf_color {
 
 #define PF_WHITE 0xFF
 #define PF_WHOLE_WHITE 0xFFFFFFFF
+#define PF_BLACK 0x00
 
 // Careful: double evaluation !
 #ifndef MIN
@@ -117,6 +118,8 @@ struct pf_bitmap {
 		PF_GET_COLOR_DEF(img, x, y, COLOR_B, g_pf_default_white_pixel) \
 	)
 
+#define PF_COUNT_OF(x) (sizeof(x) / sizeof(x[0]))
+
 /*!
  * \brief matrix of integers
  */
@@ -180,15 +183,15 @@ void pf_bitmap_channel_to_dbl_matrix(
 void pf_matrix_to_rgb_bitmap(const struct pf_dbl_matrix *in, struct pf_bitmap *out, enum pf_color color);
 
 /**
- * Clears a rectangular area of pixels with PF_WHITE.
- * @return The number of pixels actually changed from black (dark) to PF_WHITE.
+ * Clears a rectangular area of pixels with white.
+ * @return The number of pixels actually changed from black (dark) to white.
  */
 void pf_clear_rect(struct pf_bitmap *img, int left, int top, int right, int bottom);
 
 /**
  * Counts the number of pixels in a rectangular area whose grayscale
  * values ranges between minColor and maxBrightness. Optionally, the area can get
- * cleared with PF_WHITE color while counting.
+ * cleared with white color while counting.
  */
 int pf_count_pixels_rect(int left, int top, int right, int bottom,
 		int max_brightness, const struct pf_bitmap *img);

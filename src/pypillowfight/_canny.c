@@ -37,17 +37,154 @@
  * Ref: https://en.wikipedia.org/wiki/Canny_edge_detector
  */
 
-#define SIZE 3
-#define LOW_THRESHOLD ((int)(PF_WHITE * 0.47))
-#define HIGH_THRESHOLD ((int)(PF_WHITE * 0.61))
+#define LOW_THRESHOLD (0.35 * PF_WHITE)
+#define HIGH_THRESHOLD (0.61 * PF_WHITE)
+
+
+/*!
+ * \brief Edge thinning
+ *
+ * Goes on each pixel. If one the neighbooring pixels that are on the direction
+ * axis have a bigger intensity than the current one, the current one is killed
+ * (intensity = 0.0)
+ */
+static void non_maximum_suppression(
+		struct pf_dbl_matrix *intensity,
+		const struct pf_dbl_matrix *direction
+	)
+{
+	static const int axis_pt_coords[][2][2] = {
+		{
+			/*
+			 * angle = ±0 + (45/2)
+			 *   0 0 0
+			 *   1 p 1
+			 *   0 0 0
+			 */
+			{ 1, 0 },
+			{ -1, 0 },
+		},
+		{
+			/*
+			 * angle = ±45° ± (45/2)
+			 *   0 0 1
+			 *   0 p 0
+			 *   1 0 0
+			 */
+			{ 1, 1 },
+			{ -1, -1 },
+		},
+		{
+			/*
+			 * angle = ±90° ± (45/2)
+			 *   0 1 0
+			 *   0 p 0
+			 *   0 1 0
+			 */
+			{ 0, 1 },
+			{ 0, -1 },
+		},
+		{
+			/*
+			 * angle = ±135° ± (45/2)
+			 *   1 0 0
+			 *   0 p 0
+			 *   0 0 1
+			 */
+			{ -1, 1 },
+			{ 1, -1 },
+		},
+	};
+
+	int x, y, p, current_intensity, other_intensity;
+	double angle;
+	int axis_nb;
+
+	assert(intensity->size.x == direction->size.x);
+	assert(intensity->size.y == direction->size.y);
+
+	for (x = 0 ; x < intensity->size.x ; x++) {
+		for (y = 0 ; y < intensity->size.y ; y++) {
+
+			angle = PF_MATRIX_GET(direction, x, y);
+			current_intensity = PF_MATRIX_GET(intensity, x, y);
+
+			/* we evaluate in 3 possible directions.
+			 *
+			 * To find quickly which axis we must evaluate,
+			 * we bring the angle from [0-pi] to [0-4]
+			 * and then ((round(angle)) % 4) to get the axis
+			 */
+
+			angle = angle * PF_COUNT_OF(axis_pt_coords) / M_PI;
+			axis_nb = fmod(round(angle), PF_COUNT_OF(axis_pt_coords));
+
+			for (p = 0 ; p < PF_COUNT_OF(axis_pt_coords[axis_nb]) ; p++) {
+				if (x + axis_pt_coords[axis_nb][p][0] > intensity->size.x
+						|| y + axis_pt_coords[axis_nb][p][1] > intensity->size.y)
+					continue;
+				other_intensity = PF_MATRIX_GET(intensity,
+						x + axis_pt_coords[axis_nb][p][0],
+						y + axis_pt_coords[axis_nb][p][1]);
+				if (other_intensity > current_intensity) {
+					// a neighbor is more intense than the current pixel
+					// --> kill the current one
+					PF_MATRIX_SET(intensity, x, y, 0.0);
+					break;
+				}
+			}
+		}
+	}
+}
+
+static void apply_thresholds(struct pf_dbl_matrix *intensity) {
+	int x;
+	int y;
+	double val;
+
+	for (x = 0 ; x < intensity->size.x ; x++) {
+		for (y = 0 ; y < intensity->size.y ; y++) {
+			val = PF_MATRIX_GET(intensity, x, y);
+			if (val > HIGH_THRESHOLD) {
+				PF_MATRIX_SET(intensity, x, y, PF_WHITE);
+			}
+			else if (val < LOW_THRESHOLD) {
+				PF_MATRIX_SET(intensity, x, y, PF_BLACK);
+			}
+		}
+	}
+}
 
 #ifndef NO_PYTHON
 static
 #endif
-void pf_canny(const struct pf_bitmap *in, struct pf_bitmap *out)
+void pf_canny(const struct pf_bitmap *img_in, struct pf_bitmap *img_out)
 {
-	memset(out->pixels, 0, sizeof(union pf_pixel) * out->size.x * out->size.y);
-	// TODO
+	struct pf_dbl_matrix in, out;
+	struct pf_gradient_matrixes gradient;
+
+	out = pf_dbl_matrix_new(img_in->size.x, img_in->size.y);
+	pf_rgb_bitmap_to_grayscale_dbl_matrix(img_in, &out);
+
+	// Remove details from the image to reduce filter sensitivity to crappy details
+	in = out;
+	out = pf_gaussian_on_matrix(&in, PF_GAUSSIAN_DEFAULT_SIGMA, PF_GAUSSIAN_DEFAULT_NB_STDDEV);
+	pf_dbl_matrix_free(&in);
+
+	// Compute the gradient intensity and direction
+	gradient = pf_sobel_on_matrix(&out);
+	pf_dbl_matrix_free(&out);
+
+	// Edge thinning
+	non_maximum_suppression(&gradient.intensity, &gradient.direction);
+
+	// Apply thresholds to remove indecisive values
+	apply_thresholds(&gradient.intensity);
+
+	pf_grayscale_dbl_matrix_to_rgb_bitmap(&gradient.intensity, img_out);
+
+	pf_dbl_matrix_free(&gradient.intensity);
+	pf_dbl_matrix_free(&gradient.direction);
 }
 
 #ifndef NO_PYTHON

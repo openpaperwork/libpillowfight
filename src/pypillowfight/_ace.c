@@ -191,10 +191,7 @@ static void *ace_thread_adjustment(void *_thread_params)
 			for (sample_idx = 0 ; sample_idx < params->nb_samples ; sample_idx++) {
 				sample = params->samples[sample_idx];
 
-				dist = sqrt(
-						((i - sample.x) * (i - sample.x))
-						+ ((j - sample.y) * (j - sample.y))
-					);
+				dist = hypot(i - sample.x, j - sample.y);
 				if (dist < (params->in->size.y / 5))
 					continue;
 				for (color = 0 ; color < ACE_COLORS ; color++) {

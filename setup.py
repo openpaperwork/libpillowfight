@@ -43,6 +43,7 @@ setup(
                 'src/pypillowfight/_noisefilter.c',
                 'src/pypillowfight/_pymod.c',
                 'src/pypillowfight/_sobel.c',
+                'src/pypillowfight/_swt.c',
             ],
             include_dirs=["include"],
             libraries=['m'],

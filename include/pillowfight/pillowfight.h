@@ -21,12 +21,6 @@ extern void pf_gaussian(const struct pf_bitmap *in, struct pf_bitmap *out, doubl
 extern struct pf_dbl_matrix pf_gaussian_on_matrix(
 		const struct pf_dbl_matrix *grayscale_matrix, double sigma, int nb_stddev);
 
-#ifdef NO_PYTHON
-extern void pf_grayfilter(const struct pf_bitmap *in, struct pf_bitmap *out);
-
-extern void pf_sobel(const struct pf_bitmap *in_img, struct pf_bitmap *out_img);
-#endif
-
 struct pf_gradient_matrixes {
 	struct pf_dbl_matrix intensity;
 	struct pf_dbl_matrix direction;
@@ -34,6 +28,12 @@ struct pf_gradient_matrixes {
 extern struct pf_gradient_matrixes pf_sobel_on_matrix(const struct pf_dbl_matrix *in);
 
 #ifdef NO_PYTHON
+extern void pf_grayfilter(const struct pf_bitmap *in, struct pf_bitmap *out);
+
+extern void pf_sobel(const struct pf_bitmap *in_img, struct pf_bitmap *out_img);
+
+extern void pf_swt(const struct pf_bitmap *in_img, struct pf_bitmap *out_img);
+
 extern void pf_unpaper_blackfilter(const struct pf_bitmap *in, struct pf_bitmap *out);
 
 extern void pf_unpaper_blurfilter(const struct pf_bitmap *in, struct pf_bitmap *out);

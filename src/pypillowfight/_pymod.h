@@ -10,3 +10,4 @@ PyObject *pygrayfilter(PyObject *self, PyObject* args);
 PyObject *pymasks(PyObject *self, PyObject* args);
 PyObject *pynoisefilter(PyObject *self, PyObject* args);
 PyObject *pysobel(PyObject *self, PyObject* args);
+PyObject *pyswt(PyObject *self, PyObject* args);

@@ -160,8 +160,6 @@ void pf_sobel(const struct pf_bitmap *in_img, struct pf_bitmap *out_img)
 	pf_dbl_matrix_free(&in);
 
 	pf_grayscale_dbl_matrix_to_rgb_bitmap(&intensity, out_img);
-
-	pf_dbl_matrix_free(&g_horizontal);
 }
 
 #ifndef NO_PYTHON

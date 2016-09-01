@@ -164,6 +164,8 @@ Py_buffer to_py_buffer(const struct pf_bitmap *bitmap);
 struct pf_dbl_matrix pf_dbl_matrix_new(int x, int y);
 void pf_dbl_matrix_free(struct pf_dbl_matrix *matrix);
 
+struct pf_dbl_matrix pf_dbl_matrix_copy(const struct pf_dbl_matrix *in);
+
 /*!
  * \see https://en.wikipedia.org/wiki/Kernel_%28image_processing%29#Convolution
  */

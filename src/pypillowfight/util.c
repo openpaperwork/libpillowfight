@@ -112,6 +112,18 @@ void pf_dbl_matrix_free(struct pf_dbl_matrix *matrix)
 	free(matrix->values);
 }
 
+
+struct pf_dbl_matrix pf_dbl_matrix_copy(const struct pf_dbl_matrix *in)
+{
+	struct pf_dbl_matrix out;
+
+	out = pf_dbl_matrix_new(in->size.x, in->size.y);
+	memcpy(&out.values, in->values, in->size.x * in->size.y * sizeof(out.values[0]));
+
+	return out;
+}
+
+
 struct pf_dbl_matrix dbl_matrix_transpose(const struct pf_dbl_matrix *in)
 {
 	struct pf_dbl_matrix out;

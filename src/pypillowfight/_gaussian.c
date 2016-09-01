@@ -23,13 +23,12 @@
 #include <string.h>
 #include <values.h>
 
-#ifdef NO_PYTHON
 #include <pillowfight/pillowfight.h>
-#else
+#include <pillowfight/util.h>
+
+#ifndef NO_PYTHON
 #include "_pymod.h"
 #endif
-
-#include <pillowfight/util.h>
 
 /*!
  * \brief Gaussian filter
@@ -72,9 +71,6 @@ struct dbl_matrix generate_gaussian_1d_kernel(double sigma, int nb_stddev)
 	return out;
 }
 
-#ifndef NO_PYTHON
-static
-#endif
 void gaussian(const struct bitmap *in, struct bitmap *out, double sigma, int nb_stddev)
 {
 	struct dbl_matrix kernel_x, kernel_y;

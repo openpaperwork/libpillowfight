@@ -24,13 +24,12 @@
 #include <string.h>
 #include <values.h>
 
-#ifdef NO_PYTHON
 #include <pillowfight/pillowfight.h>
-#else
+#include <pillowfight/util.h>
+
+#ifndef NO_PYTHON
 #include "_pymod.h"
 #endif
-
-#include <pillowfight/util.h>
 
 /*!
  * \brief Algorithm 'border detection' from unpaper, partially rewritten.

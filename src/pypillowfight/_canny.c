@@ -23,12 +23,11 @@
 #include <string.h>
 #include <values.h>
 
-#ifdef NO_PYTHON
-#include <pillowfight/pillowfight.h>
-#else
+#ifndef NO_PYTHON
 #include "_pymod.h"
 #endif
 
+#include <pillowfight/pillowfight.h>
 #include <pillowfight/util.h>
 
 /*!

@@ -171,7 +171,7 @@ struct pf_dbl_matrix pf_dbl_matrix_convolution(
 
 struct pf_dbl_matrix dbl_matrix_transpose(const struct pf_dbl_matrix *in);
 
-void pf_rgb_bitmap_grayscale_dbl_matrix(const struct pf_bitmap *in, struct pf_dbl_matrix *out);
+void pf_rgb_bitmap_to_grayscale_dbl_matrix(const struct pf_bitmap *in, struct pf_dbl_matrix *out);
 void pf_grayscale_dbl_matrix_to_rgb_bitmap(const struct pf_dbl_matrix *in, struct pf_bitmap *out);
 
 void pf_bitmap_channel_to_dbl_matrix(

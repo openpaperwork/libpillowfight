@@ -183,7 +183,7 @@ struct pf_dbl_matrix pf_dbl_matrix_convolution(
 	return out;
 }
 
-void pf_rgb_bitmap_grayscale_dbl_matrix(const struct pf_bitmap *in, struct pf_dbl_matrix *out)
+void pf_rgb_bitmap_to_grayscale_dbl_matrix(const struct pf_bitmap *in, struct pf_dbl_matrix *out)
 {
 	int x, y;
 	int value;

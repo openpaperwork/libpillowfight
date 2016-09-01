@@ -97,7 +97,7 @@ void pf_sobel(const struct pf_bitmap *in_img, struct pf_bitmap *out_img)
 	struct pf_dbl_matrix g_horizontal, g_vertical;
 
 	in = pf_dbl_matrix_new(in_img->size.x, in_img->size.y);
-	pf_rgb_bitmap_grayscale_dbl_matrix(in_img, &in);
+	pf_rgb_bitmap_to_grayscale_dbl_matrix(in_img, &in);
 
 	g_horizontal = pf_dbl_matrix_convolution(&in, &g_kernel_x);
 	g_vertical = pf_dbl_matrix_convolution(&in, &g_kernel_y);

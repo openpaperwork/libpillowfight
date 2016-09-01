@@ -38,13 +38,15 @@
  * Ref: https://github.com/aperrau/DetectText
  */
 
-#define DARK_ON_LIGHT 1
+#define MAX_STROKE_WIDTH 256
+
+#define DARK_ON_LIGHT 0
 
 #define DEF_NB_POINTS_PER_RAY 32
 
 #define PRECISION 0.05
 
-#define IS_EDGE_LINE(val) ((val) < (PF_WHITE - 1.0))
+#define IS_EDGE_LINE(val) ((val) > 0.0)
 
 
 struct swt_point {
@@ -131,6 +133,10 @@ static int follow_stroke(
 			break;
 
 		nb_points++;
+		if (nb_points >= MAX_STROKE_WIDTH) {
+			return 0;
+		}
+
 		if (on_ray_point_callback)
 			on_ray_point_callback(&current_pt, callback_data);
 
@@ -152,11 +158,11 @@ static int follow_stroke(
 		g_y_end = -g_y_end;
 	}
 
-	if (acos((g_x * -g_x_end) + (g_y * -g_y_end) >= (M_PI / 2.0))) {
+	if (acos((g_x * -g_x_end) + (g_y * -g_y_end)) >= (M_PI / 2.0)) {
 		// no stroke here
 		return 0;
 	}
-	return 1;
+	return nb_points;
 }
 
 static void find_stroke(struct swt_output *out,
@@ -227,8 +233,6 @@ struct swt_output swt(const struct pf_dbl_matrix *edge, const struct pf_gradient
 		}
 	}
 
-	// TODO
-
 	return out;
 }
 
@@ -241,6 +245,9 @@ void pf_swt(const struct pf_bitmap *img_in, struct pf_bitmap *img_out)
 	struct pf_gradient_matrixes gradient;
 	struct pf_dbl_matrix edge;
 	struct swt_output swt_out;
+	struct swt_ray *ray;
+	int x, y;
+	double val;
 
 	in = pf_dbl_matrix_new(img_in->size.x, img_in->size.y);
 	pf_rgb_bitmap_to_grayscale_dbl_matrix(img_in, &in);
@@ -270,7 +277,23 @@ void pf_swt(const struct pf_bitmap *img_in, struct pf_bitmap *img_out)
 	// TODO: Word detection
 	// TODO: Mask
 
-	//pf_grayscale_dbl_matrix_to_rgb_bitmap(XXX, img_out);
+	// temporary
+	for (x = 0 ; x < swt_out.swt.size.x ; x++) {
+		for (y = 0 ; y < swt_out.swt.size.y ; y++) {
+			val = PF_MATRIX_GET(&swt_out.swt, x, y);
+			if (val == DBL_MAX) {
+				PF_MATRIX_SET(&swt_out.swt, x, y, 0.0);
+			}
+		}
+	}
+	pf_grayscale_dbl_matrix_to_rgb_bitmap(&swt_out.swt, img_out);
+
+	for (ray = swt_out.rays ; swt_out.rays != NULL ; ) {
+		ray = swt_out.rays;
+		swt_out.rays = ray->next;
+		free(ray);
+	}
+	pf_dbl_matrix_free(&swt_out.swt);
 }
 
 #ifndef NO_PYTHON

@@ -39,9 +39,40 @@
 #ifndef NO_PYTHON
 static
 #endif
-void pf_swt(const struct pf_bitmap *in_img, struct pf_bitmap *out_img)
+void pf_swt(const struct pf_bitmap *img_in, struct pf_bitmap *img_out)
 {
-	// TODO
+	struct pf_dbl_matrix in, out;
+	struct pf_gradient_matrixes gradient;
+	struct pf_dbl_matrix edge;
+
+	in = pf_dbl_matrix_new(img_in->size.x, img_in->size.y);
+	pf_rgb_bitmap_to_grayscale_dbl_matrix(img_in, &in);
+
+	// Compute edge & gradient
+	edge = pf_canny_on_matrix(&in);
+
+	// Gaussian on the image
+	out = pf_gaussian_on_matrix(&in, PF_GAUSSIAN_DEFAULT_SIGMA, PF_GAUSSIAN_DEFAULT_NB_STDDEV);
+	// Find gradients
+	// Jflesch> DetectText/TextDetection.cpp uses Scharr kernel instead of Sobel. Should we too ?
+	gradient = pf_sobel_on_matrix(&out);
+	// Jflesch> DetectText/TextDetection.cpp apply a gaussian filter on the gradient
+	// matrixes. Should we too ?
+	pf_dbl_matrix_free(&in);
+	pf_dbl_matrix_free(&out);
+
+	// TODO: SWT + Median filter
+	// TODO: normalize ?
+	// TODO: Find letter candidates
+	// TODO: Filter letter candidates
+	// TODO: Text line aggregation
+	// TODO: Word detection
+	// TODO: Mask
+
+	pf_grayscale_dbl_matrix_to_rgb_bitmap(&out, img_out);
+	pf_dbl_matrix_free(&gradient.intensity);
+	pf_dbl_matrix_free(&gradient.direction);
+	pf_dbl_matrix_free(&edge);
 }
 
 #ifndef NO_PYTHON

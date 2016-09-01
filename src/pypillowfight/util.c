@@ -118,7 +118,7 @@ struct pf_dbl_matrix pf_dbl_matrix_copy(const struct pf_dbl_matrix *in)
 	struct pf_dbl_matrix out;
 
 	out = pf_dbl_matrix_new(in->size.x, in->size.y);
-	memcpy(&out.values, in->values, in->size.x * in->size.y * sizeof(out.values[0]));
+	memcpy(out.values, in->values, in->size.x * in->size.y * sizeof(out.values[0]));
 
 	return out;
 }

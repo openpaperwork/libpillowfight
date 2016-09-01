@@ -155,13 +155,10 @@ static void apply_thresholds(struct pf_dbl_matrix *intensity) {
 	}
 }
 
-void pf_canny_on_matrix(const struct pf_dbl_matrix *in,
-		struct pf_gradient_matrixes *_out_gradient,
-		struct pf_dbl_matrix *_out_edge)
+struct pf_dbl_matrix pf_canny_on_matrix(const struct pf_dbl_matrix *in)
 {
 	struct pf_dbl_matrix out;
 	struct pf_gradient_matrixes out_gradient;
-	struct pf_dbl_matrix out_edge;
 
 	// Remove details from the image to reduce filter sensitivity to crappy details
 	out = pf_gaussian_on_matrix(in, PF_GAUSSIAN_DEFAULT_SIGMA, PF_GAUSSIAN_DEFAULT_NB_STDDEV);
@@ -171,16 +168,13 @@ void pf_canny_on_matrix(const struct pf_dbl_matrix *in,
 	pf_dbl_matrix_free(&out);
 
 	// Edge thinning
-	out_edge = pf_dbl_matrix_copy(&out_gradient.intensity);
-	non_maximum_suppression(&out_edge, &out_gradient.direction);
+	non_maximum_suppression(&out_gradient.intensity, &out_gradient.direction);
+	pf_dbl_matrix_free(&out_gradient.direction);
 
 	// Apply thresholds to remove indecisive values
-	apply_thresholds(&out_edge);
+	apply_thresholds(&out_gradient.intensity);
 
-	if (_out_gradient != NULL)
-		memcpy(_out_gradient, &out_gradient, sizeof(out_gradient));
-	if (_out_edge != NULL)
-		memcpy(_out_edge, &out_edge, sizeof(out_edge));
+	return out_gradient.intensity;
 }
 
 #ifndef NO_PYTHON
@@ -189,30 +183,16 @@ static
 void pf_canny(const struct pf_bitmap *img_in, struct pf_bitmap *img_out)
 {
 	struct pf_dbl_matrix in, out;
-	struct pf_gradient_matrixes gradient;
 
 	out = pf_dbl_matrix_new(img_in->size.x, img_in->size.y);
 	pf_rgb_bitmap_to_grayscale_dbl_matrix(img_in, &out);
 
-	// Remove details from the image to reduce filter sensitivity to crappy details
 	in = out;
-	out = pf_gaussian_on_matrix(&in, PF_GAUSSIAN_DEFAULT_SIGMA, PF_GAUSSIAN_DEFAULT_NB_STDDEV);
+	out = pf_canny_on_matrix(&in);
 	pf_dbl_matrix_free(&in);
 
-	// Compute the gradient intensity and direction
-	gradient = pf_sobel_on_matrix(&out);
+	pf_grayscale_dbl_matrix_to_rgb_bitmap(&out, img_out);
 	pf_dbl_matrix_free(&out);
-
-	// Edge thinning
-	non_maximum_suppression(&gradient.intensity, &gradient.direction);
-
-	// Apply thresholds to remove indecisive values
-	apply_thresholds(&gradient.intensity);
-
-	pf_grayscale_dbl_matrix_to_rgb_bitmap(&gradient.intensity, img_out);
-
-	pf_dbl_matrix_free(&gradient.intensity);
-	pf_dbl_matrix_free(&gradient.direction);
 }
 
 #ifndef NO_PYTHON

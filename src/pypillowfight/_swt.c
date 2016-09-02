@@ -362,12 +362,13 @@ void pf_swt(const struct pf_bitmap *img_in, struct pf_bitmap *img_out)
 	// Gaussian on the image
 	out = pf_gaussian_on_matrix(&in, PF_GAUSSIAN_DEFAULT_SIGMA, PF_GAUSSIAN_DEFAULT_NB_STDDEV);
 	// Find gradients
-	// Jflesch> DetectText/TextDetection.cpp uses Scharr kernel instead of Sobel. Should we too ?
+	// Jflesch> DetectText/TextDetection.cpp uses Scharr kernel instead of Sobel.
+	// This is not in the SWT paper. Should we too ?
 	PRINT_TIME();
 
 	gradient = pf_sobel_on_matrix(&out);
-	// Jflesch> DetectText/TextDetection.cpp apply a gaussian filter on the gradient
-	// matrixes. Should we too ?
+	// Jflesch> DetectText/TextDetection.cpp applies a gaussian filter on the gradient matrixes.
+	// This is not in the SWT paper. Should we too ?
 	pf_dbl_matrix_free(&in);
 	pf_dbl_matrix_free(&out);
 
@@ -384,7 +385,10 @@ void pf_swt(const struct pf_bitmap *img_in, struct pf_bitmap *img_out)
 
 	set_rays_down_to_ray_median(&swt_out);
 
-	// TODO: Find letter candidates
+	// Jflesch> DetectText/TextDetection.cpp normalize the image here.
+	// This is not in the SWT paper. Should we too ?
+
+	// TODO: Find letter candidates (legally connected components)
 	// TODO: Filter letter candidates
 	// TODO: Text line aggregation
 	// TODO: Word detection

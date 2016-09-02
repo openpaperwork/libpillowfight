@@ -41,7 +41,7 @@
 
 #define MAX_STROKE_WIDTH 256
 
-#define DARK_ON_LIGHT 0
+#define DARK_ON_LIGHT 1
 
 #define DEF_NB_POINTS_PER_RAY 32
 
@@ -72,6 +72,11 @@ struct swt_output {
 	struct swt_ray *rays;
 };
 
+struct swt_gradient_matrixes {
+	struct pf_dbl_matrix cos;
+	struct pf_dbl_matrix sin;
+};
+
 static void init_output(struct swt_output *out)
 {
 	int x, y;
@@ -79,6 +84,23 @@ static void init_output(struct swt_output *out)
 	for (x = 0 ; x < out->swt.size.x ; x++) {
 		for (y = 0 ; y < out->swt.size.y ; y++) {
 			PF_MATRIX_SET(&out->swt, x, y, DBL_MAX);
+		}
+	}
+}
+
+static void init_gradient(struct swt_gradient_matrixes *out, const struct pf_gradient_matrixes *in)
+{
+	int x, y;
+	double val;
+
+	out->cos = pf_dbl_matrix_new(in->direction.size.x, in->direction.size.y);
+	out->sin = pf_dbl_matrix_new(in->direction.size.x, in->direction.size.y);
+
+	for (x = 0 ; x < in->direction.size.x ; x++) {
+		for (y = 0 ; y < in->direction.size.y ; y++) {
+			val = PF_MATRIX_GET(&in->direction, x, y);
+			PF_MATRIX_SET(&out->cos, x, y, cos(val));
+			PF_MATRIX_SET(&out->sin, x, y, sin(val));
 		}
 	}
 }
@@ -97,18 +119,20 @@ static void add_point_to_ray(const struct swt_point *current, void *callback_dat
  */
 static inline int follow_stroke(
 		const struct pf_dbl_matrix *edge,
-		const struct pf_gradient_matrixes *gradient,
+		const struct pf_gradient_matrixes *pf_gradient,
+		const struct swt_gradient_matrixes *swt_gradient,
 		int x, int y,
 		void (*on_ray_point_callback)(const struct swt_point *current, void *callback_data),
 		void *callback_data)
 {
-	double g_x, g_y, g_x_end, g_y_end;
+	double g_x, g_y;
+	double angle, angle_end;
 	double cur_x, cur_y;
 	struct swt_point current_pt;
 	int nb_points = 0;
 
-	g_x = cos(PF_MATRIX_GET(&gradient->direction, x, y));
-	g_y = sin(PF_MATRIX_GET(&gradient->direction, x, y));
+	g_x = PF_MATRIX_GET(&swt_gradient->cos, x, y);
+	g_y = PF_MATRIX_GET(&swt_gradient->sin, x, y);
 	if (DARK_ON_LIGHT) {
 		g_x = -g_x;
 		g_y = -g_y;
@@ -133,9 +157,9 @@ static inline int follow_stroke(
 		current_pt.y = floor(cur_y);
 
 		if (current_pt.x < 0
-				|| current_pt.x >= gradient->direction.size.x
+				|| current_pt.x >= edge->size.x
 				|| current_pt.y < 0
-				|| current_pt.y >= gradient->direction.size.y)
+				|| current_pt.y >= edge->size.y)
 			break;
 
 		nb_points++;
@@ -153,18 +177,12 @@ static inline int follow_stroke(
 
 	assert(current_pt.x != x || current_pt.y != y);
 
-	g_x_end = cos(PF_MATRIX_GET(
-			&gradient->direction, current_pt.x, current_pt.y
-		));
-	g_y_end = sin(PF_MATRIX_GET(
-			&gradient->direction, current_pt.x, current_pt.y
-		));
-	if (DARK_ON_LIGHT) {
-		g_x_end = -g_x_end;
-		g_y_end = -g_y_end;
-	}
-
-	if (acos((g_x * -g_x_end) + (g_y * -g_y_end)) >= (M_PI / 2.0)) {
+	angle = PF_MATRIX_GET(&pf_gradient->direction, x, y);
+	angle_end = PF_MATRIX_GET(&pf_gradient->direction, current_pt.x, current_pt.y);
+	if (DARK_ON_LIGHT)
+		angle_end = -angle_end;
+	angle += angle_end;
+	if (angle >= (M_PI / 2.0) || angle <= -(M_PI / 2.0)) {
 		// no stroke here
 		return 0;
 	}
@@ -173,14 +191,15 @@ static inline int follow_stroke(
 
 static inline void find_stroke(struct swt_output *out,
 		const struct pf_dbl_matrix *edge,
-		const struct pf_gradient_matrixes *gradient,
+		const struct pf_gradient_matrixes *pf_gradient,
+		const struct swt_gradient_matrixes *swt_gradient,
 		int x, int y)
 {
 	int nb_points, i;
 	struct swt_ray *ray;
 	double val, length;
 
-	nb_points = follow_stroke(edge, gradient, x, y, NULL, NULL);
+	nb_points = follow_stroke(edge, pf_gradient, swt_gradient, x, y, NULL, NULL);
 	if (nb_points <= 0) {
 		// no stroke here
 		return;
@@ -190,7 +209,7 @@ static inline void find_stroke(struct swt_output *out,
 	ray = malloc(sizeof(struct swt_ray) + (sizeof(struct swt_point) * nb_points));
 	ray->next = NULL;
 	ray->nb_points = 0;
-	nb_points = follow_stroke(edge, gradient, x, y, add_point_to_ray, ray);
+	nb_points = follow_stroke(edge, pf_gradient, swt_gradient, x, y, add_point_to_ray, ray);
 	assert(nb_points > 0);
 	assert(nb_points == ray->nb_points);
 
@@ -213,19 +232,22 @@ static inline void find_stroke(struct swt_output *out,
 	}
 }
 
-struct swt_output swt(const struct pf_dbl_matrix *edge, const struct pf_gradient_matrixes *gradient)
+struct swt_output swt(const struct pf_dbl_matrix *edge, const struct pf_gradient_matrixes *pf_gradient)
 {
 	int x, y;
 	struct swt_output out;
+	struct swt_gradient_matrixes swt_gradient;
 
-	assert(edge->size.x == gradient->intensity.size.x);
-	assert(edge->size.y == gradient->intensity.size.y);
-	assert(edge->size.x == gradient->direction.size.x);
-	assert(edge->size.y == gradient->direction.size.y);
+	assert(edge->size.x == pf_gradient->intensity.size.x);
+	assert(edge->size.y == pf_gradient->intensity.size.y);
+	assert(edge->size.x == pf_gradient->direction.size.x);
+	assert(edge->size.y == pf_gradient->direction.size.y);
 
 	memset(&out, 0, sizeof(out));
 	out.swt = pf_dbl_matrix_new(edge->size.x, edge->size.y);
 	init_output(&out);
+	// pre-compute the cos() and sin() of each angle
+	init_gradient(&swt_gradient, pf_gradient);
 
 	for (x = 0 ; x < edge->size.x ; x++) {
 		for (y = 0 ; y < edge->size.y ; y++) {
@@ -234,10 +256,13 @@ struct swt_output swt(const struct pf_dbl_matrix *edge, const struct pf_gradient
 				continue;
 			}
 
-			find_stroke(&out, edge, gradient, x, y);
+			find_stroke(&out, edge, pf_gradient, &swt_gradient, x, y);
 
 		}
 	}
+
+	pf_dbl_matrix_free(&swt_gradient.cos);
+	pf_dbl_matrix_free(&swt_gradient.sin);
 
 	return out;
 }

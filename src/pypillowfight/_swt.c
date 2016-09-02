@@ -45,7 +45,7 @@
 
 #define DEF_NB_POINTS_PER_RAY 32
 
-#define PRECISION 0.05
+#define PRECISION 0.25
 
 #define IS_EDGE_LINE(val) ((val) > 0.0)
 

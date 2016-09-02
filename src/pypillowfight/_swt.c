@@ -16,6 +16,8 @@
  * along with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
+#define _GNU_SOURCE // for qsort_r()
+
 #include <assert.h>
 #include <math.h>
 #include <stdint.h>
@@ -232,7 +234,7 @@ static inline void find_stroke(struct swt_output *out,
 	}
 }
 
-struct swt_output swt(const struct pf_dbl_matrix *edge, const struct pf_gradient_matrixes *pf_gradient)
+static struct swt_output swt(const struct pf_dbl_matrix *edge, const struct pf_gradient_matrixes *pf_gradient)
 {
 	int x, y;
 	struct swt_output out;
@@ -265,6 +267,67 @@ struct swt_output swt(const struct pf_dbl_matrix *edge, const struct pf_gradient
 	pf_dbl_matrix_free(&swt_gradient.sin);
 
 	return out;
+}
+
+static int compare_points(const void *_pt_a, const void *_pt_b, void *_swt_matrix) {
+	const struct swt_point *pt_a = _pt_a;
+	const struct swt_point *pt_b = _pt_b;
+	const struct pf_dbl_matrix *swt_matrix = _swt_matrix;
+	double val_a, val_b;
+
+	val_a = PF_MATRIX_GET(swt_matrix, pt_a->x, pt_a->y);
+	val_b = PF_MATRIX_GET(swt_matrix, pt_b->x, pt_b->y);
+	if (val_a > val_b)
+		return 1;
+	if (val_a < val_b)
+		return -1;
+	return 0;
+}
+
+static void set_rays_down_to_ray_median(struct swt_output *rays)
+{
+	struct swt_ray *ray;
+	int point_nb;
+	double median, val;
+
+	for (ray = rays->rays ; ray != NULL ; ray = ray->next) {
+		assert(ray->nb_points > 0);
+
+		qsort_r(ray->points, ray->nb_points, sizeof(ray->points[0]),
+				compare_points, &rays->swt);
+
+		if ((ray->nb_points % 2) == 0) {
+			// we have an even number of points --> median is between
+			// 2 points
+			median = PF_MATRIX_GET(&rays->swt,
+					ray->points[ray->nb_points / 2].x,
+					ray->points[ray->nb_points / 2].y
+				);
+			median += PF_MATRIX_GET(&rays->swt,
+					ray->points[(ray->nb_points / 2) - 1].x,
+					ray->points[(ray->nb_points / 2) - 1].y
+				);
+			median /= 2.0;
+		} else {
+			median = PF_MATRIX_GET(&rays->swt,
+					ray->points[ray->nb_points / 2].x,
+					ray->points[ray->nb_points / 2].y
+				);
+		}
+
+		for( point_nb = 0 ; point_nb < ray->nb_points ; point_nb++) {
+			val = PF_MATRIX_GET(&rays->swt,
+					ray->points[point_nb].x,
+					ray->points[point_nb].y
+				);
+			val = MIN(val, median);
+			PF_MATRIX_SET(&rays->swt,
+					ray->points[point_nb].x,
+					ray->points[point_nb].y,
+					val
+				);
+		}
+	}
 }
 
 #ifndef NO_PYTHON
@@ -317,7 +380,10 @@ void pf_swt(const struct pf_bitmap *img_in, struct pf_bitmap *img_out)
 	pf_dbl_matrix_free(&gradient.direction);
 	pf_dbl_matrix_free(&edge);
 
-	// TODO: normalize ?
+	PRINT_TIME();
+
+	set_rays_down_to_ray_median(&swt_out);
+
 	// TODO: Find letter candidates
 	// TODO: Filter letter candidates
 	// TODO: Text line aggregation

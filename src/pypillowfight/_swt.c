@@ -22,6 +22,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 #include <values.h>
 
 #include <pillowfight/pillowfight.h>
@@ -48,6 +49,11 @@
 
 #define IS_EDGE_LINE(val) ((val) > 0.0)
 
+#define PRINT_TIME() printf("SWT: %d: %lds\n", __LINE__, time(NULL) - g_swt_start);
+
+#ifdef PRINT_TIME
+static time_t g_swt_start;
+#endif
 
 struct swt_point {
 	int x;
@@ -89,7 +95,7 @@ static void add_point_to_ray(const struct swt_point *current, void *callback_dat
  * \retval 0 if no match (--> no stroke)
  * \return number of points in the ray
  */
-static int follow_stroke(
+static inline int follow_stroke(
 		const struct pf_dbl_matrix *edge,
 		const struct pf_gradient_matrixes *gradient,
 		int x, int y,
@@ -165,7 +171,7 @@ static int follow_stroke(
 	return nb_points;
 }
 
-static void find_stroke(struct swt_output *out,
+static inline void find_stroke(struct swt_output *out,
 		const struct pf_dbl_matrix *edge,
 		const struct pf_gradient_matrixes *gradient,
 		int x, int y)
@@ -249,23 +255,39 @@ void pf_swt(const struct pf_bitmap *img_in, struct pf_bitmap *img_out)
 	int x, y;
 	double val;
 
+#ifdef PRINT_TIME
+	g_swt_start = time(NULL);
+#endif
+
+	PRINT_TIME();
+
 	in = pf_dbl_matrix_new(img_in->size.x, img_in->size.y);
 	pf_rgb_bitmap_to_grayscale_dbl_matrix(img_in, &in);
 
+	PRINT_TIME();
+
 	// Compute edge & gradient
 	edge = pf_canny_on_matrix(&in);
+
+	PRINT_TIME();
 
 	// Gaussian on the image
 	out = pf_gaussian_on_matrix(&in, PF_GAUSSIAN_DEFAULT_SIGMA, PF_GAUSSIAN_DEFAULT_NB_STDDEV);
 	// Find gradients
 	// Jflesch> DetectText/TextDetection.cpp uses Scharr kernel instead of Sobel. Should we too ?
+	PRINT_TIME();
+
 	gradient = pf_sobel_on_matrix(&out);
 	// Jflesch> DetectText/TextDetection.cpp apply a gaussian filter on the gradient
 	// matrixes. Should we too ?
 	pf_dbl_matrix_free(&in);
 	pf_dbl_matrix_free(&out);
 
+	PRINT_TIME();
+
 	swt_out = swt(&edge, &gradient);
+	PRINT_TIME();
+
 	pf_dbl_matrix_free(&gradient.intensity);
 	pf_dbl_matrix_free(&gradient.direction);
 	pf_dbl_matrix_free(&edge);
@@ -277,16 +299,23 @@ void pf_swt(const struct pf_bitmap *img_in, struct pf_bitmap *img_out)
 	// TODO: Word detection
 	// TODO: Mask
 
+	PRINT_TIME();
+
 	// temporary
 	for (x = 0 ; x < swt_out.swt.size.x ; x++) {
 		for (y = 0 ; y < swt_out.swt.size.y ; y++) {
 			val = PF_MATRIX_GET(&swt_out.swt, x, y);
-			if (val == DBL_MAX) {
-				PF_MATRIX_SET(&swt_out.swt, x, y, 0.0);
+			if (val < 16.0) {
+				val = PF_WHITE;
+			} else {
+				val = 0.0;
 			}
+			PF_MATRIX_SET(&swt_out.swt, x, y, val);
 		}
 	}
 	pf_grayscale_dbl_matrix_to_rgb_bitmap(&swt_out.swt, img_out);
+
+	PRINT_TIME();
 
 	for (ray = swt_out.rays ; swt_out.rays != NULL ; ) {
 		ray = swt_out.rays;

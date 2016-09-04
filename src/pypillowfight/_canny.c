@@ -120,8 +120,10 @@ static void non_maximum_suppression(
 			axis_nb = fmod(round(angle), PF_COUNT_OF(axis_pt_coords));
 
 			for (p = 0 ; p < PF_COUNT_OF(axis_pt_coords[axis_nb]) ; p++) {
-				if (x + axis_pt_coords[axis_nb][p][0] > intensity->size.x
-						|| y + axis_pt_coords[axis_nb][p][1] > intensity->size.y)
+				if (x + axis_pt_coords[axis_nb][p][0] < 0
+						|| x + axis_pt_coords[axis_nb][p][0] >= intensity->size.x
+						|| y + axis_pt_coords[axis_nb][p][1] < 0
+						|| y + axis_pt_coords[axis_nb][p][1] >= intensity->size.y)
 					continue;
 				other_intensity = PF_MATRIX_GET(intensity,
 						x + axis_pt_coords[axis_nb][p][0],

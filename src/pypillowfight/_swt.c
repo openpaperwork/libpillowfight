@@ -41,13 +41,9 @@
  * Ref: https://github.com/aperrau/DetectText
  */
 
-#define MAX_STROKE_WIDTH 256
-
 #define DARK_ON_LIGHT 1
-
-#define DEF_NB_POINTS_PER_RAY 32
-
 #define PRECISION 0.25
+#define MAX_STROKE_WIDTH 256
 
 #define IS_EDGE_LINE(val) ((val) > 0.0)
 
@@ -62,8 +58,9 @@ struct swt_point {
 	int y;
 };
 
-struct swt_ray {
-	struct swt_ray *next;
+/* list of points (used to describe rays for instance) */
+struct swt_points {
+	struct swt_points *next;
 
 	int nb_points;
 	struct swt_point points[];
@@ -71,13 +68,29 @@ struct swt_ray {
 
 struct swt_output {
 	struct pf_dbl_matrix swt; // The width of the strokes detected
-	struct swt_ray *rays;
+	struct swt_points *rays;
 };
 
 struct swt_gradient_matrixes {
 	struct pf_dbl_matrix cos;
 	struct pf_dbl_matrix sin;
 };
+
+struct swt_adjacency {
+	struct swt_point pt;
+	int nb_neighboors;
+	struct swt_adjacency *neighboors[8];
+};
+
+struct swt_adjacencies {
+	struct {
+		int x;
+		int y;
+	} size;
+	struct swt_adjacency *adjacencies;
+};
+
+#define SWT_GET_ADJACENCY(adjs, a, b) (&((adjs)->adjacencies[(a) + ((b) * ((adjs)->size.x))]))
 
 static void init_output(struct swt_output *out)
 {
@@ -88,6 +101,53 @@ static void init_output(struct swt_output *out)
 			PF_MATRIX_SET(&out->swt, x, y, DBL_MAX);
 		}
 	}
+}
+
+static inline struct swt_points *new_point_list(int capacity) {
+	struct swt_points *pts;
+	pts = calloc(1, sizeof(struct swt_points) + (sizeof(struct swt_point) * capacity));
+	pts->next = NULL;
+	pts->nb_points = 0;
+	return pts;
+}
+
+static void add_point(const struct swt_point *current, void *callback_data) {
+	struct swt_points *ray = callback_data;
+	ray->points[ray->nb_points] = *current;
+	ray->nb_points++;
+}
+
+static void free_rays(struct swt_points *rays)
+{
+	struct swt_points *ray, *nray;
+	for (ray = rays, nray = (ray ? ray->next : NULL) ;
+			ray != NULL ;
+			ray = nray, nray = (nray ? nray->next : NULL)) {
+		free(ray);
+	}
+}
+
+static struct swt_adjacencies init_adjacencies(int x, int y)
+{
+	struct swt_adjacencies adjs;
+	adjs.size.x = x;
+	adjs.size.y = y;
+	adjs.adjacencies = calloc(x * y, sizeof(struct swt_adjacency));
+	return adjs;
+}
+
+#define add_adjacency(adj_pt, adj_neighboor) do { \
+		assert((adj_pt)->nb_neighboors < 8); \
+		(adj_pt)->neighboors[(adj_pt)->nb_neighboors] = (adj_neighboor); \
+		(adj_pt)->nb_neighboors++; \
+		assert((adj_neighboor)->nb_neighboors < 8); \
+		(adj_neighboor)->neighboors[(adj_neighboor)->nb_neighboors] = (adj_pt); \
+		(adj_neighboor)->nb_neighboors++; \
+	} while(0)
+
+static void free_adjacencies(struct swt_adjacencies *adjs)
+{
+	free(adjs->adjacencies);
 }
 
 static void init_gradient(struct swt_gradient_matrixes *out, const struct pf_gradient_matrixes *in)
@@ -107,12 +167,6 @@ static void init_gradient(struct swt_gradient_matrixes *out, const struct pf_gra
 	}
 }
 
-static void add_point_to_ray(const struct swt_point *current, void *callback_data) {
-	struct swt_ray *ray = callback_data;
-	ray->points[ray->nb_points] = *current;
-	ray->nb_points++;
-}
-
 /*!
  * \brief follow the supposed stroke to its end and make sure the angles match
  *
@@ -130,6 +184,7 @@ static inline int follow_stroke(
 	double g_x, g_y;
 	double angle, angle_end;
 	double cur_x, cur_y;
+	double fcur_x, fcur_y;
 	struct swt_point current_pt;
 	int nb_points = 0;
 
@@ -151,18 +206,22 @@ static inline int follow_stroke(
 		cur_x += g_x * PRECISION;
 		cur_y += g_y * PRECISION;
 
-		if ((floor(cur_x) == current_pt.x)
-				&& (floor(cur_y) == current_pt.y)) {
+		fcur_x = floor(cur_x);
+		fcur_y = floor(cur_y);
+
+		if ((fcur_x == current_pt.x)
+				&& (fcur_y == current_pt.y)) {
 			continue;
 		}
+
+		if (fcur_x < 0
+				|| fcur_x >= edge->size.x
+				|| fcur_y < 0
+				|| fcur_y >= edge->size.y)
+			break;
+
 		current_pt.x = floor(cur_x);
 		current_pt.y = floor(cur_y);
-
-		if (current_pt.x < 0
-				|| current_pt.x >= edge->size.x
-				|| current_pt.y < 0
-				|| current_pt.y >= edge->size.y)
-			break;
 
 		nb_points++;
 		if (nb_points >= MAX_STROKE_WIDTH) {
@@ -177,7 +236,10 @@ static inline int follow_stroke(
 		}
 	}
 
-	assert(current_pt.x != x || current_pt.y != y);
+	if (current_pt.x == x || current_pt.y == y) {
+		// one pixel on the border of the image ==> not a stroke
+		return 0;
+	}
 
 	angle = PF_MATRIX_GET(&pf_gradient->direction, x, y);
 	angle_end = PF_MATRIX_GET(&pf_gradient->direction, current_pt.x, current_pt.y);
@@ -198,7 +260,7 @@ static inline void find_stroke(struct swt_output *out,
 		int x, int y)
 {
 	int nb_points, i;
-	struct swt_ray *ray;
+	struct swt_points *ray;
 	double val, length;
 
 	nb_points = follow_stroke(edge, pf_gradient, swt_gradient, x, y, NULL, NULL);
@@ -208,10 +270,8 @@ static inline void find_stroke(struct swt_output *out,
 	}
 
 	// we found one --> fill in a ray structure
-	ray = malloc(sizeof(struct swt_ray) + (sizeof(struct swt_point) * nb_points));
-	ray->next = NULL;
-	ray->nb_points = 0;
-	nb_points = follow_stroke(edge, pf_gradient, swt_gradient, x, y, add_point_to_ray, ray);
+	ray = new_point_list(nb_points);
+	nb_points = follow_stroke(edge, pf_gradient, swt_gradient, x, y, add_point, ray);
 	assert(nb_points > 0);
 	assert(nb_points == ray->nb_points);
 
@@ -286,7 +346,7 @@ static int compare_points(const void *_pt_a, const void *_pt_b, void *_swt_matri
 
 static void set_rays_down_to_ray_median(struct swt_output *rays)
 {
-	struct swt_ray *ray;
+	struct swt_points *ray;
 	int point_nb;
 	double median, val;
 
@@ -330,6 +390,167 @@ static void set_rays_down_to_ray_median(struct swt_output *rays)
 	}
 }
 
+static struct swt_adjacencies make_adjacencies_list(const struct pf_dbl_matrix *swt)
+{
+	const struct {
+		int x;
+		int y;
+	} to_check[] = {
+		{ .x = 1, .y = 0 }, // right
+		{ .x = 1, .y = 1 }, // right down
+		{ .x = 0, .y = 1 }, // down
+		{ .x = -1, .y = 1 }, // left-down
+	};
+	struct swt_adjacencies adjs;
+	struct swt_adjacency *adj_pt;
+	struct swt_adjacency *adj_neighboor;
+	int x, y, i;
+	double val, val_neighboor;
+
+	adjs = init_adjacencies(swt->size.x, swt->size.y);
+
+	for (x = 0 ; x < adjs.size.x ; x++) {
+		for (y = 0 ; y < adjs.size.y ; y++) {
+			adj_pt = SWT_GET_ADJACENCY(&adjs, x, y);
+			adj_pt->pt.x = x;
+			adj_pt->pt.y = y;
+		}
+	}
+
+	// fill in the adjacency list
+	for (x = 0 ; x < adjs.size.x ; x++) {
+		for (y = 0 ; y < adjs.size.y ; y++) {
+			val = PF_MATRIX_GET(swt, x, y);
+			if (val <= 0.0 || val >= DBL_MAX)
+				continue;
+			adj_pt = SWT_GET_ADJACENCY(&adjs, x, y);
+			adj_pt->pt.x = x;
+			adj_pt->pt.y = y;
+			for (i = 0 ; i < PF_COUNT_OF(to_check) ; i++) {
+				if ((x + to_check[i].x) < 0
+						|| (x + to_check[i].x) >= adjs.size.x
+						|| (y + to_check[i].y) < 0
+						|| (y + to_check[i].y) >= adjs.size.y)
+					continue;
+				val_neighboor = PF_MATRIX_GET(swt, x + to_check[i].x, y + to_check[i].y);
+				if (val_neighboor <= 0.0 || val_neighboor >= DBL_MAX
+						|| (val / val_neighboor) >= 3.0 || (val_neighboor / val) >= 3.0)
+					continue;
+				adj_neighboor = SWT_GET_ADJACENCY(&adjs, x + to_check[i].x, y + to_check[i].y);
+				add_adjacency(adj_pt, adj_neighboor);
+			}
+		}
+	}
+
+	return adjs;
+}
+
+struct adj_browsing_stack_element {
+	struct swt_adjacency *adj;
+	int adjacency_nb;
+};
+
+static int browse_adjacencies(struct swt_adjacencies *adjs,
+		void (*callback)(int nb_group, int x, int y, void *callback_data),
+		void *callback_data)
+{
+	struct pf_dbl_matrix visited; // OPTIM> Integers would be enough.
+	int x, y, stack_depth, stack_offset;
+	int nb_group = 0;
+	struct adj_browsing_stack_element *stack;
+
+	visited = pf_dbl_matrix_new(adjs->size.x, adjs->size.y);
+	stack = malloc(sizeof(struct adj_browsing_stack_element) * adjs->size.x * adjs->size.y);
+
+	for (x = 0 ; x < visited.size.x ; x++) {
+		for (y = 0 ; y < visited.size.y ; y++) {
+			if (PF_MATRIX_GET(&visited, x, y))
+				continue;
+
+			stack[0].adj = SWT_GET_ADJACENCY(adjs, x, y);
+			if (stack[0].adj->nb_neighboors <= 0)
+				continue;
+			stack[0].adjacency_nb = 0;
+			for (stack_depth = 0 ; stack_depth >= 0 ; ) {
+				if (callback) {
+					callback(nb_group, stack[stack_depth].adj->pt.x, stack[stack_depth].adj->pt.y, callback_data);
+				}
+				PF_MATRIX_SET(&visited, stack[stack_depth].adj->pt.x, stack[stack_depth].adj->pt.y, 1.0);
+				stack_offset = -1; // go down in the stack by default
+				for ( ; stack[stack_depth].adjacency_nb < stack[stack_depth].adj->nb_neighboors
+						; stack[stack_depth].adjacency_nb++) {
+					stack[stack_depth + 1].adj = stack[stack_depth].adj->neighboors[stack[stack_depth].adjacency_nb];
+					if (!PF_MATRIX_GET(&visited, stack[stack_depth + 1].adj->pt.x, stack[stack_depth + 1].adj->pt.y)) {
+						stack[stack_depth + 1].adjacency_nb = 0;
+						stack[stack_depth].adjacency_nb++;
+						stack_offset = 1; // go up in the stack
+						break;
+					}
+				}
+				stack_depth += stack_offset;
+			}
+
+			nb_group++;
+		}
+	}
+
+	pf_dbl_matrix_free(&visited);
+
+	return nb_group;
+}
+
+static void count_points(int nb_group, int x, int y, void *callback_data)
+{
+	int *nb_pts_per_group = callback_data;
+	nb_pts_per_group[nb_group]++;
+}
+
+static void fillin_groups(int nb_group, int x, int y, void *callback_data)
+{
+	struct swt_points **groups = callback_data;
+	struct swt_points *group = groups[nb_group];
+	group->points[group->nb_points].x = x;
+	group->points[group->nb_points].y = y;
+	group->nb_points++;
+}
+
+/*!
+ * Group all the points belonging to a same letter together, for all the letter.
+ * Here we assume that adjacent points with similar stroke width belong to the
+ * same letter.
+ */
+static struct swt_points **find_letters(const struct pf_dbl_matrix *swt)
+{
+	struct swt_adjacencies adjs;
+	int nb_groups, i;
+	int *nb_pts_per_group;
+	struct swt_points **groups;
+
+	PRINT_TIME();
+	adjs = make_adjacencies_list(swt);
+	PRINT_TIME();
+
+	nb_groups = browse_adjacencies(&adjs, NULL, NULL);
+	PRINT_TIME();
+
+	fprintf(stderr, "SWT: %d groups found\n", nb_groups);
+
+	nb_pts_per_group = calloc(nb_groups, sizeof(int));
+	browse_adjacencies(&adjs, count_points, nb_pts_per_group);
+
+	groups = calloc(nb_groups, sizeof(struct swt_points *));
+	for (i = 0 ; i < nb_groups ; i++) {
+		groups[i] = new_point_list(nb_pts_per_group[i]);
+	}
+
+	browse_adjacencies(&adjs, fillin_groups, groups);
+
+	free(nb_pts_per_group);
+	free_adjacencies(&adjs);
+
+	return groups;
+}
+
 #ifndef NO_PYTHON
 static
 #endif
@@ -339,7 +560,7 @@ void pf_swt(const struct pf_bitmap *img_in, struct pf_bitmap *img_out)
 	struct pf_gradient_matrixes gradient;
 	struct pf_dbl_matrix edge;
 	struct swt_output swt_out;
-	struct swt_ray *ray;
+	struct swt_points **letters;
 	int x, y;
 	double val;
 
@@ -348,7 +569,6 @@ void pf_swt(const struct pf_bitmap *img_in, struct pf_bitmap *img_out)
 #endif
 
 	PRINT_TIME();
-
 	in = pf_dbl_matrix_new(img_in->size.x, img_in->size.y);
 	pf_rgb_bitmap_to_grayscale_dbl_matrix(img_in, &in);
 
@@ -384,9 +604,14 @@ void pf_swt(const struct pf_bitmap *img_in, struct pf_bitmap *img_out)
 	PRINT_TIME();
 
 	set_rays_down_to_ray_median(&swt_out);
+	free_rays(swt_out.rays);
 
 	// Jflesch> DetectText/TextDetection.cpp normalize the image here.
 	// This is not in the SWT paper. Should we too ?
+
+	PRINT_TIME();
+
+	letters = find_letters(&swt_out.swt);
 
 	// TODO: Find letter candidates (legally connected components)
 	// TODO: Filter letter candidates
@@ -412,11 +637,6 @@ void pf_swt(const struct pf_bitmap *img_in, struct pf_bitmap *img_out)
 
 	PRINT_TIME();
 
-	for (ray = swt_out.rays ; swt_out.rays != NULL ; ) {
-		ray = swt_out.rays;
-		swt_out.rays = ray->next;
-		free(ray);
-	}
 	pf_dbl_matrix_free(&swt_out.swt);
 }
 

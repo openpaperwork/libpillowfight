@@ -99,6 +99,20 @@ struct swt_adjacencies {
 	struct swt_adjacency *adjacencies;
 };
 
+struct swt_letter_stats {
+	struct swt_point min;
+	struct swt_point max;
+	double mean;
+	double variance;
+	double median;
+};
+
+struct swt_letters {
+	struct swt_points **letters;
+	struct swt_letter_stats *stats;
+	int nb_letters;
+};
+
 #define SWT_GET_ADJACENCY(adjs, a, b) (&((adjs)->adjacencies[(a) + ((b) * ((adjs)->size.x))]))
 
 static void init_output(struct swt_output *out)
@@ -356,6 +370,39 @@ static int compare_points(const void *_pt_a, const void *_pt_b, void *_swt_matri
 	return 0;
 }
 
+/*!
+ * \warning modify the source array order !
+ */
+static double compute_points_median(const struct pf_dbl_matrix *swt,
+		struct swt_points *pts)
+{
+	double median;
+
+	qsort_r(pts->points, pts->nb_points, sizeof(pts->points[0]),
+		compare_points, (void*)swt);
+
+	if ((pts->nb_points % 2) == 0) {
+		// we have an even number of points --> median is between
+		// 2 points
+		median = PF_MATRIX_GET(swt,
+				pts->points[pts->nb_points / 2].x,
+				pts->points[pts->nb_points / 2].y
+			);
+		median += PF_MATRIX_GET(swt,
+				pts->points[(pts->nb_points / 2) - 1].x,
+				pts->points[(pts->nb_points / 2) - 1].y
+			);
+		median /= 2.0;
+	} else {
+		median = PF_MATRIX_GET(swt,
+				pts->points[pts->nb_points / 2].x,
+				pts->points[pts->nb_points / 2].y
+			);
+	}
+
+	return median;
+}
+
 static void set_rays_down_to_ray_median(struct swt_output *rays)
 {
 	struct swt_points *ray;
@@ -365,27 +412,7 @@ static void set_rays_down_to_ray_median(struct swt_output *rays)
 	for (ray = rays->rays ; ray != NULL ; ray = ray->next) {
 		assert(ray->nb_points > 0);
 
-		qsort_r(ray->points, ray->nb_points, sizeof(ray->points[0]),
-				compare_points, &rays->swt);
-
-		if ((ray->nb_points % 2) == 0) {
-			// we have an even number of points --> median is between
-			// 2 points
-			median = PF_MATRIX_GET(&rays->swt,
-					ray->points[ray->nb_points / 2].x,
-					ray->points[ray->nb_points / 2].y
-				);
-			median += PF_MATRIX_GET(&rays->swt,
-					ray->points[(ray->nb_points / 2) - 1].x,
-					ray->points[(ray->nb_points / 2) - 1].y
-				);
-			median /= 2.0;
-		} else {
-			median = PF_MATRIX_GET(&rays->swt,
-					ray->points[ray->nb_points / 2].x,
-					ray->points[ray->nb_points / 2].y
-				);
-		}
+		median = compute_points_median(&rays->swt, ray);
 
 		for( point_nb = 0 ; point_nb < ray->nb_points ; point_nb++) {
 			val = PF_MATRIX_GET(&rays->swt,
@@ -531,38 +558,169 @@ static void fillin_groups(int nb_group, int x, int y, void *callback_data)
  * Here we assume that adjacent points with similar stroke width belong to the
  * same letter.
  */
-static struct swt_points **find_letters(const struct pf_dbl_matrix *swt)
+static struct swt_letters find_possible_letters(const struct pf_dbl_matrix *swt)
 {
 	struct swt_adjacencies adjs;
-	int nb_groups, i;
+	int i;
 	int *nb_pts_per_group;
-	struct swt_points **groups;
+	struct swt_letters out;
 
 	PRINT_TIME();
 	adjs = make_adjacencies_list(swt);
 	PRINT_TIME();
 
-	nb_groups = browse_adjacencies(&adjs, NULL, NULL);
+	out.nb_letters = browse_adjacencies(&adjs, NULL, NULL);
 	PRINT_TIME();
 
-#ifdef OUTPUT_INTERMEDIATE_IMGS
-	fprintf(stderr, "SWT> %d groups found\n", nb_groups);
-#endif
-
-	nb_pts_per_group = calloc(nb_groups, sizeof(int));
+	nb_pts_per_group = calloc(out.nb_letters, sizeof(int));
 	browse_adjacencies(&adjs, count_points, nb_pts_per_group);
 
-	groups = calloc(nb_groups, sizeof(struct swt_points *));
-	for (i = 0 ; i < nb_groups ; i++) {
-		groups[i] = new_point_list(nb_pts_per_group[i]);
+	out.letters = calloc(out.nb_letters, sizeof(struct swt_points *));
+	out.stats = calloc(out.nb_letters, sizeof(struct swt_letter_stats));
+	for (i = 0 ; i < out.nb_letters ; i++) {
+		out.letters[i] = new_point_list(nb_pts_per_group[i]);
 	}
 
-	browse_adjacencies(&adjs, fillin_groups, groups);
+	browse_adjacencies(&adjs, fillin_groups, out.letters);
 
 	free(nb_pts_per_group);
 	free_adjacencies(&adjs);
 
-	return groups;
+	return out;
+}
+
+static void compute_basic_letter_stats(
+		const struct pf_dbl_matrix *swt,
+		const struct swt_points *points,
+		struct swt_letter_stats *stats)
+{
+	int i;
+	double val;
+	const struct swt_point *pt;
+
+	assert(points->nb_points > 0);
+
+	stats->min.x = INT_MAX;
+	stats->min.y = INT_MAX;
+	stats->max.x = 0;
+	stats->max.y = 0;
+	stats->mean = 0.0;
+	stats->variance = 0.0;
+	stats->median = 0.0;
+
+	for (i = 0 ; i < points->nb_points ; i++) {
+		pt = &points->points[i];
+		val = PF_MATRIX_GET(swt, pt->x, pt->y);
+		stats->mean += val;
+		stats->min.x = MIN(stats->min.x, pt->x);
+		stats->min.y = MIN(stats->min.y, pt->y);
+		stats->max.x = MAX(stats->max.x, pt->x);
+		stats->max.y = MAX(stats->max.y, pt->y);
+	}
+	stats->mean /= points->nb_points;
+
+	for (i = 0 ; i < points->nb_points ; i++) {
+		pt = &points->points[i];
+		val = PF_MATRIX_GET(swt, pt->x, pt->y);
+		stats->variance += (val - stats->mean) * (val - stats->mean);
+	}
+	stats->variance /= points->nb_points;
+}
+
+static int check_ratio(
+		const struct swt_points *points,
+		struct swt_letter_stats *stats)
+{
+#define ROTATED_BOUNDING_BOX_INCREMENT (M_PI/36)
+#define MIN_ASPECT_RATIO (1./10.)
+#define MAX_ASPECT_RATIO (10.)
+
+	double min_x, max_x;
+	double min_y, max_y;
+	double theta;
+	int i;
+	const struct swt_point *pt;
+	double x, y;
+	double w, h;
+	double ratio;
+
+	for (theta = ROTATED_BOUNDING_BOX_INCREMENT ;
+			theta < M_PI / 2.0 ;
+			theta += ROTATED_BOUNDING_BOX_INCREMENT) {
+
+		min_x = DBL_MAX;
+		min_y = DBL_MAX;
+		max_x = -DBL_MAX;
+		max_y = -DBL_MAX;
+
+		for (i = 0 ; i < points->nb_points ; i++) {
+			pt = &points->points[i];
+			x = (pt->x * cos(theta)) + (pt->y * -sin(theta));
+			y = (pt->x * sin(theta)) + (pt->y * cos(theta));
+			min_x = MIN(min_x, x);
+			max_x = MAX(max_x, x);
+			min_y = MIN(min_y, y);
+			max_y = MAX(max_y, y);
+		}
+		w = max_x - min_x;
+		h = max_y - min_y;
+		ratio = (w / h);
+
+		// check if the aspect ratio is between 1/10 and 10
+		if (ratio >= MIN_ASPECT_RATIO && ratio <= MAX_ASPECT_RATIO) {
+			return 1;
+		}
+	}
+	return 0;
+}
+
+static int is_valid_letter(const struct pf_dbl_matrix *swt,
+		struct swt_points *points,
+		struct swt_letter_stats *stats)
+{
+	compute_basic_letter_stats(swt, points, stats);
+	if (stats->variance > 0.5 * stats->mean)
+		return 0;
+	if (stats->max.y - stats->min.y > 300)
+		return 0;
+	if (!check_ratio(points, stats)) {
+		return 0;
+	}
+
+	stats->median = compute_points_median(swt, points);
+	return 1;
+}
+
+static struct swt_letters filter_possible_letters(const struct pf_dbl_matrix *swt,
+		const struct swt_letters *possible_letters)
+{
+	struct swt_letters out;
+	int x;
+
+	out.nb_letters = 0;
+	out.letters = calloc(possible_letters->nb_letters, sizeof(struct swt_points *));
+	out.stats = calloc(possible_letters->nb_letters, sizeof(struct swt_letter_stats));
+
+	for (x = 0 ; x < possible_letters->nb_letters ; x++) {
+		if (is_valid_letter(swt,
+				possible_letters->letters[x],
+				&possible_letters->stats[x])) {
+			out.letters[out.nb_letters] = possible_letters->letters[x];
+			out.nb_letters++;
+		}
+	}
+
+	// resize down
+	out.letters = realloc(
+			out.letters,
+			out.nb_letters * sizeof(struct swt_points *)
+		);
+	out.stats = realloc(
+			out.stats,
+			out.nb_letters * sizeof(struct swt_letter_stats)
+		);
+
+	return out;
 }
 
 #ifndef NO_PYTHON
@@ -574,9 +732,11 @@ void pf_swt(const struct pf_bitmap *img_in, struct pf_bitmap *img_out)
 	struct pf_gradient_matrixes gradient;
 	struct pf_dbl_matrix edge;
 	struct swt_output swt_out;
-	struct swt_points **letters;
+	struct swt_letters possible_letters;
+	struct swt_letters letters;
+	int x;
 #ifdef OUTPUT_INTERMEDIATE_IMGS
-	int x, y;
+	int y;
 	double val, max;
 	struct pf_dbl_matrix normalized, reversed;
 #endif
@@ -666,15 +826,30 @@ void pf_swt(const struct pf_bitmap *img_in, struct pf_bitmap *img_out)
 
 	PRINT_TIME();
 
-	letters = find_letters(&swt_out.swt);
+	possible_letters = find_possible_letters(&swt_out.swt);
+#ifdef OUTPUT_INTERMEDIATE_IMGS
+	fprintf(stderr, "SWT> %d possible letters found\n", possible_letters.nb_letters);
+#endif
 
-	// TODO: Find letter candidates (legally connected components)
+	letters = filter_possible_letters(&swt_out.swt, &possible_letters);
+#ifdef OUTPUT_INTERMEDIATE_IMGS
+	fprintf(stderr, "SWT> %d letters found\n", letters.nb_letters);
+#endif
+
+
 	// TODO: Filter letter candidates
 	// TODO: Text line aggregation
 	// TODO: Word detection
 	// TODO: Mask
 
 	PRINT_TIME();
+
+	// Note: possible_letters and letters share allocations
+	for (x = 0 ; x < possible_letters.nb_letters ; x++)
+		free(possible_letters.letters[x]);
+	free(possible_letters.letters);
+	free(possible_letters.stats);
+	free(letters.letters);
 
 	// temporary
 	DUMP_MATRIX("swt_9999_out", &swt_out.swt, 1.0);

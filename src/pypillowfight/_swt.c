@@ -228,8 +228,8 @@ static inline int follow_stroke(
 				|| fcur_y >= edge->size.y)
 			return 0;
 
-		current_pt.x = floor(cur_x);
-		current_pt.y = floor(cur_y);
+		current_pt.x = fcur_x;
+		current_pt.y = fcur_y;
 
 		nb_points++;
 
@@ -620,7 +620,7 @@ void pf_swt(const struct pf_bitmap *img_in, struct pf_bitmap *img_out)
 	free_rays(swt_out.rays);
 
 #ifdef OUTPUT_INTERMEDIATE_IMGS
-	normalized = pf_normalize(&swt_out.swt, 0.0, 255.0);
+	normalized = pf_normalize(&swt_out.swt, 255.0, 0.0, 255.0);
 	DUMP_MATRIX("swt_0008_normalized", &normalized, 1.0);
 	pf_dbl_matrix_free(&normalized);
 #endif

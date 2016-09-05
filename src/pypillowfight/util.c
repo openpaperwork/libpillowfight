@@ -344,23 +344,26 @@ void pf_write_matrix_to_pgm(const char *filepath, const struct pf_dbl_matrix *in
 	fclose(fp);
 }
 
-struct pf_dbl_matrix pf_normalize(const struct pf_dbl_matrix *in, double out_min, double out_max)
+struct pf_dbl_matrix pf_normalize(const struct pf_dbl_matrix *in, double factor, double out_min, double out_max)
 {
 	struct pf_dbl_matrix out;
 	int x, y;
 	double val;
-	double in_min = DBL_MAX, in_max = -DBL_MAX;
-	double factor, offset;
+	double in_min = out_min, in_max = out_max;
 
-	for (x = 0; x < in->size.x ; x++) {
-		for (y = 0 ; y < in->size.y ; y++) {
-			val = PF_MATRIX_GET(in, x, y);
-			in_min = MIN(in_min, val);
-			in_max = MAX(in_max, val);
+	if (factor == 0.0) {
+		in_min = DBL_MAX;
+		in_max = -DBL_MAX;
+		for (x = 0; x < in->size.x ; x++) {
+			for (y = 0 ; y < in->size.y ; y++) {
+				val = PF_MATRIX_GET(in, x, y);
+				in_min = MIN(in_min, val);
+				in_max = MAX(in_max, val);
+			}
 		}
-	}
 
-	factor = (out_max - out_min) / (in_max - in_min);
+		factor = (out_max - out_min) / (in_max - in_min);
+	}
 
 	out = pf_dbl_matrix_new(in->size.x, in->size.y);
 	for (x = 0; x < in->size.x ; x++) {

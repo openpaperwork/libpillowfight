@@ -56,6 +56,7 @@ static time_t g_swt_start;
 #ifdef OUTPUT_INTERMEDIATE_IMGS
 #define DUMP_BITMAP(filename, bmp) pf_write_bitmap_to_ppm(filename ".ppm", bmp)
 #define DUMP_MATRIX(filename, matrix, factor) pf_write_matrix_to_pgm(filename ".pgm", matrix, factor)
+static int g_nb_rays;
 #else
 #define DUMP_BITMAP(filename, bmp)
 #define DUMP_MATRIX(filename, matrix, factor)
@@ -289,6 +290,9 @@ static inline void find_stroke(struct swt_output *out,
 	// add stroke's ray to the output
 	ray->next = out->rays;
 	out->rays = ray;
+#ifdef OUTPUT_INTERMEDIATE_IMGS
+	g_nb_rays++;
+#endif
 
 	// follow the ray: each point that has a current score bigger
 	// than the length must have its score set to the length
@@ -538,7 +542,9 @@ static struct swt_points **find_letters(const struct pf_dbl_matrix *swt)
 	nb_groups = browse_adjacencies(&adjs, NULL, NULL);
 	PRINT_TIME();
 
-	fprintf(stderr, "SWT: %d groups found\n", nb_groups);
+#ifdef OUTPUT_INTERMEDIATE_IMGS
+	fprintf(stderr, "SWT> %d groups found\n", nb_groups);
+#endif
 
 	nb_pts_per_group = calloc(nb_groups, sizeof(int));
 	browse_adjacencies(&adjs, count_points, nb_pts_per_group);
@@ -566,10 +572,10 @@ void pf_swt(const struct pf_bitmap *img_in, struct pf_bitmap *img_out)
 	struct pf_dbl_matrix edge;
 	struct swt_output swt_out;
 	struct swt_points **letters;
-	int x, y;
-	double val;
 #ifdef OUTPUT_INTERMEDIATE_IMGS
-	struct pf_dbl_matrix normalized;
+	int x, y;
+	double val, max;
+	struct pf_dbl_matrix normalized, reversed;
 #endif
 
 #ifdef PRINT_TIME
@@ -605,9 +611,17 @@ void pf_swt(const struct pf_bitmap *img_in, struct pf_bitmap *img_out)
 
 	PRINT_TIME();
 
+#ifdef OUTPUT_INTERMEDIATE_IMGS
+	g_nb_rays = 0;
+#endif
+
 	swt_out = swt(&edge, &gradient);
 	DUMP_MATRIX("swt_0006_swt", &swt_out.swt, 1.0);
 	PRINT_TIME();
+
+#ifdef OUTPUT_INTERMEDIATE_IMGS
+	fprintf(stderr, "SWT> %d rays found\n", g_nb_rays);
+#endif
 
 	pf_dbl_matrix_free(&gradient.intensity);
 	pf_dbl_matrix_free(&gradient.direction);
@@ -620,9 +634,28 @@ void pf_swt(const struct pf_bitmap *img_in, struct pf_bitmap *img_out)
 	free_rays(swt_out.rays);
 
 #ifdef OUTPUT_INTERMEDIATE_IMGS
-	normalized = pf_normalize(&swt_out.swt, 255.0, 0.0, 255.0);
-	DUMP_MATRIX("swt_0008_normalized", &normalized, 1.0);
+	max = 0.0;
+	for (x = 0; x < swt_out.swt.size.x ; x++) {
+		for (y = 0 ; y < swt_out.swt.size.y ; y++) {
+			val = PF_MATRIX_GET(&swt_out.swt, x, y);
+			max = MAX(max, val);
+		}
+	}
+	for (x = 0; x < swt_out.swt.size.x ; x++) {
+		for (y = 0 ; y < swt_out.swt.size.y ; y++) {
+			val = PF_MATRIX_GET(&swt_out.swt, x, y);
+			if (val < 0)
+				val = max;
+			PF_MATRIX_SET(&swt_out.swt, x, y, val);
+		}
+	}
+	normalized = pf_normalize(&swt_out.swt, 0.0, 0.0, 255.0);
+	// reverse it to make the short rays more visible
+	// and the bigger ones less visible
+	reversed = pf_grayscale_reverse(&normalized);
 	pf_dbl_matrix_free(&normalized);
+	DUMP_MATRIX("swt_0008_normalized", &reversed, 1.0);
+	pf_dbl_matrix_free(&reversed);
 #endif
 
 	PRINT_TIME();
@@ -638,15 +671,6 @@ void pf_swt(const struct pf_bitmap *img_in, struct pf_bitmap *img_out)
 	PRINT_TIME();
 
 	// temporary
-	for (x = 0 ; x < swt_out.swt.size.x ; x++) {
-		for (y = 0 ; y < swt_out.swt.size.y ; y++) {
-			val = PF_MATRIX_GET(&swt_out.swt, x, y);
-			if (val > 1.0 && val <= 128.0) {
-				val = 128.0;
-			}
-			PF_MATRIX_SET(&swt_out.swt, x, y, val);
-		}
-	}
 	DUMP_MATRIX("swt_9999_out", &swt_out.swt, 1.0);
 	pf_grayscale_dbl_matrix_to_rgb_bitmap(&swt_out.swt, img_out);
 

@@ -37,8 +37,8 @@
  * Ref: https://en.wikipedia.org/wiki/Canny_edge_detector
  */
 
-#define LOW_THRESHOLD (0.35 * PF_WHITE)
-#define HIGH_THRESHOLD (0.61 * PF_WHITE)
+#define LOW_THRESHOLD (0.686 * PF_WHITE)
+#define HIGH_THRESHOLD (1.254 * PF_WHITE)
 
 
 /*!
@@ -150,7 +150,7 @@ static void apply_thresholds(struct pf_dbl_matrix *intensity) {
 			if (val > HIGH_THRESHOLD) {
 				PF_MATRIX_SET(intensity, x, y, PF_WHITE);
 			}
-			else if (val < LOW_THRESHOLD) {
+			else if (val <= LOW_THRESHOLD) {
 				PF_MATRIX_SET(intensity, x, y, PF_BLACK);
 			}
 		}

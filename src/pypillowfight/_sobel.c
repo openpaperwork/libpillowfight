@@ -45,9 +45,9 @@ const struct pf_dbl_matrix g_pf_kernel_sobel_x = {
 		.y = 3,
 	},
 	.values = (double[]) {
-		-1.0, 0, 1.0,
-		-2.0, 0, 2.0,
-		-1.0, 0, 1.0
+		-1.0, 0.0, 1.0,
+		-2.0, 0.0, 2.0,
+		-1.0, 0.0, 1.0
 	}
 };
 
@@ -58,7 +58,7 @@ const struct pf_dbl_matrix g_pf_kernel_sobel_y = {
 	},
 	.values = (double[]) {
 		-1.0, -2.0, -1.0,
-		0, 0, 0,
+		0.0, 0.0, 0.0,
 		1.0, 2.0, 1.0,
 	}
 };
@@ -69,9 +69,9 @@ const struct pf_dbl_matrix g_pf_kernel_scharr_x = {
 		.y = 3,
 	},
 	.values = (double[]) {
-		-1.0, 0, 1.0,
-		-2.0, 0, 2.0,
-		-1.0, 0, 1.0
+		3.0, 0.0, -3.0,
+		10.0, 0.0, -10.0,
+		3.0, 0.0, -3.0,
 	}
 };
 
@@ -81,9 +81,9 @@ const struct pf_dbl_matrix g_pf_kernel_scharr_y = {
 		.y = 3,
 	},
 	.values = (double[]) {
-		-1.0, -2.0, -1.0,
-		0, 0, 0,
-		1.0, 2.0, 1.0,
+		3.0, 10.0, 3.0,
+		0.0, 0, 0.0,
+		-3.0, -10.0, -3.0
 	}
 };
 

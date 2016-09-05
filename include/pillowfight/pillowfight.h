@@ -38,6 +38,8 @@ extern const struct pf_dbl_matrix g_pf_kernel_scharr_y;
 #define PF_SOBEL_DEFAULT_KERNEL_Y (&g_pf_kernel_sobel_y)
 
 struct pf_gradient_matrixes {
+	struct pf_dbl_matrix g_x;
+	struct pf_dbl_matrix g_y;
 	struct pf_dbl_matrix intensity;
 	struct pf_dbl_matrix direction;
 };

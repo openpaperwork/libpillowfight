@@ -162,27 +162,24 @@ struct pf_gradient_matrixes pf_sobel_on_matrix(const struct pf_dbl_matrix *in,
 		double gaussian_sigma, int gaussian_stddev)
 {
 	struct pf_gradient_matrixes out;
-	struct pf_dbl_matrix g_x, g_y, g_out;
+	struct pf_dbl_matrix g_out;
 
-	g_x = pf_dbl_matrix_convolution(in, kernel_x);
-	DUMP_MATRIX("sobel_g_x", &g_x, 1.0);
-	g_y = pf_dbl_matrix_convolution(in, kernel_y);
-	DUMP_MATRIX("sobel_g_y", &g_y, 1.0);
+	out.g_x = pf_dbl_matrix_convolution(in, kernel_x);
+	DUMP_MATRIX("sobel_g_x", &out.g_x, 1.0);
+	out.g_y = pf_dbl_matrix_convolution(in, kernel_y);
+	DUMP_MATRIX("sobel_g_y", &out.g_y, 1.0);
 
 	if (gaussian_stddev) {
-		g_out = pf_gaussian_on_matrix(&g_x, gaussian_sigma, gaussian_stddev);
-		pf_dbl_matrix_free(&g_x);
-		memcpy(&g_x, &g_out, sizeof(g_x));
-		g_out = pf_gaussian_on_matrix(&g_y, gaussian_sigma, gaussian_stddev);
-		pf_dbl_matrix_free(&g_y);
-		memcpy(&g_y, &g_out, sizeof(g_y));
+		g_out = pf_gaussian_on_matrix(&out.g_x, gaussian_sigma, gaussian_stddev);
+		pf_dbl_matrix_free(&out.g_x);
+		memcpy(&out.g_x, &g_out, sizeof(out.g_x));
+		g_out = pf_gaussian_on_matrix(&out.g_y, gaussian_sigma, gaussian_stddev);
+		pf_dbl_matrix_free(&out.g_y);
+		memcpy(&out.g_y, &g_out, sizeof(out.g_y));
 	}
 
-	out.intensity = compute_intensity_matrix(&g_x, &g_y);
-	out.direction = compute_direction_matrix(&g_x, &g_y);
-
-	pf_dbl_matrix_free(&g_x);
-	pf_dbl_matrix_free(&g_y);
+	out.intensity = compute_intensity_matrix(&out.g_x, &out.g_y);
+	out.direction = compute_direction_matrix(&out.g_x, &out.g_y);
 
 	return out;
 }

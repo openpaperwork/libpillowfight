@@ -38,7 +38,7 @@
  */
 
 #define LOW_THRESHOLD (0.686 * PF_WHITE)
-#define HIGH_THRESHOLD (1.254 * PF_WHITE)
+#define HIGH_THRESHOLD (1.372 * PF_WHITE)
 
 
 /*!
@@ -168,6 +168,8 @@ struct pf_dbl_matrix pf_canny_on_matrix(const struct pf_dbl_matrix *in)
 	// Compute the gradient intensity and direction
 	out_gradient = pf_sobel_on_matrix(&out, PF_SOBEL_DEFAULT_KERNEL_X, PF_SOBEL_DEFAULT_KERNEL_Y, 0.0, 0);
 	pf_dbl_matrix_free(&out);
+	pf_dbl_matrix_free(&out_gradient.g_x);
+	pf_dbl_matrix_free(&out_gradient.g_y);
 
 	// Edge thinning
 	non_maximum_suppression(&out_gradient.intensity, &out_gradient.direction);

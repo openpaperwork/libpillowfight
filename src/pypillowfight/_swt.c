@@ -572,6 +572,9 @@ void pf_swt(const struct pf_bitmap *img_in, struct pf_bitmap *img_out)
 	struct swt_points **letters;
 	int x, y;
 	double val;
+#ifdef OUTPUT_INTERMEDIATE_IMGS
+	struct pf_dbl_matrix normalized;
+#endif
 
 #ifdef PRINT_TIME
 	g_swt_start = time(NULL);
@@ -624,8 +627,11 @@ void pf_swt(const struct pf_bitmap *img_in, struct pf_bitmap *img_out)
 	DUMP_MATRIX("swt_0007_ray_median", &swt_out.swt, 1.0);
 	free_rays(swt_out.rays);
 
-	// Jflesch> DetectText/TextDetection.cpp normalize the image here.
-	// This is not in the SWT paper. Should we too ?
+#ifdef OUTPUT_INTERMEDIATE_IMGS
+	normalized = pf_normalize(&swt_out.swt, 0.0, 255.0);
+	DUMP_MATRIX("swt_0008_normalized", &normalized, 1.0);
+	pf_dbl_matrix_free(&normalized);
+#endif
 
 	PRINT_TIME();
 

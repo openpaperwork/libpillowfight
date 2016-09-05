@@ -206,4 +206,6 @@ void pf_apply_mask(struct pf_bitmap *img, const struct pf_rectangle *mask);
 
 void pf_write_matrix_to_pgm(const char *filepath, const struct pf_dbl_matrix *in, double factor);
 
+struct pf_dbl_matrix pf_normalize(const struct pf_dbl_matrix *in, double min, double max);
+
 #endif

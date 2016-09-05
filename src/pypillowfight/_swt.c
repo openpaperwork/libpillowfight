@@ -107,7 +107,7 @@ static void init_output(struct swt_output *out)
 
 	for (x = 0 ; x < out->swt.size.x ; x++) {
 		for (y = 0 ; y < out->swt.size.y ; y++) {
-			PF_MATRIX_SET(&out->swt, x, y, DBL_MAX);
+			PF_MATRIX_SET(&out->swt, x, y, -1.0);
 		}
 	}
 }
@@ -298,7 +298,7 @@ static inline void find_stroke(struct swt_output *out,
 	// than the length must have its score set to the length
 	for (i = 0 ; i < nb_points ; i++) {
 		val = PF_MATRIX_GET(&out->swt, ray->points[i].x, ray->points[i].y);
-		val = MIN(val, length);
+		val = (val == -1.0 ? length : MIN(val, length));
 		PF_MATRIX_SET(&out->swt, ray->points[i].x, ray->points[i].y, val);
 	}
 }
@@ -643,7 +643,7 @@ void pf_swt(const struct pf_bitmap *img_in, struct pf_bitmap *img_out)
 	for (x = 0 ; x < swt_out.swt.size.x ; x++) {
 		for (y = 0 ; y < swt_out.swt.size.y ; y++) {
 			val = PF_MATRIX_GET(&swt_out.swt, x, y);
-			if (val > 3.0 && val <= 128.0) {
+			if (val > 1.0 && val <= 128.0) {
 				val = 128.0;
 			}
 			PF_MATRIX_SET(&swt_out.swt, x, y, val);

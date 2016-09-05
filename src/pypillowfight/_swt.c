@@ -43,7 +43,6 @@
 
 #define DARK_ON_LIGHT 1
 #define PRECISION 0.25
-#define MAX_STROKE_WIDTH 256
 
 #define IS_EDGE_LINE(val) ((val) > 0.0)
 
@@ -227,15 +226,12 @@ static inline int follow_stroke(
 				|| fcur_x >= edge->size.x
 				|| fcur_y < 0
 				|| fcur_y >= edge->size.y)
-			break;
+			return 0;
 
 		current_pt.x = floor(cur_x);
 		current_pt.y = floor(cur_y);
 
 		nb_points++;
-		if (nb_points >= MAX_STROKE_WIDTH) {
-			return 0;
-		}
 
 		if (on_ray_point_callback)
 			on_ray_point_callback(&current_pt, callback_data);

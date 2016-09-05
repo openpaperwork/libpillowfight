@@ -204,4 +204,6 @@ int pf_count_pixels_rect(int left, int top, int right, int bottom,
  */
 void pf_apply_mask(struct pf_bitmap *img, const struct pf_rectangle *mask);
 
+void pf_write_matrix_to_pgm(const char *filepath, const struct pf_dbl_matrix *in, double factor);
+
 #endif

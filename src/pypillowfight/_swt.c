@@ -48,9 +48,18 @@
 #define IS_EDGE_LINE(val) ((val) > 0.0)
 
 #define PRINT_TIME() printf("SWT: %d: %lds\n", __LINE__, time(NULL) - g_swt_start);
+#define OUTPUT_INTERMEDIATE_IMGS 1
 
 #ifdef PRINT_TIME
 static time_t g_swt_start;
+#endif
+
+#ifdef OUTPUT_INTERMEDIATE_IMGS
+#define DUMP_BITMAP(filename, bmp) pf_write_bitmap_to_ppm(filename ".ppm", bmp)
+#define DUMP_MATRIX(filename, matrix, factor) pf_write_matrix_to_pgm(filename ".pgm", matrix, factor)
+#else
+#define DUMP_BITMAP(filename, bmp)
+#define DUMP_MATRIX(filename, matrix, factor)
 #endif
 
 struct swt_point {
@@ -569,24 +578,31 @@ void pf_swt(const struct pf_bitmap *img_in, struct pf_bitmap *img_out)
 #endif
 
 	PRINT_TIME();
+	DUMP_BITMAP("swt_0000_input", img_in);
+
 	in = pf_dbl_matrix_new(img_in->size.x, img_in->size.y);
 	pf_rgb_bitmap_to_grayscale_dbl_matrix(img_in, &in);
+	DUMP_MATRIX("swt_0001_grayscale", &in, 1.0);
 
 	PRINT_TIME();
 
 	// Compute edge & gradient
 	edge = pf_canny_on_matrix(&in);
+	DUMP_MATRIX("swt_0002_canny", &edge, 1.0);
 
 	PRINT_TIME();
 
 	// Gaussian on the image
 	out = pf_gaussian_on_matrix(&in, PF_GAUSSIAN_DEFAULT_SIGMA, PF_GAUSSIAN_DEFAULT_NB_STDDEV);
+	DUMP_MATRIX("swt_0003_gaussian", &out, 1.0);
 	// Find gradients
 	// Jflesch> DetectText/TextDetection.cpp uses Scharr kernel instead of Sobel.
 	// This is not in the SWT paper. Should we too ?
 	PRINT_TIME();
 
 	gradient = pf_sobel_on_matrix(&out);
+	DUMP_MATRIX("swt_0004_sobel_intensity", &gradient.intensity, 1.0);
+	DUMP_MATRIX("swt_0005_sobel_direction", &gradient.direction, 255.0 / 2.0 / M_PI);
 	// Jflesch> DetectText/TextDetection.cpp applies a gaussian filter on the gradient matrixes.
 	// This is not in the SWT paper. Should we too ?
 	pf_dbl_matrix_free(&in);
@@ -595,6 +611,7 @@ void pf_swt(const struct pf_bitmap *img_in, struct pf_bitmap *img_out)
 	PRINT_TIME();
 
 	swt_out = swt(&edge, &gradient);
+	DUMP_MATRIX("swt_0006_swt", &swt_out.swt, 1.0);
 	PRINT_TIME();
 
 	pf_dbl_matrix_free(&gradient.intensity);
@@ -604,6 +621,7 @@ void pf_swt(const struct pf_bitmap *img_in, struct pf_bitmap *img_out)
 	PRINT_TIME();
 
 	set_rays_down_to_ray_median(&swt_out);
+	DUMP_MATRIX("swt_0007_ray_median", &swt_out.swt, 1.0);
 	free_rays(swt_out.rays);
 
 	// Jflesch> DetectText/TextDetection.cpp normalize the image here.
@@ -625,14 +643,13 @@ void pf_swt(const struct pf_bitmap *img_in, struct pf_bitmap *img_out)
 	for (x = 0 ; x < swt_out.swt.size.x ; x++) {
 		for (y = 0 ; y < swt_out.swt.size.y ; y++) {
 			val = PF_MATRIX_GET(&swt_out.swt, x, y);
-			if (val < 16.0) {
-				val = PF_WHITE;
-			} else {
-				val = 0.0;
+			if (val > 3.0 && val <= 128.0) {
+				val = 128.0;
 			}
 			PF_MATRIX_SET(&swt_out.swt, x, y, val);
 		}
 	}
+	DUMP_MATRIX("swt_9999_out", &swt_out.swt, 1.0);
 	pf_grayscale_dbl_matrix_to_rgb_bitmap(&swt_out.swt, img_out);
 
 	PRINT_TIME();

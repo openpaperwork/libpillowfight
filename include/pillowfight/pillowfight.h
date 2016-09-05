@@ -49,4 +49,6 @@ extern void pf_unpaper_masks(const struct pf_bitmap *in, struct pf_bitmap *out);
 extern void pf_unpaper_noisefilter(const struct pf_bitmap *in, struct pf_bitmap *out);
 #endif
 
+extern void pf_write_bitmap_to_ppm(const char *filepath, const struct pf_bitmap *in);
+
 #endif

@@ -15,6 +15,8 @@
  */
 
 #include <assert.h>
+#include <errno.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -280,4 +282,63 @@ void pf_matrix_to_rgb_bitmap(const struct pf_dbl_matrix *in, struct pf_bitmap *o
 			PF_SET_COLOR(out, x, y, COLOR_A, 0xFF);
 		}
 	}
+}
+
+void pf_write_bitmap_to_ppm(const char *filepath, const struct pf_bitmap *in)
+{
+	FILE *fp;
+	int x, y;
+	int pixel;
+
+	fp = fopen(filepath, "w");
+	if (fp == NULL) {
+		fprintf(stderr, "Failed to write [%s]: %d, %s\n",
+				filepath, errno, strerror(errno));
+	}
+
+	fprintf(fp, "P6\n");
+	fprintf(fp, "%zd %zd\n", in->size.x, in->size.y);
+	fprintf(fp, "255\n");
+
+	for (y = 0 ; y < in->size.y ; y++) {
+		for (x = 0 ; x < in->size.x ; x++) {
+			pixel = PF_GET_PIXEL(in, x, y).whole;
+			fwrite(&pixel, 3, 1, fp);
+		}
+	}
+
+	fclose(fp);
+}
+
+void pf_write_matrix_to_pgm(const char *filepath, const struct pf_dbl_matrix *in, double factor)
+{
+	FILE *fp;
+	int x, y;
+	double val;
+	uint8_t val8;
+
+	fp = fopen(filepath, "w");
+	if (fp == NULL) {
+		fprintf(stderr, "Failed to write [%s]: %d, %s\n",
+				filepath, errno, strerror(errno));
+	}
+
+	fprintf(fp, "P5\n");
+	fprintf(fp, "%d %d\n", in->size.x, in->size.y);
+	fprintf(fp, "255\n");
+
+	for (y = 0 ; y < in->size.y ; y++) {
+		for (x = 0 ; x < in->size.x ; x++) {
+			val = PF_MATRIX_GET(in, x, y);
+			val *= factor;
+			if (val > 255.0)
+				val = 255.0;
+			else if (val < 0)
+				val = 0.0;
+			val8 = val;
+			fwrite(&val8, 1, 1, fp);
+		}
+	}
+
+	fclose(fp);
 }

@@ -39,7 +39,7 @@
 #define LOW_THRESHOLD ((int)(PF_WHITE * 0.47))
 #define HIGH_THRESHOLD ((int)(PF_WHITE * 0.61))
 
-static const struct pf_dbl_matrix g_kernel_x = {
+const struct pf_dbl_matrix g_pf_kernel_sobel_x = {
 	.size = {
 		.x = 3,
 		.y = 3,
@@ -51,7 +51,31 @@ static const struct pf_dbl_matrix g_kernel_x = {
 	}
 };
 
-static const struct pf_dbl_matrix g_kernel_y = {
+const struct pf_dbl_matrix g_pf_kernel_sobel_y = {
+	.size = {
+		.x = 3,
+		.y = 3,
+	},
+	.values = (double[]) {
+		-1.0, -2.0, -1.0,
+		0, 0, 0,
+		1.0, 2.0, 1.0,
+	}
+};
+
+const struct pf_dbl_matrix g_pf_kernel_scharr_x = {
+	.size = {
+		.x = 3,
+		.y = 3,
+	},
+	.values = (double[]) {
+		-1.0, 0, 1.0,
+		-2.0, 0, 2.0,
+		-1.0, 0, 1.0
+	}
+};
+
+const struct pf_dbl_matrix g_pf_kernel_scharr_y = {
 	.size = {
 		.x = 3,
 		.y = 3,
@@ -121,13 +145,15 @@ static struct pf_dbl_matrix compute_direction_matrix(
 	return out;
 }
 
-struct pf_gradient_matrixes pf_sobel_on_matrix(const struct pf_dbl_matrix *in)
+struct pf_gradient_matrixes pf_sobel_on_matrix(const struct pf_dbl_matrix *in,
+		const struct pf_dbl_matrix *kernel_x,
+		const struct pf_dbl_matrix *kernel_y)
 {
 	struct pf_gradient_matrixes out;
 	struct pf_dbl_matrix g_x, g_y;
 
-	g_x = pf_dbl_matrix_convolution(in, &g_kernel_x);
-	g_y = pf_dbl_matrix_convolution(in, &g_kernel_y);
+	g_x = pf_dbl_matrix_convolution(in, kernel_x);
+	g_y = pf_dbl_matrix_convolution(in, kernel_y);
 
 	out.intensity = compute_intensity_matrix(&g_x, &g_y);
 	out.direction = compute_direction_matrix(&g_x, &g_y);
@@ -150,8 +176,8 @@ void pf_sobel(const struct pf_bitmap *in_img, struct pf_bitmap *out_img)
 	in = pf_dbl_matrix_new(in_img->size.x, in_img->size.y);
 	pf_rgb_bitmap_to_grayscale_dbl_matrix(in_img, &in);
 
-	g_horizontal = pf_dbl_matrix_convolution(&in, &g_kernel_x);
-	g_vertical = pf_dbl_matrix_convolution(&in, &g_kernel_y);
+	g_horizontal = pf_dbl_matrix_convolution(&in, PF_SOBEL_DEFAULT_KERNEL_X);
+	g_vertical = pf_dbl_matrix_convolution(&in, PF_SOBEL_DEFAULT_KERNEL_Y);
 
 	intensity = compute_intensity_matrix(&g_horizontal, &g_vertical);
 

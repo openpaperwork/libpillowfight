@@ -600,7 +600,7 @@ void pf_swt(const struct pf_bitmap *img_in, struct pf_bitmap *img_out)
 	// This is not in the SWT paper. Should we too ?
 	PRINT_TIME();
 
-	gradient = pf_sobel_on_matrix(&out);
+	gradient = pf_sobel_on_matrix(&out, &g_pf_kernel_scharr_x, &g_pf_kernel_scharr_y);
 	DUMP_MATRIX("swt_0004_sobel_intensity", &gradient.intensity, 1.0);
 	DUMP_MATRIX("swt_0005_sobel_direction", &gradient.direction, 255.0 / 2.0 / M_PI);
 	// Jflesch> DetectText/TextDetection.cpp applies a gaussian filter on the gradient matrixes.

@@ -29,11 +29,20 @@ extern void pf_grayfilter(const struct pf_bitmap *in, struct pf_bitmap *out);
 extern void pf_sobel(const struct pf_bitmap *in_img, struct pf_bitmap *out_img);
 #endif
 
+extern const struct pf_dbl_matrix g_pf_kernel_sobel_x;
+extern const struct pf_dbl_matrix g_pf_kernel_sobel_y;
+extern const struct pf_dbl_matrix g_pf_kernel_scharr_x;
+extern const struct pf_dbl_matrix g_pf_kernel_scharr_y;
+
+#define PF_SOBEL_DEFAULT_KERNEL_X (&g_pf_kernel_sobel_x)
+#define PF_SOBEL_DEFAULT_KERNEL_Y (&g_pf_kernel_sobel_y)
+
 struct pf_gradient_matrixes {
 	struct pf_dbl_matrix intensity;
 	struct pf_dbl_matrix direction;
 };
-extern struct pf_gradient_matrixes pf_sobel_on_matrix(const struct pf_dbl_matrix *in);
+extern struct pf_gradient_matrixes pf_sobel_on_matrix(const struct pf_dbl_matrix *in,
+		const struct pf_dbl_matrix *kernel_x, const struct pf_dbl_matrix *kernel_y);
 
 #ifdef NO_PYTHON
 extern void pf_swt(const struct pf_bitmap *in_img, struct pf_bitmap *out_img);

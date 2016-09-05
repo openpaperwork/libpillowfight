@@ -775,6 +775,40 @@ static struct swt_letters filter_letters_by_center(const struct swt_letters *pos
 	return out;
 }
 
+#ifdef OUTPUT_INTERMEDIATE_IMGS
+static void dump_letters(const char *filepath, const struct pf_bitmap *img_in,
+		const struct swt_letters *letters)
+{
+	struct pf_bitmap img_out = {
+		.size = {
+			.x = img_in->size.x,
+			.y = img_in->size.y,
+		},
+		.pixels = malloc(img_in->size.x * img_in->size.y * sizeof(union pf_pixel)),
+	};
+	int i, j;
+	const struct swt_points *letter;
+	const struct swt_point *pt;
+	uint32_t pixel;
+
+	memset(
+			img_out.pixels, UINT_MAX,
+			img_in->size.x * img_in->size.y * sizeof(union pf_pixel)
+		);
+
+	for (i = 0 ; i < letters->nb_letters ; i++) {
+		letter = letters->letters[i];
+		for (j = 0 ; j < letter->nb_points ; j++) {
+			pt = &letter->points[j];
+			pixel = PF_GET_PIXEL(img_in, pt->x, pt->y).whole;
+			PF_SET_PIXEL(&img_out, pt->x, pt->y, pixel);
+		}
+	}
+	pf_write_bitmap_to_ppm(filepath, &img_out);
+	free(img_out.pixels);
+}
+#endif
+
 #ifndef NO_PYTHON
 static
 #endif
@@ -882,17 +916,20 @@ void pf_swt(const struct pf_bitmap *img_in, struct pf_bitmap *img_out)
 	all_possible_letters = possible_letters = find_possible_letters(&swt_out.swt);
 #ifdef OUTPUT_INTERMEDIATE_IMGS
 	fprintf(stderr, "SWT> %d possible letters found\n", possible_letters.nb_letters);
+	dump_letters("swt_0009_all_possible_letters.ppm", img_in, &possible_letters);
 #endif
 
 	letters = filter_possible_letters(&swt_out.swt, &possible_letters);
 #ifdef OUTPUT_INTERMEDIATE_IMGS
 	fprintf(stderr, "SWT> Filtering 1: %d letters found\n", letters.nb_letters);
+	dump_letters("swt_0010_letters_filter_1.ppm", img_in, &letters);
 #endif
 
 	possible_letters = letters;
 	letters = filter_letters_by_center(&possible_letters);
 #ifdef OUTPUT_INTERMEDIATE_IMGS
 	fprintf(stderr, "SWT> Filtering 2: %d letters found\n", letters.nb_letters);
+	dump_letters("swt_0011_letters_filter_2.ppm", img_in, &letters);
 #endif
 	free(possible_letters.letters);
 	free(possible_letters.stats);

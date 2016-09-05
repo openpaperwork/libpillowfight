@@ -590,9 +590,9 @@ static struct swt_letters find_possible_letters(const struct pf_dbl_matrix *swt)
 	return out;
 }
 
-static void compute_basic_letter_stats(
+static void compute_letter_stats(
 		const struct pf_dbl_matrix *swt,
-		const struct swt_points *points,
+		struct swt_points *points,
 		struct swt_letter_stats *stats)
 {
 	int i;
@@ -626,6 +626,11 @@ static void compute_basic_letter_stats(
 		stats->variance += (val - stats->mean) * (val - stats->mean);
 	}
 	stats->variance /= points->nb_points;
+
+	stats->center.x = (stats->max.x + stats->min.x) / 2;
+	stats->center.y = (stats->max.y + stats->min.y) / 2;
+
+	stats->median = compute_points_median(swt, points);
 }
 
 static int check_ratio(
@@ -675,11 +680,22 @@ static int check_ratio(
 	return 0;
 }
 
+static void compute_all_letter_stats(
+		const struct pf_dbl_matrix *swt,
+		const struct swt_letters *letters
+	)
+{
+	int i;
+
+	for (i = 0 ; i < letters->nb_letters ; i++) {
+		compute_letter_stats(swt, letters->letters[i], &letters->stats[i]);
+	}
+}
+
 static int is_valid_letter(const struct pf_dbl_matrix *swt,
 		struct swt_points *points,
 		struct swt_letter_stats *stats)
 {
-	compute_basic_letter_stats(swt, points, stats);
 	if (stats->variance > 0.5 * stats->mean)
 		return 0;
 	if (stats->max.y - stats->min.y > 300)
@@ -688,10 +704,6 @@ static int is_valid_letter(const struct pf_dbl_matrix *swt,
 		return 0;
 	}
 
-	stats->center.x = (stats->max.x + stats->min.x) / 2;
-	stats->center.y = (stats->max.y + stats->min.y) / 2;
-
-	stats->median = compute_points_median(swt, points);
 	return 1;
 }
 
@@ -918,6 +930,8 @@ void pf_swt(const struct pf_bitmap *img_in, struct pf_bitmap *img_out)
 	fprintf(stderr, "SWT> %d possible letters found\n", possible_letters.nb_letters);
 	dump_letters("swt_0009_all_possible_letters.ppm", img_in, &possible_letters);
 #endif
+
+	compute_all_letter_stats(&swt_out.swt, &all_possible_letters);
 
 	letters = filter_possible_letters(&swt_out.swt, &possible_letters);
 #ifdef OUTPUT_INTERMEDIATE_IMGS

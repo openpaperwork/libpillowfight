@@ -596,18 +596,14 @@ void pf_swt(const struct pf_bitmap *img_in, struct pf_bitmap *img_out)
 	PRINT_TIME();
 
 	// Gaussian on the image
-	out = pf_gaussian_on_matrix(&in, PF_GAUSSIAN_DEFAULT_SIGMA, PF_GAUSSIAN_DEFAULT_NB_STDDEV);
+	out = pf_gaussian_on_matrix(&in, 0.0, 5);
 	DUMP_MATRIX("swt_0003_gaussian", &out, 1.0);
-	// Find gradients
-	// Jflesch> DetectText/TextDetection.cpp uses Scharr kernel instead of Sobel.
-	// This is not in the SWT paper. Should we too ?
 	PRINT_TIME();
 
-	gradient = pf_sobel_on_matrix(&out, &g_pf_kernel_scharr_x, &g_pf_kernel_scharr_y);
+	// Find gradients
+	gradient = pf_sobel_on_matrix(&out, &g_pf_kernel_scharr_x, &g_pf_kernel_scharr_y, 0.0, 3);
 	DUMP_MATRIX("swt_0004_sobel_intensity", &gradient.intensity, 1.0);
 	DUMP_MATRIX("swt_0005_sobel_direction", &gradient.direction, 255.0 / 2.0 / M_PI);
-	// Jflesch> DetectText/TextDetection.cpp applies a gaussian filter on the gradient matrixes.
-	// This is not in the SWT paper. Should we too ?
 	pf_dbl_matrix_free(&in);
 	pf_dbl_matrix_free(&out);
 

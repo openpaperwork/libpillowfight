@@ -42,7 +42,8 @@ struct pf_gradient_matrixes {
 	struct pf_dbl_matrix direction;
 };
 extern struct pf_gradient_matrixes pf_sobel_on_matrix(const struct pf_dbl_matrix *in,
-		const struct pf_dbl_matrix *kernel_x, const struct pf_dbl_matrix *kernel_y);
+		const struct pf_dbl_matrix *kernel_x, const struct pf_dbl_matrix *kernel_y,
+		double gaussian_sigma, int gaussian_stddev);
 
 #ifdef NO_PYTHON
 extern void pf_swt(const struct pf_bitmap *in_img, struct pf_bitmap *out_img);

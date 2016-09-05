@@ -42,6 +42,10 @@ struct pf_dbl_matrix generate_gaussian_1d_kernel(double sigma, int nb_stddev)
 	double x;
 	double val;
 
+	if (sigma == 0.0) {
+		sigma = 0.3 * ((nb_stddev - 1) * 0.5 - 1) + 0.8;
+	}
+
 	out = pf_dbl_matrix_new(nb_stddev, 1);
 
 	// Basic gaussian function

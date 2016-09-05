@@ -147,13 +147,23 @@ static struct pf_dbl_matrix compute_direction_matrix(
 
 struct pf_gradient_matrixes pf_sobel_on_matrix(const struct pf_dbl_matrix *in,
 		const struct pf_dbl_matrix *kernel_x,
-		const struct pf_dbl_matrix *kernel_y)
+		const struct pf_dbl_matrix *kernel_y,
+		double gaussian_sigma, int gaussian_stddev)
 {
 	struct pf_gradient_matrixes out;
-	struct pf_dbl_matrix g_x, g_y;
+	struct pf_dbl_matrix g_x, g_y, g_out;
 
 	g_x = pf_dbl_matrix_convolution(in, kernel_x);
 	g_y = pf_dbl_matrix_convolution(in, kernel_y);
+
+	if (gaussian_stddev) {
+		g_out = pf_gaussian_on_matrix(&g_x, gaussian_sigma, gaussian_stddev);
+		pf_dbl_matrix_free(&g_x);
+		memcpy(&g_x, &g_out, sizeof(g_x));
+		g_out = pf_gaussian_on_matrix(&g_y, gaussian_sigma, gaussian_stddev);
+		pf_dbl_matrix_free(&g_y);
+		memcpy(&g_y, &g_out, sizeof(g_y));
+	}
 
 	out.intensity = compute_intensity_matrix(&g_x, &g_y);
 	out.direction = compute_direction_matrix(&g_x, &g_y);

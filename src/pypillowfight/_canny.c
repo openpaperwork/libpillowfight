@@ -166,7 +166,7 @@ struct pf_dbl_matrix pf_canny_on_matrix(const struct pf_dbl_matrix *in)
 	out = pf_gaussian_on_matrix(in, PF_GAUSSIAN_DEFAULT_SIGMA, PF_GAUSSIAN_DEFAULT_NB_STDDEV);
 
 	// Compute the gradient intensity and direction
-	out_gradient = pf_sobel_on_matrix(&out, PF_SOBEL_DEFAULT_KERNEL_X, PF_SOBEL_DEFAULT_KERNEL_Y);
+	out_gradient = pf_sobel_on_matrix(&out, PF_SOBEL_DEFAULT_KERNEL_X, PF_SOBEL_DEFAULT_KERNEL_Y, 0.0, 0);
 	pf_dbl_matrix_free(&out);
 
 	// Edge thinning

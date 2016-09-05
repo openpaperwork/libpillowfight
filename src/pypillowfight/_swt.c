@@ -104,6 +104,7 @@ struct swt_letter_stats {
 	struct swt_point max;
 	double mean;
 	double variance;
+	struct swt_point center;
 	double median;
 };
 
@@ -687,6 +688,9 @@ static int is_valid_letter(const struct pf_dbl_matrix *swt,
 		return 0;
 	}
 
+	stats->center.x = (stats->max.x + stats->min.x) / 2;
+	stats->center.y = (stats->max.y + stats->min.y) / 2;
+
 	stats->median = compute_points_median(swt, points);
 	return 1;
 }
@@ -706,6 +710,8 @@ static struct swt_letters filter_possible_letters(const struct pf_dbl_matrix *sw
 				possible_letters->letters[x],
 				&possible_letters->stats[x])) {
 			out.letters[out.nb_letters] = possible_letters->letters[x];
+			memcpy(&out.stats[out.nb_letters], &possible_letters->stats[x],
+				sizeof(out.stats[out.nb_letters]));
 			out.nb_letters++;
 		}
 	}
@@ -723,6 +729,52 @@ static struct swt_letters filter_possible_letters(const struct pf_dbl_matrix *sw
 	return out;
 }
 
+static struct swt_letters filter_letters_by_center(const struct swt_letters *possible_letters)
+{
+	struct swt_letters out;
+	int i, j, count;
+	struct swt_letter_stats *stats_i, *stats_j;
+
+	out.nb_letters = 0;
+	out.letters = calloc(possible_letters->nb_letters, sizeof(struct swt_points *));
+	out.stats = calloc(possible_letters->nb_letters, sizeof(struct swt_letter_stats));
+
+	for (i = 0 ; i < possible_letters->nb_letters ; i++) {
+		count = 0;
+		stats_i = &possible_letters->stats[i];
+		for (j = 0 ; j < possible_letters->nb_letters ; j++) {
+			if (i == j)
+				continue;
+			stats_j = &possible_letters->stats[j];
+
+			if (stats_i->min.x <= stats_j->center.x
+					&& stats_j->center.x <= stats_i->max.x
+					&& stats_i->min.y <= stats_j->center.y
+					&& stats_j->center.y <= stats_i->max.y) {
+				count++;
+			}
+		}
+
+		if (count < 2) {
+			out.letters[out.nb_letters] = possible_letters->letters[i];
+			memcpy(&out.stats[out.nb_letters], &possible_letters->stats[i],
+				sizeof(out.stats[out.nb_letters]));
+			out.nb_letters++;
+		}
+	}
+
+	// resize down
+	out.letters = realloc(
+			out.letters,
+			out.nb_letters * sizeof(struct swt_points *)
+		);
+	out.stats = realloc(
+			out.stats,
+			out.nb_letters * sizeof(struct swt_letter_stats)
+		);
+	return out;
+}
+
 #ifndef NO_PYTHON
 static
 #endif
@@ -732,6 +784,7 @@ void pf_swt(const struct pf_bitmap *img_in, struct pf_bitmap *img_out)
 	struct pf_gradient_matrixes gradient;
 	struct pf_dbl_matrix edge;
 	struct swt_output swt_out;
+	struct swt_letters all_possible_letters;
 	struct swt_letters possible_letters;
 	struct swt_letters letters;
 	int x;
@@ -826,18 +879,25 @@ void pf_swt(const struct pf_bitmap *img_in, struct pf_bitmap *img_out)
 
 	PRINT_TIME();
 
-	possible_letters = find_possible_letters(&swt_out.swt);
+	all_possible_letters = possible_letters = find_possible_letters(&swt_out.swt);
 #ifdef OUTPUT_INTERMEDIATE_IMGS
 	fprintf(stderr, "SWT> %d possible letters found\n", possible_letters.nb_letters);
 #endif
 
 	letters = filter_possible_letters(&swt_out.swt, &possible_letters);
 #ifdef OUTPUT_INTERMEDIATE_IMGS
-	fprintf(stderr, "SWT> %d letters found\n", letters.nb_letters);
+	fprintf(stderr, "SWT> Filtering 1: %d letters found\n", letters.nb_letters);
 #endif
 
+	possible_letters = letters;
+	letters = filter_letters_by_center(&possible_letters);
+#ifdef OUTPUT_INTERMEDIATE_IMGS
+	fprintf(stderr, "SWT> Filtering 2: %d letters found\n", letters.nb_letters);
+#endif
+	free(possible_letters.letters);
+	free(possible_letters.stats);
 
-	// TODO: Filter letter candidates
+
 	// TODO: Text line aggregation
 	// TODO: Word detection
 	// TODO: Mask
@@ -845,10 +905,10 @@ void pf_swt(const struct pf_bitmap *img_in, struct pf_bitmap *img_out)
 	PRINT_TIME();
 
 	// Note: possible_letters and letters share allocations
-	for (x = 0 ; x < possible_letters.nb_letters ; x++)
-		free(possible_letters.letters[x]);
-	free(possible_letters.letters);
-	free(possible_letters.stats);
+	for (x = 0 ; x < all_possible_letters.nb_letters ; x++)
+		free(all_possible_letters.letters[x]);
+	free(all_possible_letters.letters);
+	free(all_possible_letters.stats);
 	free(letters.letters);
 
 	// temporary

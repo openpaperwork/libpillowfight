@@ -581,11 +581,12 @@ void pf_swt(const struct pf_bitmap *img_in, struct pf_bitmap *img_out)
 	PRINT_TIME();
 
 	// Find gradients
-	gradient = pf_sobel_on_matrix(&out, &g_pf_kernel_scharr_x, &g_pf_kernel_scharr_y, 0.0, 3);
+	gradient = pf_sobel_on_matrix(&out, &g_pf_kernel_scharr_x, &g_pf_kernel_scharr_y, 0.0, 0);
 	DUMP_MATRIX("swt_0004_sobel_intensity", &gradient.intensity, 1.0);
 	DUMP_MATRIX("swt_0005_sobel_direction", &gradient.direction, 255.0 / 2.0 / M_PI);
-	pf_dbl_matrix_free(&in);
 	pf_dbl_matrix_free(&out);
+
+	pf_dbl_matrix_free(&in);
 
 	PRINT_TIME();
 

@@ -39,6 +39,17 @@
 #define LOW_THRESHOLD ((int)(PF_WHITE * 0.47))
 #define HIGH_THRESHOLD ((int)(PF_WHITE * 0.61))
 
+#define OUTPUT_INTERMEDIATE_IMGS 1
+
+#ifdef OUTPUT_INTERMEDIATE_IMGS
+#define DUMP_BITMAP(filename, bmp) pf_write_bitmap_to_ppm(filename ".ppm", bmp)
+#define DUMP_MATRIX(filename, matrix, factor) pf_write_matrix_to_pgm(filename ".pgm", matrix, factor)
+#else
+#define DUMP_BITMAP(filename, bmp)
+#define DUMP_MATRIX(filename, matrix, factor)
+#endif
+
+
 const struct pf_dbl_matrix g_pf_kernel_sobel_x = {
 	.size = {
 		.x = 3,
@@ -154,7 +165,9 @@ struct pf_gradient_matrixes pf_sobel_on_matrix(const struct pf_dbl_matrix *in,
 	struct pf_dbl_matrix g_x, g_y, g_out;
 
 	g_x = pf_dbl_matrix_convolution(in, kernel_x);
+	DUMP_MATRIX("sobel_g_x", &g_x, 1.0);
 	g_y = pf_dbl_matrix_convolution(in, kernel_y);
+	DUMP_MATRIX("sobel_g_y", &g_y, 1.0);
 
 	if (gaussian_stddev) {
 		g_out = pf_gaussian_on_matrix(&g_x, gaussian_sigma, gaussian_stddev);

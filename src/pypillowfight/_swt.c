@@ -837,7 +837,7 @@ void pf_swt(const struct pf_bitmap *img_in, struct pf_bitmap *img_out)
 #ifdef OUTPUT_INTERMEDIATE_IMGS
 	int y;
 	double val, max;
-	struct pf_dbl_matrix normalized, reversed;
+	struct pf_dbl_matrix normalized_a, normalized_b, reversed;
 #endif
 
 #ifdef PRINT_TIME
@@ -906,19 +906,21 @@ void pf_swt(const struct pf_bitmap *img_in, struct pf_bitmap *img_out)
 			max = MAX(max, val);
 		}
 	}
+	normalized_a = pf_dbl_matrix_new(swt_out.swt.size.x, swt_out.swt.size.y);
 	for (x = 0; x < swt_out.swt.size.x ; x++) {
 		for (y = 0 ; y < swt_out.swt.size.y ; y++) {
 			val = PF_MATRIX_GET(&swt_out.swt, x, y);
 			if (val < 0)
 				val = max;
-			PF_MATRIX_SET(&swt_out.swt, x, y, val);
+			PF_MATRIX_SET(&normalized_a, x, y, val);
 		}
 	}
-	normalized = pf_normalize(&swt_out.swt, 0.0, 0.0, 255.0);
+	normalized_b = pf_normalize(&normalized_a, 0.0, 0.0, 255.0);
+	pf_dbl_matrix_free(&normalized_a);
 	// reverse it to make the short rays more visible
 	// and the bigger ones less visible
-	reversed = pf_grayscale_reverse(&normalized);
-	pf_dbl_matrix_free(&normalized);
+	reversed = pf_grayscale_reverse(&normalized_b);
+	pf_dbl_matrix_free(&normalized_b);
 	DUMP_MATRIX("swt_0008_normalized", &reversed, 1.0);
 	pf_dbl_matrix_free(&reversed);
 #endif

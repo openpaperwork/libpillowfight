@@ -803,11 +803,15 @@ static void dump_letters(const char *filepath, const struct pf_bitmap *img_in,
 	const struct swt_point *pt;
 	uint32_t pixel;
 
-	memset(
-			img_out.pixels, UINT_MAX,
-			img_in->size.x * img_in->size.y * sizeof(union pf_pixel)
-		);
+	// init with default color
+	for (i = 0 ; i < img_in->size.x ; i++) {
+		for (j = 0 ; j < img_in->size.y ; j++) {
+			PF_SET_PIXEL(&img_out, i, j, 0xFF305030 /* ABGR */);
+		}
+	}
 
+	// fill in with the original image only where letters
+	// have been detected
 	for (i = 0 ; i < letters->nb_letters ; i++) {
 		letter = letters->letters[i];
 		for (j = 0 ; j < letter->nb_points ; j++) {

@@ -163,7 +163,7 @@ struct pf_dbl_matrix pf_canny_on_matrix(const struct pf_dbl_matrix *in)
 	struct pf_gradient_matrixes out_gradient;
 
 	// Remove details from the image to reduce filter sensitivity to crappy details
-	out = pf_gaussian_on_matrix(in, PF_GAUSSIAN_DEFAULT_SIGMA, PF_GAUSSIAN_DEFAULT_NB_STDDEV);
+	out = pf_gaussian_on_matrix(in, 0.0, 3);
 
 	// Compute the gradient intensity and direction
 	out_gradient = pf_sobel_on_matrix(&out, PF_SOBEL_DEFAULT_KERNEL_X, PF_SOBEL_DEFAULT_KERNEL_Y, 0.0, 0);

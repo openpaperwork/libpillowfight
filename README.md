@@ -16,7 +16,7 @@ Available algorithms are listed below.
 
 ## Python API
 
-The Python API can be compiled, installed and used without install the C library.
+The Python API can be compiled, installed and used without installing the C library.
 
 ### Installation
 

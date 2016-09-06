@@ -188,6 +188,12 @@ extern void pf_canny(const struct pf_bitmap *in, struct pf_bitmap *out);
 | ----- | ------ |
 | [Crappy background](https://raw.githubusercontent.com/jflesch/libpillowfight/master/tests/data/crappy_background.jpg) | [Gaussed](https://raw.githubusercontent.com/jflesch/libpillowfight/master/tests/data/crappy_background_gaussian.jpg) |
 
+One of the parameters is ```sigma```. If it is equals to 0.0, it will be computed automatically
+using the following formula (same as OpenCV):
+
+```C
+sigma = 0.3 * ((nb_stddev - 1) * 0.5 - 1) + 0.8;
+```
 
 #### Python API
 

@@ -40,9 +40,9 @@
 #define LOW_THRESHOLD ((int)(PF_WHITE * 0.47))
 #define HIGH_THRESHOLD ((int)(PF_WHITE * 0.61))
 
-#define OUTPUT_INTERMEDIATE_IMGS 1
+#define OUTPUT_INTERMEDIATE_IMGS 0
 
-#ifdef OUTPUT_INTERMEDIATE_IMGS
+#if OUTPUT_INTERMEDIATE_IMGS == 1
 #define DUMP_BITMAP(filename, bmp) pf_write_bitmap_to_ppm(filename ".ppm", bmp)
 #define DUMP_MATRIX(filename, matrix, factor) pf_write_matrix_to_pgm(filename ".pgm", matrix, factor)
 #else

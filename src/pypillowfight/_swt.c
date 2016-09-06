@@ -102,16 +102,48 @@ struct swt_adjacencies {
 struct swt_letter_stats {
 	struct swt_point min;
 	struct swt_point max;
-	double mean;
+#define SWT_STATS_DIMENSION(stats, axis) ((stats)->max.axis - (stats)->min.axis)
+	struct {
+		double r;
+		double g;
+		double b;
+		double swt; // average stroke width
+	} means;
 	double variance;
 	struct swt_point center;
 	double median;
 };
 
-struct swt_letters {
+struct swt_letters { // .. or what we assume to be letters
 	struct swt_points **letters;
 	struct swt_letter_stats *stats;
 	int nb_letters;
+};
+
+struct swt_link {
+	const struct swt_points *letter;
+	const struct swt_letter_stats *stats;
+
+	struct swt_link *next;
+};
+
+struct swt_chain {
+	struct swt_link *first;
+	struct swt_link *last;
+
+	double dist;
+	int merged;
+	struct {
+		double x;
+		double y;
+	} direction;
+
+	struct swt_chain *next;
+};
+
+struct swt_chains {
+	struct swt_chain *first;
+	struct swt_chain *last;
 };
 
 #define SWT_GET_ADJACENCY(adjs, a, b) (&((adjs)->adjacencies[(a) + ((b) * ((adjs)->size.x))]))
@@ -591,6 +623,7 @@ static struct swt_letters find_possible_letters(const struct pf_dbl_matrix *swt)
 }
 
 static void compute_letter_stats(
+		const struct pf_bitmap *bitmap,
 		const struct pf_dbl_matrix *swt,
 		struct swt_points *points,
 		struct swt_letter_stats *stats)
@@ -598,6 +631,7 @@ static void compute_letter_stats(
 	int i;
 	double val;
 	const struct swt_point *pt;
+	union pf_pixel pixel;
 
 	assert(points->nb_points > 0);
 
@@ -605,25 +639,35 @@ static void compute_letter_stats(
 	stats->min.y = INT_MAX;
 	stats->max.x = 0;
 	stats->max.y = 0;
-	stats->mean = 0.0;
+	stats->means.r = 0.0;
+	stats->means.g = 0.0;
+	stats->means.g = 0.0;
+	stats->means.swt = 0.0;
 	stats->variance = 0.0;
 	stats->median = 0.0;
 
 	for (i = 0 ; i < points->nb_points ; i++) {
 		pt = &points->points[i];
+		pixel = PF_GET_PIXEL(bitmap, pt->x, pt->y);
 		val = PF_MATRIX_GET(swt, pt->x, pt->y);
-		stats->mean += val;
+		stats->means.swt += val;
+		stats->means.r += pixel.color.r;
+		stats->means.g += pixel.color.g;
+		stats->means.b += pixel.color.b;
 		stats->min.x = MIN(stats->min.x, pt->x);
 		stats->min.y = MIN(stats->min.y, pt->y);
 		stats->max.x = MAX(stats->max.x, pt->x);
 		stats->max.y = MAX(stats->max.y, pt->y);
 	}
-	stats->mean /= points->nb_points;
+	stats->means.swt /= points->nb_points;
+	stats->means.r /= points->nb_points;
+	stats->means.g /= points->nb_points;
+	stats->means.b /= points->nb_points;
 
 	for (i = 0 ; i < points->nb_points ; i++) {
 		pt = &points->points[i];
 		val = PF_MATRIX_GET(swt, pt->x, pt->y);
-		stats->variance += (val - stats->mean) * (val - stats->mean);
+		stats->variance += (val - stats->means.swt) * (val - stats->means.swt);
 	}
 	stats->variance /= points->nb_points;
 
@@ -681,6 +725,7 @@ static int check_ratio(
 }
 
 static void compute_all_letter_stats(
+		const struct pf_bitmap *bitmap,
 		const struct pf_dbl_matrix *swt,
 		const struct swt_letters *letters
 	)
@@ -688,7 +733,7 @@ static void compute_all_letter_stats(
 	int i;
 
 	for (i = 0 ; i < letters->nb_letters ; i++) {
-		compute_letter_stats(swt, letters->letters[i], &letters->stats[i]);
+		compute_letter_stats(bitmap, swt, letters->letters[i], &letters->stats[i]);
 	}
 }
 
@@ -696,9 +741,10 @@ static int is_valid_letter(const struct pf_dbl_matrix *swt,
 		struct swt_points *points,
 		struct swt_letter_stats *stats)
 {
-	if (stats->variance > 0.5 * stats->mean)
+	if (stats->variance > 0.5 * stats->means.swt)
 		return 0;
-	if (stats->max.y - stats->min.y > 300)
+	// Jflesch> Assumption: Writing is horizontal
+	if (SWT_STATS_DIMENSION(stats, y) > 300)
 		return 0;
 	if (!check_ratio(points, stats)) {
 		return 0;
@@ -825,6 +871,147 @@ static void dump_letters(const char *filepath, const struct pf_bitmap *img_in,
 }
 #endif
 
+static struct swt_chains make_valid_pairs(const struct swt_letters *letters)
+{
+#define MAX_MEDIAN_RATIO 2.0
+#define MAX_DIMENSION_RATIO 2.0
+#define MAX_COLOR_DIST 1600.0
+#define MAX_DIST_RATIO 9.0
+
+	struct swt_chains chains = { .first = NULL };
+	int nb_pairs = 0;
+	int letter_idx_a, letter_idx_b;
+	const struct swt_points *l_a;
+	const struct swt_letter_stats *l_stats_a;
+	const struct swt_points *l_b;
+	const struct swt_letter_stats *l_stats_b;
+	struct swt_link *link_a, *link_b;
+	struct swt_chain *chain;
+	double val_a, val_b;
+	double dist, color_dist;
+	double weird;
+	double h;
+
+	for (letter_idx_a = 0 ;
+			letter_idx_a < letters->nb_letters ;
+			letter_idx_a++) {
+		l_a = letters->letters[letter_idx_a];
+		l_stats_a = &letters->stats[letter_idx_a];
+
+		for (letter_idx_b = letter_idx_a + 1 ;
+				letter_idx_b < letters->nb_letters ;
+				letter_idx_b++) {
+			l_b = letters->letters[letter_idx_b];
+			l_stats_b = &letters->stats[letter_idx_b];
+
+			// ignore pairs that obviously can't be valid
+
+			val_a = l_stats_a->median;
+			val_b = l_stats_b->median;
+			// Jflesch> DetectText checks that "(a/b) <= max || (b/a) <= max"
+			// but it is always true !? I think they wanted to test
+			// "(a/b) <= max && (b/a) <= max" as done here.
+			if ((val_a / val_b > MAX_MEDIAN_RATIO) || (val_b / val_a > MAX_MEDIAN_RATIO))
+				continue;
+
+			// Jflesch> Assumption: Writing is horizontal
+			val_a = SWT_STATS_DIMENSION(l_stats_a, y);
+			val_b = SWT_STATS_DIMENSION(l_stats_b, y);
+			// Jflesch> DetectText checks that  "(a/b) <= max || (b/a) <= max"
+			// but it is always true !? I think they wanted to test
+			// "(a/b) <= max && (b/a) <= max" as done here.
+			if ((val_a / val_b > MAX_DIMENSION_RATIO) || (val_b / val_a > MAX_DIMENSION_RATIO))
+				continue;
+
+			// compute the color distance, but don't bother to sqrt() it.
+			color_dist = (
+					(
+					 (l_stats_a->means.r - l_stats_b->means.r)
+					 * (l_stats_a->means.r - l_stats_b->means.r)
+					)
+					+
+					(
+					 (l_stats_a->means.g - l_stats_b->means.g)
+					 * (l_stats_a->means.g - l_stats_b->means.g)
+					)
+					+
+					(
+					 (l_stats_a->means.b - l_stats_b->means.b)
+					 * (l_stats_a->means.b - l_stats_b->means.b)
+					)
+				     );
+			if (color_dist >= MAX_COLOR_DIST)
+				continue;
+
+			// compute the distance from each centers, but don't bother sqrt() it.
+			dist = (
+					(
+					 (l_stats_a->center.x - l_stats_b->center.x)
+					 * (l_stats_a->center.x - l_stats_b->center.x)
+					)
+					+
+					(
+					 (l_stats_a->center.y - l_stats_b->center.y)
+					 * (l_stats_a->center.y - l_stats_b->center.y)
+					)
+			       );
+
+			weird = MAX(
+					MIN(
+						SWT_STATS_DIMENSION(l_stats_a, x),
+						SWT_STATS_DIMENSION(l_stats_b, y)
+					   ),
+					MIN(
+						SWT_STATS_DIMENSION(l_stats_b, x),
+						SWT_STATS_DIMENSION(l_stats_a, y)
+					   )
+				   );
+			weird *= weird;
+
+			if (dist >= MAX_DIST_RATIO * weird)
+				continue;
+
+			link_a = calloc(1, sizeof(struct swt_link));
+			link_b = calloc(1, sizeof(struct swt_link));
+			chain = calloc(1, sizeof(struct swt_chain));
+
+			link_a->letter = l_a;
+			link_a->stats = l_stats_a;
+			link_b->letter = l_b;
+			link_b->stats = l_stats_b;
+			link_a->next = link_b;
+
+			chain->first = link_a;
+			chain->last = link_b;
+			chain->dist = dist;
+
+			val_a = l_stats_a->center.x - l_stats_b->center.x;
+			val_b = l_stats_a->center.y - l_stats_b->center.y;
+			h = hypot(val_a, val_b);
+			val_a /= h;
+			val_b /= h;
+			chain->direction.x = val_a;
+			chain->direction.y = val_b;
+
+			chain->next = NULL;
+
+			if (chains.first == NULL)
+				chains.first = chain;
+			else
+				chains.last->next = chain;
+			chains.last = chain;
+
+			nb_pairs++;
+		}
+	}
+
+#ifdef OUTPUT_INTERMEDIATE_IMGS
+	fprintf(stderr, "SWT> %d valid pairs found\n", nb_pairs);
+#endif
+
+	return chains;
+}
+
 #ifndef NO_PYTHON
 static
 #endif
@@ -837,6 +1024,9 @@ void pf_swt(const struct pf_bitmap *img_in, struct pf_bitmap *img_out)
 	struct swt_letters all_possible_letters;
 	struct swt_letters possible_letters;
 	struct swt_letters letters;
+	struct swt_chains chains;
+	struct swt_chain *chain, *nchain;
+	struct swt_link *link, *nlink;
 	int x;
 #ifdef OUTPUT_INTERMEDIATE_IMGS
 	int y;
@@ -937,7 +1127,7 @@ void pf_swt(const struct pf_bitmap *img_in, struct pf_bitmap *img_out)
 	dump_letters("swt_0009_all_possible_letters.ppm", img_in, &possible_letters);
 #endif
 
-	compute_all_letter_stats(&swt_out.swt, &all_possible_letters);
+	compute_all_letter_stats(img_in, &swt_out.swt, &all_possible_letters);
 
 	letters = filter_possible_letters(&swt_out.swt, &possible_letters);
 #ifdef OUTPUT_INTERMEDIATE_IMGS
@@ -954,19 +1144,27 @@ void pf_swt(const struct pf_bitmap *img_in, struct pf_bitmap *img_out)
 	free(possible_letters.letters);
 	free(possible_letters.stats);
 
-
-	// TODO: Text line aggregation
-	// TODO: Word detection
-	// TODO: Mask
+	chains = make_valid_pairs(&letters);
 
 	PRINT_TIME();
 
-	// Note: possible_letters and letters share allocations
+	// Note: these structures share allocations
 	for (x = 0 ; x < all_possible_letters.nb_letters ; x++)
 		free(all_possible_letters.letters[x]);
 	free(all_possible_letters.letters);
 	free(all_possible_letters.stats);
 	free(letters.letters);
+
+	for (chain = chains.first, nchain = (chain ? chain->next : NULL) ;
+			chain != NULL ;
+			chain = nchain, nchain = (chain ? chain->next : NULL)) {
+		for (link = chain->first, nlink = (link ? link->next : NULL) ;
+				link != NULL ;
+				link = nlink, nlink = (link ? link->next : NULL)) {
+			free(link);
+		}
+		free(chain);
+	}
 
 	// temporary
 	DUMP_MATRIX("swt_9999_out", &swt_out.swt, 1.0);

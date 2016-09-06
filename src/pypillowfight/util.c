@@ -167,18 +167,20 @@ struct pf_dbl_matrix pf_dbl_matrix_convolution(
 			val = 0;
 
 			for (kernel_x = 0 ; kernel_x < kernel->size.x ; kernel_x++) {
-				if (img_x - kernel_x < 0)
+				if (((img_x - kernel_x + (kernel->size.x / 2)) < 0)
+						|| ((img_x - kernel_x + (kernel->size.x / 2)) >= img->size.x))
 					break;
 
 				for (kernel_y = 0 ; kernel_y < kernel->size.y ; kernel_y++) {
 
-					if (img_y - kernel_y < 0)
+					if (((img_y - kernel_y + (kernel->size.y / 2)) < 0)
+							|| ((img_y - kernel_y + (kernel->size.y / 2)) >= img->size.y))
 						break;
 
 					img_val = PF_MATRIX_GET(
 							img,
-							img_x - kernel_x,
-							img_y - kernel_y
+							img_x - kernel_x + (kernel->size.x / 2),
+							img_y - kernel_y + (kernel->size.y / 2)
 						);
 
 					kernel_val = PF_MATRIX_GET(

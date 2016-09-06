@@ -34,6 +34,10 @@
 #include "_pymod.h"
 #endif
 
+#define PRINT_TIME 0
+#define OUTPUT_INTERMEDIATE_IMGS 0
+
+
 /*!
  * \brief Stroke Width Transform
  *
@@ -46,14 +50,20 @@
 
 #define IS_EDGE_LINE(val) ((val) > 0.0)
 
-#define PRINT_TIME() printf("SWT: %d: %lds\n", __LINE__, time(NULL) - g_swt_start);
-#define OUTPUT_INTERMEDIATE_IMGS 1
-
-#ifdef PRINT_TIME
-static time_t g_swt_start;
+#if PRINT_TIME == 1
+#define PRINT_TIME_FN() printf("SWT: %d: %lds\n", __LINE__, time(NULL) - g_swt_start);
+#else
+#define PRINT_TIME_FN()
 #endif
 
-#ifdef OUTPUT_INTERMEDIATE_IMGS
+
+#if PRINT_TIME == 1
+static time_t g_swt_start;
+#else
+#define PRINT_TIME_FN()
+#endif
+
+#if OUTPUT_INTERMEDIATE_IMGS == 1
 #define DUMP_BITMAP(filename, bmp) pf_write_bitmap_to_ppm(filename ".ppm", bmp)
 #define DUMP_MATRIX(filename, matrix, factor) pf_write_matrix_to_pgm(filename ".pgm", matrix, factor)
 static int g_nb_rays;
@@ -342,7 +352,7 @@ static inline void find_stroke(struct swt_output *out,
 	// add stroke's ray to the output
 	ray->next = out->rays;
 	out->rays = ray;
-#ifdef OUTPUT_INTERMEDIATE_IMGS
+#if OUTPUT_INTERMEDIATE_IMGS == 1
 	g_nb_rays++;
 #endif
 
@@ -599,12 +609,12 @@ static struct swt_letters find_possible_letters(const struct pf_dbl_matrix *swt)
 	int *nb_pts_per_group;
 	struct swt_letters out;
 
-	PRINT_TIME();
+	PRINT_TIME_FN();
 	adjs = make_adjacencies_list(swt);
-	PRINT_TIME();
+	PRINT_TIME_FN();
 
 	out.nb_letters = browse_adjacencies(&adjs, NULL, NULL);
-	PRINT_TIME();
+	PRINT_TIME_FN();
 
 	nb_pts_per_group = calloc(out.nb_letters, sizeof(int));
 	browse_adjacencies(&adjs, count_points, nb_pts_per_group);
@@ -834,7 +844,7 @@ static struct swt_letters filter_letters_by_center(const struct swt_letters *pos
 	return out;
 }
 
-#ifdef OUTPUT_INTERMEDIATE_IMGS
+#if OUTPUT_INTERMEDIATE_IMGS == 1
 static void dump_letters(const char *filepath, const struct pf_bitmap *img_in,
 		const struct swt_letters *letters)
 {
@@ -1006,7 +1016,7 @@ static struct swt_chains make_valid_pairs(const struct swt_letters *letters)
 		}
 	}
 
-#ifdef OUTPUT_INTERMEDIATE_IMGS
+#if OUTPUT_INTERMEDIATE_IMGS == 1
 	fprintf(stderr, "SWT> %d valid pairs found\n", nb_pairs);
 #endif
 
@@ -1188,6 +1198,62 @@ static int merge_chains(struct swt_chains *in_chains)
 	return nb_after;
 }
 
+static inline int get_nb_links(const struct swt_chain *chain)
+{
+	const struct swt_link *link;
+	int nb;
+
+	nb = 0;
+	for (link = chain->first ; link != NULL ; link = link->next) {
+		nb++;
+	}
+	return nb;
+}
+
+/* \brief renders the letter in black and white (no gray)
+ */
+static int render_chains(struct pf_bitmap *out, const struct swt_chains *chains)
+{
+	const struct swt_chain *chain;
+	const struct swt_link *link;
+	const struct swt_points *letter;
+	const struct swt_point *pt;
+	int nb_letters = 0;
+	int pt_idx;
+	union pf_pixel black_pixel;
+
+#define MIN_COMPONENTS 3
+
+	black_pixel.whole = PF_BLACK;
+	black_pixel.color.a = 0xFF;
+
+	// put default color everywhere
+	memset(
+			out->pixels, PF_WHOLE_WHITE,
+			out->size.x * out->size.y * sizeof(union pf_pixel)
+	      );
+
+	for (chain = chains->first ; chain != NULL ; chain = chain->next) {
+		// ignore chains with too few letters components
+		if (get_nb_links(chain) < MIN_COMPONENTS)
+			continue;
+
+		for (link = chain->first ; link != NULL ; link = link->next) {
+			letter = link->letter;
+
+			for (pt_idx = 0 ; pt_idx < letter->nb_points ; pt_idx++) {
+				pt = &letter->points[pt_idx];
+				PF_SET_PIXEL(out, pt->x, pt->y, black_pixel.whole);
+			}
+
+			nb_letters++;
+		}
+	}
+
+	return nb_letters;
+}
+
+
 #ifndef NO_PYTHON
 static
 #endif
@@ -1204,35 +1270,35 @@ void pf_swt(const struct pf_bitmap *img_in, struct pf_bitmap *img_out)
 	struct swt_chain *chain, *nchain;
 	struct swt_link *link, *nlink;
 	int x;
-#ifdef OUTPUT_INTERMEDIATE_IMGS
+#if OUTPUT_INTERMEDIATE_IMGS == 1
 	int y;
 	double val, max;
 	struct pf_dbl_matrix normalized_a, normalized_b, reversed;
 #endif
 
-#ifdef PRINT_TIME
+#if PRINT_TIME == 1
 	g_swt_start = time(NULL);
 #endif
 
-	PRINT_TIME();
+	PRINT_TIME_FN();
 	DUMP_BITMAP("swt_0000_input", img_in);
 
 	in = pf_dbl_matrix_new(img_in->size.x, img_in->size.y);
 	pf_rgb_bitmap_to_grayscale_dbl_matrix(img_in, &in);
 	DUMP_MATRIX("swt_0001_grayscale", &in, 1.0);
 
-	PRINT_TIME();
+	PRINT_TIME_FN();
 
 	// Compute edge & gradient
 	edge = pf_canny_on_matrix(&in);
 	DUMP_MATRIX("swt_0002_canny", &edge, 1.0);
 
-	PRINT_TIME();
+	PRINT_TIME_FN();
 
 	// Gaussian on the image
 	out = pf_gaussian_on_matrix(&in, 0.0, 5);
 	DUMP_MATRIX("swt_0003_gaussian", &out, 1.0);
-	PRINT_TIME();
+	PRINT_TIME_FN();
 
 	// Find gradients
 	gradient = pf_sobel_on_matrix(&out, &g_pf_kernel_scharr_x, &g_pf_kernel_scharr_y, 0.0, 0);
@@ -1242,17 +1308,17 @@ void pf_swt(const struct pf_bitmap *img_in, struct pf_bitmap *img_out)
 
 	pf_dbl_matrix_free(&in);
 
-	PRINT_TIME();
+	PRINT_TIME_FN();
 
-#ifdef OUTPUT_INTERMEDIATE_IMGS
+#if OUTPUT_INTERMEDIATE_IMGS == 1
 	g_nb_rays = 0;
 #endif
 
 	swt_out = swt(&edge, &gradient);
 	DUMP_MATRIX("swt_0006_swt", &swt_out.swt, 1.0);
-	PRINT_TIME();
+	PRINT_TIME_FN();
 
-#ifdef OUTPUT_INTERMEDIATE_IMGS
+#if OUTPUT_INTERMEDIATE_IMGS == 1
 	fprintf(stderr, "SWT> %d rays found\n", g_nb_rays);
 #endif
 
@@ -1262,13 +1328,13 @@ void pf_swt(const struct pf_bitmap *img_in, struct pf_bitmap *img_out)
 	pf_dbl_matrix_free(&gradient.g_y);
 	pf_dbl_matrix_free(&edge);
 
-	PRINT_TIME();
+	PRINT_TIME_FN();
 
 	set_rays_down_to_ray_median(&swt_out);
 	DUMP_MATRIX("swt_0007_ray_median", &swt_out.swt, 1.0);
 	free_rays(swt_out.rays);
 
-#ifdef OUTPUT_INTERMEDIATE_IMGS
+#if OUTPUT_INTERMEDIATE_IMGS == 1
 	max = 0.0;
 	for (x = 0; x < swt_out.swt.size.x ; x++) {
 		for (y = 0 ; y < swt_out.swt.size.y ; y++) {
@@ -1295,10 +1361,10 @@ void pf_swt(const struct pf_bitmap *img_in, struct pf_bitmap *img_out)
 	pf_dbl_matrix_free(&reversed);
 #endif
 
-	PRINT_TIME();
+	PRINT_TIME_FN();
 
 	all_possible_letters = possible_letters = find_possible_letters(&swt_out.swt);
-#ifdef OUTPUT_INTERMEDIATE_IMGS
+#if OUTPUT_INTERMEDIATE_IMGS == 1
 	fprintf(stderr, "SWT> %d possible letters found\n", possible_letters.nb_letters);
 	dump_letters("swt_0009_all_possible_letters.ppm", img_in, &possible_letters);
 #endif
@@ -1306,14 +1372,15 @@ void pf_swt(const struct pf_bitmap *img_in, struct pf_bitmap *img_out)
 	compute_all_letter_stats(img_in, &swt_out.swt, &all_possible_letters);
 
 	letters = filter_possible_letters(&swt_out.swt, &possible_letters);
-#ifdef OUTPUT_INTERMEDIATE_IMGS
+#if OUTPUT_INTERMEDIATE_IMGS == 1
 	fprintf(stderr, "SWT> Filtering 1: %d letters found\n", letters.nb_letters);
 	dump_letters("swt_0010_letters_filter_1.ppm", img_in, &letters);
 #endif
+	pf_dbl_matrix_free(&swt_out.swt);
 
 	possible_letters = letters;
 	letters = filter_letters_by_center(&possible_letters);
-#ifdef OUTPUT_INTERMEDIATE_IMGS
+#if OUTPUT_INTERMEDIATE_IMGS == 1
 	fprintf(stderr, "SWT> Filtering 2: %d letters found\n", letters.nb_letters);
 	dump_letters("swt_0011_letters_filter_2.ppm", img_in, &letters);
 #endif
@@ -1322,13 +1389,21 @@ void pf_swt(const struct pf_bitmap *img_in, struct pf_bitmap *img_out)
 
 	chains = make_valid_pairs(&letters);
 	x = merge_chains(&chains);
-#ifdef OUTPUT_INTERMEDIATE_IMGS
+#if OUTPUT_INTERMEDIATE_IMGS == 1
 	fprintf(stderr, "SWT> %d chains after merges\n", x);
 #endif
 
-	PRINT_TIME();
+	PRINT_TIME_FN();
 
-	// Note: these structures share allocations
+	x = render_chains(img_out, &chains);
+#if OUTPUT_INTERMEDIATE_IMGS == 1
+	fprintf(stderr, "SWT> %d letters rendered\n", x);
+#endif
+
+	PRINT_TIME_FN();
+
+	// Note: these structures share some allocations, so we have
+	// to be careful about what we free
 	for (x = 0 ; x < all_possible_letters.nb_letters ; x++)
 		free(all_possible_letters.letters[x]);
 	free(all_possible_letters.letters);
@@ -1346,13 +1421,7 @@ void pf_swt(const struct pf_bitmap *img_in, struct pf_bitmap *img_out)
 		free(chain);
 	}
 
-	// temporary
-	DUMP_MATRIX("swt_9999_out", &swt_out.swt, 1.0);
-	pf_grayscale_dbl_matrix_to_rgb_bitmap(&swt_out.swt, img_out);
-
-	PRINT_TIME();
-
-	pf_dbl_matrix_free(&swt_out.swt);
+	PRINT_TIME_FN();
 }
 
 #ifndef NO_PYTHON

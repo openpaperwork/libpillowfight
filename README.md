@@ -86,7 +86,7 @@ unused (no alpha channel taken into account).
 The image must contains ```x * y * union pf_pixel```.
 
 
-## Unpaper's algorithm
+## Note regarding Unpaper's algorithms
 
 Many algorithms in this library are re-implementations of algorithms used
 by [Unpaper](https://github.com/Flameeyes/unpaper). To make the API simpler

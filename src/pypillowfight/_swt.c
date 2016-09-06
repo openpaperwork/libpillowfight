@@ -270,12 +270,12 @@ static inline int follow_stroke(
 		g_y_end = -g_y_end;
 	}
 
-	// check the angle on the opposite angle
-	if (acos(g_x * -g_x_end + g_y * -g_y_end) < M_PI / 2.0 ) {
-		return nb_points;
+	// check the angles are opposite to each other
+	if (acos(g_x * -g_x_end + g_y * -g_y_end) >= M_PI / 2.0 ) {
+		return 0;
 	}
 
-	return 0;
+	return nb_points;
 }
 
 static inline void find_stroke(struct swt_output *out,

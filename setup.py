@@ -5,9 +5,9 @@ from setuptools import Extension, setup
 setup(
     name="pillowfight",
     version="0.1.0",
-    description=("Extra image processing algorithms on Pillow images"),
+    description=("Library containing various image processing algorithms"),
     keywords="image processing algorithm pillow pil",
-    url="https://github.com/jflesch/libpillowfight",
+    url="https://github.com/jflesch/libpillowfight#readme",
     download_url="https://github.com/jflesch/libpillowfight/archive/v0.1.0.zip",
     classifiers=[
         "Intended Audience :: Developers",

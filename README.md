@@ -119,8 +119,9 @@ A basic documentation for some of the algorithms can be found in
 | ----- | ------ |
 | [Brightness problem](https://raw.githubusercontent.com/jflesch/libpillowfight/master/tests/data/brightness_problem.jpg) | [Corrected](https://raw.githubusercontent.com/jflesch/libpillowfight/master/tests/data/brightness_problem_ace.jpg) |
 
-This algorithm is quite slow (~40s for one big image with one thred
-on my machine). So this version is parallelized.
+This algorithm is quite slow (~40s for one big image with one thread
+on my machine). So this version is parallelized (down to ~15s on a 4
+cores computer).
 
 
 #### Python API

@@ -754,9 +754,10 @@ static int is_valid_letter(const struct pf_dbl_matrix *swt,
 		struct swt_points *points,
 		struct swt_letter_stats *stats)
 {
-#define MAX_Y_RATIO 0.15 // ratio to the image size
+#define MAX_Y_RATIO 0.33 // ratio to the image size
+#define MAX_VARIANCE 2.0
 
-	if (stats->variance > 0.5 * stats->means.swt)
+	if (stats->variance > MAX_VARIANCE * stats->means.swt)
 		return 0;
 	// Jflesch> Assumption: Writing is horizontal
 	if (((double)SWT_STATS_DIMENSION(stats, y)) / swt->size.y > MAX_Y_RATIO)

@@ -20,7 +20,17 @@ The Python API can be compiled, installed and used without install the C library
 
 ### Installation
 
+Latest release :
+
 ```sh
+$ sudo pip3 install pypillowfight
+```
+
+Development version :
+
+```sh
+$ git clone https://github.com/jflesch/libpillowfight.git
+$ cd libpillowfight
 $ sudo python3 ./setup.py install
 ```
 

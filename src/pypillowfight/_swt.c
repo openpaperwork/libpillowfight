@@ -132,11 +132,12 @@ struct swt_chain {
 	struct swt_link *last;
 
 	double dist;
-	int merged;
 	struct {
 		double x;
 		double y;
 	} direction;
+
+	int merged;
 
 	struct swt_chain *next;
 };
@@ -1012,6 +1013,178 @@ static struct swt_chains make_valid_pairs(const struct swt_letters *letters)
 	return chains;
 }
 
+static int compare_chains(const void *_chain_a, const void *_chain_b, void *_nop)
+{
+	const struct swt_chain *chain_a = _chain_a;
+	const struct swt_chain *chain_b = _chain_b;
+
+	if (chain_a->dist > chain_b->dist)
+		return 1;
+	if (chain_a->dist < chain_b->dist)
+		return -1;
+	return 0;
+}
+
+static void reverse_chain(struct swt_chain *chain)
+{
+	struct swt_link *link, *plink, *nlink;
+
+	for (plink = NULL,
+			link = chain->first,
+			nlink = (link ? link->next : NULL) ;
+
+			link != NULL ;
+
+			plink = link,
+			link = nlink,
+			nlink = (link ? link->next : NULL)) {
+		link->next = plink;
+	}
+
+	link = chain->first;
+	chain->first = chain->last;
+	chain->last = link;
+}
+
+static int merge_chains(struct swt_chains *in_chains)
+{
+	int nb_chains, nb_after;
+	struct swt_chain *chain_i, *chain_j;
+	struct swt_chain **chains;
+	int i, j;
+	double i_dir_x, i_dir_y, j_dir_x, j_dir_y;
+	double h;
+
+#define MERGE_STRICTNESS (M_PI / 6.0)
+#define CHAINS_SHARE_ONE_END(chain_a, chain_b) \
+	((chain_a)->first->letter == (chain_b)->first->letter \
+	 || (chain_a)->first->letter == (chain_b)->last->letter \
+	 || (chain_a)->last->letter == (chain_b)->last->letter \
+	 || (chain_a)->last->letter == (chain_b)->first->letter)
+
+	// rearrange the list as an array so we can sort it
+	nb_chains = 0;
+	for (chain_i = in_chains->first; chain_i != NULL ; chain_i = chain_i->next)
+		nb_chains++;
+	chains = calloc(nb_chains, sizeof(struct swt_chain *));
+	for (nb_chains = 0, chain_i = in_chains->first;
+			chain_i != NULL ;
+			chain_i = chain_i->next, nb_chains++) {
+		chain_i->merged = 0;
+		chains[nb_chains] = chain_i;
+	}
+
+	// sort the chains by distance
+	qsort_r(chains, nb_chains, sizeof(struct swt_chain *), compare_chains, NULL);
+
+	// merge what can be merged
+	for (i = 0 ; i < nb_chains ; i++) {
+		chain_i = chains[i];
+		assert(chain_i->first);
+		assert(chain_i->last);
+		for (j = 0 ; j < nb_chains ; j++) {
+			if (i == j)
+				continue;
+
+			chain_j = chains[j];
+			assert(chain_j->first);
+			assert(chain_j->last);
+
+			if (chain_i->merged || chain_i->merged)
+				continue;
+			if (!CHAINS_SHARE_ONE_END(chain_i, chain_j))
+				continue;
+
+			// can merge ?
+			i_dir_x = chain_i->direction.x;
+			j_dir_x = chain_j->direction.x;
+			i_dir_y = chain_i->direction.y;
+			j_dir_y = chain_j->direction.y;
+			if (chain_i->first == chain_j->first
+					|| chain_i->last == chain_j->last) {
+				j_dir_x *= -1;
+				j_dir_y *= -1;
+			}
+			if (acos((i_dir_x * j_dir_x) + (i_dir_y * j_dir_y)) >= MERGE_STRICTNESS)
+				continue;
+
+			// do the merges
+			if (chain_i->first == chain_j->first) {
+				// the 2 chains start with the same element
+				// we use the end of one of them as start,
+				// and the end of the other as end
+
+				// reverse j
+				reverse_chain(chain_j);
+				// now chains[i]->first == chains[j]->last
+			} else if (chain_i->last == chain_j->last) {
+				// the 2 chains ends with the same element
+
+				// reverse j
+				reverse_chain(chain_j);
+				// now chains[i]->last == chains[j]->first
+			}
+
+			if (chain_i->last == chain_j->first) {
+				// flips the pointers for convenience
+				// now: chain_i->first == chain_j->last
+			}
+
+			if (chain_i->first == chain_j->last) {
+				// merge
+				// make j followed by i (free the redundant letter link)
+				free(chain_i->first);
+				chain_j->last->next = chain_i->first->next;
+				// make i start where j starts
+				chain_i->first = chain_j->first;
+				chain_j->merged = 1; // do not use again
+			}
+
+			// recompute the chain stats
+
+			i_dir_x = (chain_i->first->stats->center.x
+					- chain_i->last->stats->center.x);
+			i_dir_y = (chain_i->first->stats->center.y
+					- chain_i->last->stats->center.y);
+
+			chain_i->dist = (i_dir_x * i_dir_x) + (i_dir_y * i_dir_y);
+			h = hypot(i_dir_x, i_dir_y);
+
+			i_dir_x /= h;
+			i_dir_y /= h;
+
+			chain_i->direction.x = i_dir_x;
+			chain_i->direction.y = i_dir_y;
+		}
+	}
+
+	// rebuild the linked list
+	in_chains->first = NULL;
+	in_chains->last = NULL;
+
+	chain_i = NULL; // previous chain
+	nb_after = 0;
+	for (j = 0 ; j < nb_chains ; j++) {
+		chain_j = chains[j];
+		if (chain_j->merged) {
+			free(chain_j);
+			continue;
+		}
+		chain_j->next = NULL;
+		nb_after++;
+		if (in_chains->first == NULL)
+			in_chains->first = chain_j;
+		in_chains->last = chain_j;
+		if (chain_i)
+			chain_i->next = chain_j;
+		chain_i = chain_j;
+	}
+
+	free(chains);
+
+	return nb_after;
+}
+
 #ifndef NO_PYTHON
 static
 #endif
@@ -1145,6 +1318,10 @@ void pf_swt(const struct pf_bitmap *img_in, struct pf_bitmap *img_out)
 	free(possible_letters.stats);
 
 	chains = make_valid_pairs(&letters);
+	x = merge_chains(&chains);
+#ifdef OUTPUT_INTERMEDIATE_IMGS
+	fprintf(stderr, "SWT> %d chains after merges\n", x);
+#endif
 
 	PRINT_TIME();
 

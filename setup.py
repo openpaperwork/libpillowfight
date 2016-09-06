@@ -3,7 +3,7 @@
 from setuptools import Extension, setup
 
 setup(
-    name="pillowfight",
+    name="pypillowfight",
     version="0.1.0",
     description=("Library containing various image processing algorithms"),
     keywords="image processing algorithm pillow pil",

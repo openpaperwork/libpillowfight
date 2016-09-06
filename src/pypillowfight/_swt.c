@@ -972,9 +972,9 @@ static struct swt_chains make_valid_pairs(const struct swt_letters *letters)
 			if (dist >= MAX_DIST_RATIO * weird)
 				continue;
 
+			chain = calloc(1, sizeof(struct swt_chain));
 			link_a = calloc(1, sizeof(struct swt_link));
 			link_b = calloc(1, sizeof(struct swt_link));
-			chain = calloc(1, sizeof(struct swt_chain));
 
 			link_a->letter = l_a;
 			link_a->stats = l_stats_a;
@@ -1015,12 +1015,12 @@ static struct swt_chains make_valid_pairs(const struct swt_letters *letters)
 
 static int compare_chains(const void *_chain_a, const void *_chain_b, void *_nop)
 {
-	const struct swt_chain *chain_a = _chain_a;
-	const struct swt_chain *chain_b = _chain_b;
+	struct swt_chain * const *chain_a = _chain_a;
+	struct swt_chain * const *chain_b = _chain_b;
 
-	if (chain_a->dist > chain_b->dist)
+	if ((*chain_a)->dist > (*chain_b)->dist)
 		return 1;
-	if (chain_a->dist < chain_b->dist)
+	if ((*chain_a)->dist < (*chain_b)->dist)
 		return -1;
 	return 0;
 }
@@ -1049,7 +1049,7 @@ static void reverse_chain(struct swt_chain *chain)
 static int merge_chains(struct swt_chains *in_chains)
 {
 	int nb_chains, nb_after;
-	struct swt_chain *chain_i, *chain_j;
+	struct swt_chain *chain_i, *chain_j, *t_chain;
 	struct swt_chain **chains;
 	int i, j;
 	double i_dir_x, i_dir_y, j_dir_x, j_dir_y;
@@ -1067,11 +1067,11 @@ static int merge_chains(struct swt_chains *in_chains)
 	for (chain_i = in_chains->first; chain_i != NULL ; chain_i = chain_i->next)
 		nb_chains++;
 	chains = calloc(nb_chains, sizeof(struct swt_chain *));
-	for (nb_chains = 0, chain_i = in_chains->first;
+	for (i = 0, chain_i = in_chains->first;
 			chain_i != NULL ;
-			chain_i = chain_i->next, nb_chains++) {
+			chain_i = chain_i->next, i++) {
 		chain_i->merged = 0;
-		chains[nb_chains] = chain_i;
+		chains[i] = chain_i;
 	}
 
 	// sort the chains by distance
@@ -1090,7 +1090,7 @@ static int merge_chains(struct swt_chains *in_chains)
 			assert(chain_j->first);
 			assert(chain_j->last);
 
-			if (chain_i->merged || chain_i->merged)
+			if (chain_i->merged || chain_j->merged)
 				continue;
 			if (!CHAINS_SHARE_ONE_END(chain_i, chain_j))
 				continue;
@@ -1109,7 +1109,7 @@ static int merge_chains(struct swt_chains *in_chains)
 				continue;
 
 			// do the merges
-			if (chain_i->first == chain_j->first) {
+			if (chain_i->first->letter == chain_j->first->letter) {
 				// the 2 chains start with the same element
 				// we use the end of one of them as start,
 				// and the end of the other as end
@@ -1117,7 +1117,7 @@ static int merge_chains(struct swt_chains *in_chains)
 				// reverse j
 				reverse_chain(chain_j);
 				// now chains[i]->first == chains[j]->last
-			} else if (chain_i->last == chain_j->last) {
+			} else if (chain_i->last->letter == chain_j->last->letter) {
 				// the 2 chains ends with the same element
 
 				// reverse j
@@ -1125,20 +1125,23 @@ static int merge_chains(struct swt_chains *in_chains)
 				// now chains[i]->last == chains[j]->first
 			}
 
-			if (chain_i->last == chain_j->first) {
+			if (chain_i->last->letter == chain_j->first->letter) {
 				// flips the pointers for convenience
 				// now: chain_i->first == chain_j->last
+				t_chain = chain_i;
+				chain_i = chain_j;
+				chain_j = t_chain;
 			}
 
-			if (chain_i->first == chain_j->last) {
-				// merge
-				// make j followed by i (free the redundant letter link)
-				free(chain_i->first);
-				chain_j->last->next = chain_i->first->next;
-				// make i start where j starts
-				chain_i->first = chain_j->first;
-				chain_j->merged = 1; // do not use again
-			}
+			assert(chain_i->first->letter == chain_j->last->letter);
+
+			// merge
+			// make j followed by i (free the redundant letter link)
+			chain_j->last->next = chain_i->first->next;
+			free(chain_i->first);
+			// make i start where j starts
+			chain_i->first = chain_j->first;
+			chain_j->merged = 1; // do not use again
 
 			// recompute the chain stats
 

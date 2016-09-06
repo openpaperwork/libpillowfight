@@ -1296,7 +1296,7 @@ void pf_swt(const struct pf_bitmap *img_in, struct pf_bitmap *img_out)
 	PRINT_TIME_FN();
 
 	// Gaussian on the image
-	out = pf_gaussian_on_matrix(&in, 0.0, 5);
+	out = pf_gaussian_on_matrix(&in, 0.0, 3);
 	DUMP_MATRIX("swt_0003_gaussian", &out, 1.0);
 	PRINT_TIME_FN();
 

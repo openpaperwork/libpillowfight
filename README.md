@@ -1,4 +1,345 @@
 # pillowfight
 
-Various image processing algorithms.
-Includes Python bindings designed to operate on Pillow images.
+Library containing various image processing algorithms.
+It includes Python 3 bindings designed to operate on Pillow images (PIL.Image).
+
+The C library depends only on the libc.
+The Python bindings depend only on Pillow.
+
+APIs are designed to be as simple to use as possible. Default values are provided
+for every parameters.
+
+Python 2.x is *not* supported.
+
+Available algorithms are listed below.
+
+
+## Python API
+
+The Python API can be compiled, installed and used without install the C library.
+
+### Installation
+
+```sh
+$ sudo python3 ./setup.py install
+```
+
+### Usage
+
+For each algorithm, a function is available. It takes a PIL.Image instance as parameter.
+It may take other optionnal parameters. The return value is another PIL.Image instance.
+
+Example:
+
+```py
+import pillowfight
+
+input_img = PIL.Image.open("tests/data/brightness_problem.jpg")
+output_img = pillowfight.ace(input_img)
+```
+
+### Tests
+
+```sh
+$ sudo python3 ./setup.py nosetests
+```
+
+
+## C API
+
+### Installation
+
+```sh
+$ mkdir cbuild
+$ cd cbuild
+$ cmake ..
+$ make -j4
+$ sudo make install
+```
+
+### Usage
+
+For each algorithm, a function is available. It takes a ```struct pf_bitmap```
+as input. As output, it fills in another ```struct pf_bitmap```.
+
+```struct pf_bitmap``` is a really simple structure:
+
+```C
+struct pf_bitmap {
+	struct {
+		int x;
+		int y;
+	} size;
+	union pf_pixel *pixels;
+};
+```
+
+```(struct pf_bitmap).size.x``` is the width of the image.
+
+```(struct pf_bitmap).size.y``` is the height of the image.
+
+```union pf_pixel``` are basically 32 bits integers, defined in a manner convenient
+to retrieve each color independantly (RGB). Each color is on one byte. 4 byte is
+unused (no alpha channel taken into account).
+
+```(struct pf_bitmap).pixels``` must points to a memory area containing the image.
+The image must contains ```x * y``` ```union pf_pixel```.
+
+
+## Available algorithms
+
+### Automatic Color Equalization (ACE)
+
+This algorithm is quite slow (~40s for one big image with one thred
+on my machine). So this version is parallelized.
+
+#### Python API
+
+```py
+out_img = pillowfight.ace(img_in,
+	slope=10,
+	limit=1000,
+	samples=100,
+	seed=None)
+```
+
+Use as many threads as there are cores on the computer (up to 32).
+
+#### C API
+
+```C
+#define PF_DEFAULT_ACE_SLOPE 10
+#define PF_DEFAULT_ACE_LIMIT 1000
+#define PF_DEFAULT_ACE_NB_SAMPLES 100
+#define PF_DEFAULT_ACE_NB_THREADS 2
+extern void pf_ace(const struct pf_bitmap *in, struct pf_bitmap *out,
+		int nb_samples, double slope, double limit,
+		int nb_threads);
+```
+
+
+#### Sources
+
+* "A new algorithm for unsupervised global and local color correction." - A. Rizzi, C. Gatta and D. Marini
+* http://argmax.jp/index.php?colorcorrect
+
+
+### Canny
+
+#### Python API
+
+```py
+img_out = pillowfight.canny(img_in)
+```
+
+
+#### C API
+
+```C
+extern void pf_canny(const struct pf_bitmap *in, struct pf_bitmap *out);
+```
+
+
+#### Sources
+
+* "A computational Approach to Edge Detection" - John Canny
+* https://en.wikipedia.org/wiki/Canny_edge_detector
+
+
+### Gaussian
+
+#### Python API
+
+```py
+img_out = pillowfight.gaussian(img_in, sigma=2.0, nb_stddev=5)
+```
+
+
+#### C API
+
+```
+extern void pf_gaussian(const struct pf_bitmap *in, struct pf_bitmap *out,
+	double sigma, int nb_stddev);
+```
+
+
+#### Sources
+
+* https://en.wikipedia.org/wiki/Gaussian_blur
+* https://en.wikipedia.org/wiki/Gaussian_function
+
+
+### Sobel operator
+
+#### Python API
+
+```py
+img_out = pillowfight.sobel(img_in)
+```
+
+
+#### C API
+
+```C
+extern void pf_sobel(const struct pf_bitmap *in_img, struct pf_bitmap *out_img);
+```
+
+
+#### Sources
+
+* https://www.researchgate.net/publication/239398674_An_Isotropic_3_3_Image_Gradient_Operator
+* https://en.wikipedia.org/wiki/Sobel_operator
+
+
+### Stroke Width Transformation
+
+#### Python API
+
+```py
+img_out = pillowfight.swt(img_in)
+```
+
+
+#### C API
+
+```C
+extern void pf_swt(const struct pf_bitmap *in_img, struct pf_bitmap *out_img);
+```
+
+
+#### Sources
+
+* ["Detecting Text in Natural Scenes with Stroke Width Transform"](http://cmp.felk.cvut.cz/~cernyad2/TextCaptchaPdf/Detecting%20Text%20in%20Natural%20Scenes%20with%20Stroke%20Width%20Transform.pdf) - Boris Epshtein, Eyal Ofek, Yonatan Wexler
+* https://github.com/aperrau/DetectText
+
+
+### Unpaper's Blackfilter
+
+#### Python API
+
+```py
+img_out = pillowfight.unpaper_blackfilter(img_in)
+```
+
+
+#### C API
+
+```C
+extern void pf_unpaper_blackfilter(const struct pf_bitmap *in, struct pf_bitmap *out);
+```
+
+
+#### Sources
+
+* https://github.com/Flameeyes/unpaper
+* https://github.com/Flameeyes/unpaper/blob/master/doc/basic-concepts.md
+
+
+### Unpaper's Blurfilter
+
+#### Python API
+
+```py
+img_out = pillowfight.unpaper_blurfilter(img_in)
+```
+
+
+#### C API
+
+```C
+extern void pf_unpaper_blurfilter(const struct pf_bitmap *in, struct pf_bitmap *out);
+```
+
+
+#### Sources
+
+* https://github.com/Flameeyes/unpaper
+* https://github.com/Flameeyes/unpaper/blob/master/doc/basic-concepts.md
+
+
+### Unpaper's Border
+
+#### Python API
+
+```py
+img_out = pillowfight.unpaper_border(img_in)
+```
+
+
+#### C API
+
+```C
+extern void pf_unpaper_border(const struct pf_bitmap *in, struct pf_bitmap *out);
+```
+
+
+#### Sources
+
+* https://github.com/Flameeyes/unpaper
+* https://github.com/Flameeyes/unpaper/blob/master/doc/basic-concepts.md
+
+
+### Unpaper's Grayfilter
+
+#### Python API
+
+```py
+img_out = pillowfight.unpaper_grayfilter(img_in)
+```
+
+
+#### C API
+
+```C
+extern void pf_unpaper_grayfilter(const struct pf_bitmap *in, struct pf_bitmap *out);
+```
+
+
+#### Sources
+
+* https://github.com/Flameeyes/unpaper
+* https://github.com/Flameeyes/unpaper/blob/master/doc/basic-concepts.md
+
+
+### Unpaper's Masks
+
+#### Python API
+
+```py
+img_out = pillowfight.unpaper_masks(img_in)
+```
+
+
+#### C API
+
+```C
+extern void pf_unpaper_masks(const struct pf_bitmap *in, struct pf_bitmap *out);
+```
+
+
+#### Sources
+
+* https://github.com/Flameeyes/unpaper
+* https://github.com/Flameeyes/unpaper/blob/master/doc/basic-concepts.md
+
+
+### Unpaper's Noisefilter
+
+#### Python API
+
+```py
+img_out = pillowfight.unpaper_noisefilter(img_in)
+```
+
+
+#### C API
+
+```C
+extern void pf_unpaper_noisefilter(const struct pf_bitmap *in, struct pf_bitmap *out);
+```
+
+
+#### Sources
+
+* https://github.com/Flameeyes/unpaper
+* https://github.com/Flameeyes/unpaper/blob/master/doc/basic-concepts.md

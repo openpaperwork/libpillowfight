@@ -34,8 +34,8 @@
 #include "_pymod.h"
 #endif
 
-#define PRINT_TIME 1
-#define OUTPUT_INTERMEDIATE_IMGS 1
+#define PRINT_TIME 0
+#define OUTPUT_INTERMEDIATE_IMGS 0
 
 
 /*!

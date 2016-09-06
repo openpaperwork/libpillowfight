@@ -6,7 +6,7 @@ set(CMAKE_BUILD_TYPE Release)
 add_definitions(-DNO_PYTHON)
 include_directories(include)
 
-add_library(libpillowfight SHARED
+add_library(pillowfight SHARED
 	src/pillowfight/_ace.c
 	src/pillowfight/_blackfilter.c
 	src/pillowfight/_blurfilter.c
@@ -18,4 +18,12 @@ add_library(libpillowfight SHARED
 	src/pillowfight/_noisefilter.c
 	src/pillowfight/_sobel.c
 	src/pillowfight/util.c
+)
+
+install (TARGETS pillowfight DESTINATION lib)
+install (FILES
+	include/pillowfight/pillowfight.h
+	include/pillowfight/util.h
+	DESTINATION
+	include/pillowfight
 )

@@ -86,6 +86,31 @@ unused (no alpha channel taken into account).
 The image must contains ```x * y * union pf_pixel```.
 
 
+## Unpaper's algorithm
+
+Many algorithms in this library are re-implementations of algorithms used
+by [Unpaper](https://github.com/Flameeyes/unpaper). To make the API simpler
+to use (.. and implement), a lot of settings have been hard-coded.
+
+Unpaper applies them in the following order:
+
+* Blackfilter
+* Noisefilter
+* Blurfilter
+* Masks
+* Grayfilter
+* Border
+
+I would advise applying automatic color equalization (ACE) first.
+
+A basic documentation for some of the algorithms can be found in
+[Unpaper's documentation](https://github.com/Flameeyes/unpaper/blob/master/doc/basic-concepts.md).
+
+| Input | Output |
+| ----- | ------ |
+| [Black border problem](https://raw.githubusercontent.com/jflesch/libpillowfight/master/tests/data/black_border_problem.jpg) | [ACE + Unpapered](https://raw.githubusercontent.com/jflesch/libpillowfight/master/tests/data/black_border_problem_all.jpg) |
+| [Brightness problem](https://raw.githubusercontent.com/jflesch/libpillowfight/master/tests/data/brightness_problem.jpg) | [ACE + Unpapered](https://raw.githubusercontent.com/jflesch/libpillowfight/master/tests/data/brightness_problem_all.jpg) |
+
 ## Available algorithms
 
 ### Automatic Color Equalization (ACE)

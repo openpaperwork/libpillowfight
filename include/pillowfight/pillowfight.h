@@ -78,6 +78,11 @@ struct pf_dbl_matrix {
 
 
 #ifdef NO_PYTHON
+
+#define PF_DEFAULT_ACE_SLOPE 10
+#define PF_DEFAULT_ACE_LIMIT 1000
+#define PF_DEFAULT_ACE_NB_SAMPLES 100
+#define PF_DEFAULT_ACE_NB_THREADS 2
 extern void pf_ace(const struct pf_bitmap *in, struct pf_bitmap *out,
 		int nb_samples, double slope, double limit,
 		int nb_threads);
@@ -91,15 +96,15 @@ extern struct pf_dbl_matrix pf_canny_on_matrix(const struct pf_dbl_matrix *in);
 #define PF_GAUSSIAN_DEFAULT_NB_STDDEV 5
 
 #ifdef NO_PYTHON
-extern void pf_gaussian(const struct pf_bitmap *in, struct pf_bitmap *out, double sigma, int nb_stddev);
+extern void pf_gaussian(const struct pf_bitmap *in, struct pf_bitmap *out,
+		double sigma, int nb_stddev);
 #endif
 
 extern struct pf_dbl_matrix pf_gaussian_on_matrix(
-		const struct pf_dbl_matrix *grayscale_matrix, double sigma, int nb_stddev);
+		const struct pf_dbl_matrix *grayscale_matrix,
+		double sigma, int nb_stddev);
 
 #ifdef NO_PYTHON
-extern void pf_grayfilter(const struct pf_bitmap *in, struct pf_bitmap *out);
-
 extern void pf_sobel(const struct pf_bitmap *in_img, struct pf_bitmap *out_img);
 #endif
 
@@ -129,6 +134,8 @@ extern void pf_unpaper_blackfilter(const struct pf_bitmap *in, struct pf_bitmap 
 extern void pf_unpaper_blurfilter(const struct pf_bitmap *in, struct pf_bitmap *out);
 
 extern void pf_unpaper_border(const struct pf_bitmap *in, struct pf_bitmap *out);
+
+extern void pf_unpaper_grayfilter(const struct pf_bitmap *in, struct pf_bitmap *out);
 
 extern void pf_unpaper_masks(const struct pf_bitmap *in, struct pf_bitmap *out);
 

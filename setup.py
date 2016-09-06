@@ -3,12 +3,12 @@
 from setuptools import Extension, setup
 
 setup(
-    name="pypillowfight",
+    name="pillowfight",
     version="0.1.0",
     description=("Extra image processing algorithms on Pillow images"),
     keywords="image processing algorithm pillow pil",
-    url="https://github.com/jflesch/pypillowfight",
-    download_url="https://github.com/jflesch/pypillowfight/archive/v0.1.0.zip",
+    url="https://github.com/jflesch/libpillowfight",
+    download_url="https://github.com/jflesch/libpillowfight/archive/v0.1.0.zip",
     classifiers=[
         "Intended Audience :: Developers",
         "License :: OSI Approved :: GNU General Public License v3 or later"
@@ -23,27 +23,27 @@ setup(
     author="Jerome Flesch",
     author_email="jflesch@gmail.com",
     packages=[
-        'pypillowfight',
+        'pillowfight',
     ],
     package_dir={
-        'pypillowfight': 'src/pypillowfight',
+        'pillowfight': 'src/pillowfight',
     },
     ext_modules=[
         Extension(
-            'pypillowfight._clib', [
-                'src/pypillowfight/util.c',
-                'src/pypillowfight/_ace.c',
-                'src/pypillowfight/_blackfilter.c',
-                'src/pypillowfight/_blurfilter.c',
-                'src/pypillowfight/_border.c',
-                'src/pypillowfight/_canny.c',
-                'src/pypillowfight/_gaussian.c',
-                'src/pypillowfight/_grayfilter.c',
-                'src/pypillowfight/_masks.c',
-                'src/pypillowfight/_noisefilter.c',
-                'src/pypillowfight/_pymod.c',
-                'src/pypillowfight/_sobel.c',
-                'src/pypillowfight/_swt.c',
+            'pillowfight._clib', [
+                'src/pillowfight/util.c',
+                'src/pillowfight/_ace.c',
+                'src/pillowfight/_blackfilter.c',
+                'src/pillowfight/_blurfilter.c',
+                'src/pillowfight/_border.c',
+                'src/pillowfight/_canny.c',
+                'src/pillowfight/_gaussian.c',
+                'src/pillowfight/_grayfilter.c',
+                'src/pillowfight/_masks.c',
+                'src/pillowfight/_noisefilter.c',
+                'src/pillowfight/_pymod.c',
+                'src/pillowfight/_sobel.c',
+                'src/pillowfight/_swt.c',
             ],
             include_dirs=["include"],
             libraries=['m'],

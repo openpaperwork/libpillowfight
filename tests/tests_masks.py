@@ -3,14 +3,14 @@ import unittest
 
 import PIL.Image
 
-import pypillowfight
+import pillowfight
 
 
 class TestMasks(unittest.TestCase):
     def test_masks(self):
         with tempfile.NamedTemporaryFile(suffix='.jpg') as tmpfile:
             in_img = PIL.Image.open("tests/data/black_border_problem2.jpg")
-            out_img = pypillowfight.unpaper_masks(in_img)
+            out_img = pillowfight.unpaper_masks(in_img)
             in_img.close()
 
             # beware of JPG compression

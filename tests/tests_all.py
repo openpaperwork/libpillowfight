@@ -3,7 +3,7 @@ import unittest
 
 import PIL.Image
 
-import pypillowfight
+import pillowfight
 
 
 class TestAll(unittest.TestCase):
@@ -11,15 +11,15 @@ class TestAll(unittest.TestCase):
         with tempfile.NamedTemporaryFile(suffix='.jpg') as tmpfile:
             in_img = PIL.Image.open("tests/data/black_border_problem.jpg")
 
-            out_img = pypillowfight.ace(in_img, seed=0xDEADBEE)
+            out_img = pillowfight.ace(in_img, seed=0xDEADBEE)
 
             # unpaper order
-            out_img = pypillowfight.unpaper_blackfilter(out_img)
-            out_img = pypillowfight.unpaper_noisefilter(out_img)
-            out_img = pypillowfight.unpaper_blurfilter(out_img)
-            out_img = pypillowfight.unpaper_masks(out_img)
-            out_img = pypillowfight.unpaper_grayfilter(out_img)
-            out_img = pypillowfight.unpaper_border(out_img)
+            out_img = pillowfight.unpaper_blackfilter(out_img)
+            out_img = pillowfight.unpaper_noisefilter(out_img)
+            out_img = pillowfight.unpaper_blurfilter(out_img)
+            out_img = pillowfight.unpaper_masks(out_img)
+            out_img = pillowfight.unpaper_grayfilter(out_img)
+            out_img = pillowfight.unpaper_border(out_img)
 
             in_img.close()
 
@@ -38,15 +38,15 @@ class TestAll(unittest.TestCase):
         with tempfile.NamedTemporaryFile(suffix='.jpg') as tmpfile:
             in_img = PIL.Image.open("tests/data/brightness_problem.jpg")
 
-            out_img = pypillowfight.ace(in_img, seed=0xBEEDEAD)
+            out_img = pillowfight.ace(in_img, seed=0xBEEDEAD)
 
             # unpaper order
-            out_img = pypillowfight.unpaper_blackfilter(out_img)
-            out_img = pypillowfight.unpaper_noisefilter(out_img)
-            out_img = pypillowfight.unpaper_blurfilter(out_img)
-            out_img = pypillowfight.unpaper_masks(out_img)
-            out_img = pypillowfight.unpaper_grayfilter(out_img)
-            out_img = pypillowfight.unpaper_border(out_img)
+            out_img = pillowfight.unpaper_blackfilter(out_img)
+            out_img = pillowfight.unpaper_noisefilter(out_img)
+            out_img = pillowfight.unpaper_blurfilter(out_img)
+            out_img = pillowfight.unpaper_masks(out_img)
+            out_img = pillowfight.unpaper_grayfilter(out_img)
+            out_img = pillowfight.unpaper_border(out_img)
 
             in_img.close()
 

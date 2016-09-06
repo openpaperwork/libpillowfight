@@ -3,7 +3,7 @@ import unittest
 
 import PIL.Image
 
-import pypillowfight
+import pillowfight
 
 
 class TestACE(unittest.TestCase):
@@ -12,7 +12,7 @@ class TestACE(unittest.TestCase):
             in_img = PIL.Image.open("tests/data/brightness_problem.jpg")
             expected_img = PIL.Image.open("tests/data/brightness_problem_ace.jpg")
 
-            out_img = pypillowfight.ace(in_img, seed=12345)
+            out_img = pillowfight.ace(in_img, seed=12345)
             in_img.close()
 
             # beware of JPG compression

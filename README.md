@@ -90,8 +90,13 @@ The image must contains ```x * y``` ```union pf_pixel```.
 
 ### Automatic Color Equalization (ACE)
 
+| Input | Output |
+| ----- | ------ |
+| [https://raw.githubusercontent.com/jflesch/libpillowfight/master/tests/data/brightness_problem.jpg](Brightness problem) | [https://raw.githubusercontent.com/jflesch/libpillowfight/master/tests/data/brightness_problem_ace.jpg](Corrected) |
+
 This algorithm is quite slow (~40s for one big image with one thred
 on my machine). So this version is parallelized.
+
 
 #### Python API
 
@@ -124,7 +129,12 @@ extern void pf_ace(const struct pf_bitmap *in, struct pf_bitmap *out,
 * http://argmax.jp/index.php?colorcorrect
 
 
-### Canny
+### Canny's edge detection
+
+| Input | Output |
+| ----- | ------ |
+| [https://raw.githubusercontent.com/jflesch/libpillowfight/master/tests/data/crappy_background.jpg](Crappy background) | [https://raw.githubusercontent.com/jflesch/libpillowfight/master/tests/data/crappy_background_canny.jpg](Canny output) |
+
 
 #### Python API
 
@@ -147,6 +157,11 @@ extern void pf_canny(const struct pf_bitmap *in, struct pf_bitmap *out);
 
 
 ### Gaussian
+
+| Input | Output |
+| ----- | ------ |
+| [https://raw.githubusercontent.com/jflesch/libpillowfight/master/tests/data/crappy_background.jpg](Crappy background) | [https://raw.githubusercontent.com/jflesch/libpillowfight/master/tests/data/crappy_background_gaussian.jpg](Gaussed) |
+
 
 #### Python API
 
@@ -171,6 +186,11 @@ extern void pf_gaussian(const struct pf_bitmap *in, struct pf_bitmap *out,
 
 ### Sobel operator
 
+| Input | Output |
+| ----- | ------ |
+| [https://raw.githubusercontent.com/jflesch/libpillowfight/master/tests/data/crappy_background.jpg](Crappy background) | [https://raw.githubusercontent.com/jflesch/libpillowfight/master/tests/data/crappy_background_sobel.jpg](Sobel) |
+
+
 #### Python API
 
 ```py
@@ -192,6 +212,12 @@ extern void pf_sobel(const struct pf_bitmap *in_img, struct pf_bitmap *out_img);
 
 
 ### Stroke Width Transformation
+
+| Input | Output |
+| ----- | ------ |
+| [https://raw.githubusercontent.com/jflesch/libpillowfight/master/tests/data/black_border_problem.jpg](Black border problem) | [https://raw.githubusercontent.com/jflesch/libpillowfight/master/tests/data/black_border_problem_swt.jpg](SWT) |
+| [https://raw.githubusercontent.com/jflesch/libpillowfight/master/tests/data/crappy_background.jpg](Crappy background) | [https://raw.githubusercontent.com/jflesch/libpillowfight/master/tests/data/crappy_background_swt.jpg](SWT) |
+
 
 #### Python API
 
@@ -215,6 +241,11 @@ extern void pf_swt(const struct pf_bitmap *in_img, struct pf_bitmap *out_img);
 
 ### Unpaper's Blackfilter
 
+| Input | Output |
+| ----- | ------ |
+| [https://raw.githubusercontent.com/jflesch/libpillowfight/master/tests/data/black_border_problem.jpg](Black border problem) | [https://raw.githubusercontent.com/jflesch/libpillowfight/master/tests/data/black_border_problem_blackfilter.jpg](Filtered) |
+
+
 #### Python API
 
 ```py
@@ -236,6 +267,11 @@ extern void pf_unpaper_blackfilter(const struct pf_bitmap *in, struct pf_bitmap 
 
 
 ### Unpaper's Blurfilter
+
+| Input | Output |
+| ----- | ------ |
+| [https://raw.githubusercontent.com/jflesch/libpillowfight/master/tests/data/black_border_problem.jpg](Black border problem) | [https://raw.githubusercontent.com/jflesch/libpillowfight/master/tests/data/black_border_problem_blurfilter.jpg](Filtered) |
+
 
 #### Python API
 
@@ -259,6 +295,11 @@ extern void pf_unpaper_blurfilter(const struct pf_bitmap *in, struct pf_bitmap *
 
 ### Unpaper's Border
 
+| Input | Output |
+| ----- | ------ |
+| [https://raw.githubusercontent.com/jflesch/libpillowfight/master/tests/data/black_border_problem3.jpg](Black border problem 3) | [https://raw.githubusercontent.com/jflesch/libpillowfight/master/tests/data/black_border_problem3_border.jpg](Border) |
+
+
 #### Python API
 
 ```py
@@ -280,6 +321,11 @@ extern void pf_unpaper_border(const struct pf_bitmap *in, struct pf_bitmap *out)
 
 
 ### Unpaper's Grayfilter
+
+| Input | Output |
+| ----- | ------ |
+| [https://raw.githubusercontent.com/jflesch/libpillowfight/master/tests/data/black_border_problem.jpg](Black border problem 3) | [https://raw.githubusercontent.com/jflesch/libpillowfight/master/tests/data/black_border_problem_grayfilter.jpg](Filtered) |
+
 
 #### Python API
 
@@ -303,6 +349,11 @@ extern void pf_unpaper_grayfilter(const struct pf_bitmap *in, struct pf_bitmap *
 
 ### Unpaper's Masks
 
+| Input | Output |
+| ----- | ------ |
+| [https://raw.githubusercontent.com/jflesch/libpillowfight/master/tests/data/black_border_problem2.jpg](Black border problem 2) | [https://raw.githubusercontent.com/jflesch/libpillowfight/master/tests/data/black_border_problem2_masks.jpg](Masks) |
+
+
 #### Python API
 
 ```py
@@ -324,6 +375,11 @@ extern void pf_unpaper_masks(const struct pf_bitmap *in, struct pf_bitmap *out);
 
 
 ### Unpaper's Noisefilter
+
+| Input | Output |
+| ----- | ------ |
+| [https://raw.githubusercontent.com/jflesch/libpillowfight/master/tests/data/black_border_problem.jpg](Black border problem) | [https://raw.githubusercontent.com/jflesch/libpillowfight/master/tests/data/black_border_problem_noisefilter.jpg](Filtered) |
+
 
 #### Python API
 

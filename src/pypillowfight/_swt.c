@@ -1219,20 +1219,21 @@ static inline int get_nb_links(const struct swt_chain *chain)
 
 /* \brief renders the letter in black and white (no gray)
  */
-static int render_chains(struct pf_bitmap *out, const struct swt_chains *chains)
+static int render_chains(
+		const struct pf_bitmap *in,
+		struct pf_bitmap *out,
+		const struct swt_chains *chains
+	)
 {
 	const struct swt_chain *chain;
 	const struct swt_link *link;
-	const struct swt_points *letter;
-	const struct swt_point *pt;
+	const struct swt_letter_stats *stats;
 	int nb_letters = 0;
-	int pt_idx;
-	union pf_pixel black_pixel;
+	uint32_t pixel;
+	int min_x, max_x, min_y, max_y;
+	int x, y;
 
 #define MIN_COMPONENTS 3
-
-	black_pixel.whole = PF_BLACK;
-	black_pixel.color.a = 0xFF;
 
 	// put default color everywhere
 	memset(
@@ -1245,15 +1246,25 @@ static int render_chains(struct pf_bitmap *out, const struct swt_chains *chains)
 		if (get_nb_links(chain) < MIN_COMPONENTS)
 			continue;
 
+		min_x = INT_MAX;
+		max_x = -INT_MAX;
+		min_y = INT_MAX;
+		max_y = -INT_MAX;
+
 		for (link = chain->first ; link != NULL ; link = link->next) {
-			letter = link->letter;
-
-			for (pt_idx = 0 ; pt_idx < letter->nb_points ; pt_idx++) {
-				pt = &letter->points[pt_idx];
-				PF_SET_PIXEL(out, pt->x, pt->y, black_pixel.whole);
-			}
-
+			stats = link->stats;
+			min_x = MIN(min_x, stats->min.x);
+			max_x = MAX(max_x, stats->max.x);
+			min_y = MIN(min_y, stats->min.y);
+			max_y = MAX(max_y, stats->max.y);
 			nb_letters++;
+		}
+
+		for (x = min_x ; x < max_x ; x++) {
+			for (y = min_y ; y < max_y ; y++) {
+				pixel = PF_GET_PIXEL(in, x, y).whole;
+				PF_SET_PIXEL(out, x, y, pixel);
+			}
 		}
 	}
 
@@ -1402,7 +1413,7 @@ void pf_swt(const struct pf_bitmap *img_in, struct pf_bitmap *img_out)
 
 	PRINT_TIME_FN();
 
-	x = render_chains(img_out, &chains);
+	x = render_chains(img_in, img_out, &chains);
 #if OUTPUT_INTERMEDIATE_IMGS == 1
 	fprintf(stderr, "SWT> %d letters rendered\n", x);
 #endif

@@ -197,9 +197,18 @@ static void free_rays(struct swt_points *rays)
 static struct swt_adjacencies init_adjacencies(int x, int y)
 {
 	struct swt_adjacencies adjs;
+	struct swt_adjacency *adj_pt;
+
 	adjs.size.x = x;
 	adjs.size.y = y;
 	adjs.adjacencies = calloc(x * y, sizeof(struct swt_adjacency));
+	for (x = 0 ; x < adjs.size.x ; x++) {
+		for (y = 0 ; y < adjs.size.y ; y++) {
+			adj_pt = SWT_GET_ADJACENCY(&adjs, x, y);
+			adj_pt->pt.x = x;
+			adj_pt->pt.y = y;
+		}
+	}
 	return adjs;
 }
 
@@ -302,6 +311,7 @@ static inline int follow_stroke(
 		if (IS_EDGE_LINE(PF_MATRIX_GET(edge, current_pt.x, current_pt.y))) {
 			break;
 		}
+
 	}
 
 	assert(current_pt.x != x || current_pt.y != y);
@@ -491,14 +501,6 @@ static struct swt_adjacencies make_adjacencies_list(const struct pf_dbl_matrix *
 	double val, val_neighboor;
 
 	adjs = init_adjacencies(swt->size.x, swt->size.y);
-
-	for (x = 0 ; x < adjs.size.x ; x++) {
-		for (y = 0 ; y < adjs.size.y ; y++) {
-			adj_pt = SWT_GET_ADJACENCY(&adjs, x, y);
-			adj_pt->pt.x = x;
-			adj_pt->pt.y = y;
-		}
-	}
 
 	// fill in the adjacency list
 	for (x = 0 ; x < adjs.size.x ; x++) {

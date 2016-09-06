@@ -34,8 +34,8 @@
 #include "_pymod.h"
 #endif
 
-#define PRINT_TIME 0
-#define OUTPUT_INTERMEDIATE_IMGS 0
+#define PRINT_TIME 1
+#define OUTPUT_INTERMEDIATE_IMGS 1
 
 
 /*!
@@ -752,10 +752,12 @@ static int is_valid_letter(const struct pf_dbl_matrix *swt,
 		struct swt_points *points,
 		struct swt_letter_stats *stats)
 {
+#define MAX_Y_RATIO 0.15 // ratio to the image size
+
 	if (stats->variance > 0.5 * stats->means.swt)
 		return 0;
 	// Jflesch> Assumption: Writing is horizontal
-	if (SWT_STATS_DIMENSION(stats, y) > 300)
+	if (((double)SWT_STATS_DIMENSION(stats, y)) / swt->size.y > MAX_Y_RATIO)
 		return 0;
 	if (!check_ratio(points, stats)) {
 		return 0;
@@ -804,6 +806,8 @@ static struct swt_letters filter_letters_by_center(const struct swt_letters *pos
 	int i, j, count;
 	struct swt_letter_stats *stats_i, *stats_j;
 
+#define MAX_COUNT 3
+
 	out.nb_letters = 0;
 	out.letters = calloc(possible_letters->nb_letters, sizeof(struct swt_points *));
 	out.stats = calloc(possible_letters->nb_letters, sizeof(struct swt_letter_stats));
@@ -824,7 +828,7 @@ static struct swt_letters filter_letters_by_center(const struct swt_letters *pos
 			}
 		}
 
-		if (count < 2) {
+		if (count < 3) {
 			out.letters[out.nb_letters] = possible_letters->letters[i];
 			memcpy(&out.stats[out.nb_letters], &possible_letters->stats[i],
 				sizeof(out.stats[out.nb_letters]));

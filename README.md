@@ -241,9 +241,9 @@ extern void pf_swt(const struct pf_bitmap *in_img, struct pf_bitmap *out_img);
 
 ### Unpaper's Blackfilter
 
-| Input | Output |
-| ----- | ------ |
-| [Black border problem](https://raw.githubusercontent.com/jflesch/libpillowfight/master/tests/data/black_border_problem.jpg) | [Filtered](https://raw.githubusercontent.com/jflesch/libpillowfight/master/tests/data/black_border_problem_blackfilter.jpg) |
+| Input | Output | Diff |
+| ----- | ------ | ---- |
+| [Black border problem](https://raw.githubusercontent.com/jflesch/libpillowfight/master/tests/data/black_border_problem.jpg) | [Filtered](https://raw.githubusercontent.com/jflesch/libpillowfight/master/tests/data/black_border_problem_blackfilter.jpg) | [Diff](https://raw.githubusercontent.com/jflesch/libpillowfight/master/tests/data/black_border_problem_blackfilter_diff.jpg) |
 
 
 #### Python API
@@ -268,9 +268,9 @@ extern void pf_unpaper_blackfilter(const struct pf_bitmap *in, struct pf_bitmap 
 
 ### Unpaper's Blurfilter
 
-| Input | Output |
-| ----- | ------ |
-| [Black border problem](https://raw.githubusercontent.com/jflesch/libpillowfight/master/tests/data/black_border_problem.jpg) | [Filtered](https://raw.githubusercontent.com/jflesch/libpillowfight/master/tests/data/black_border_problem_blurfilter.jpg) |
+| Input | Output | Diff |
+| ----- | ------ | ---- |
+| [Black border problem](https://raw.githubusercontent.com/jflesch/libpillowfight/master/tests/data/black_border_problem.jpg) | [Filtered](https://raw.githubusercontent.com/jflesch/libpillowfight/master/tests/data/black_border_problem_blurfilter.jpg) | [Diff](https://raw.githubusercontent.com/jflesch/libpillowfight/master/tests/data/black_border_problem_blurfilter_diff.jpg) |
 
 
 #### Python API
@@ -295,9 +295,9 @@ extern void pf_unpaper_blurfilter(const struct pf_bitmap *in, struct pf_bitmap *
 
 ### Unpaper's Border
 
-| Input | Output |
-| ----- | ------ |
-| [Black border problem 3](https://raw.githubusercontent.com/jflesch/libpillowfight/master/tests/data/black_border_problem3.jpg) | [Border](https://raw.githubusercontent.com/jflesch/libpillowfight/master/tests/data/black_border_problem3_border.jpg) |
+| Input | Output | Diff |
+| ----- | ------ | ---- |
+| [Black border problem 3](https://raw.githubusercontent.com/jflesch/libpillowfight/master/tests/data/black_border_problem3.jpg) | [Border](https://raw.githubusercontent.com/jflesch/libpillowfight/master/tests/data/black_border_problem3_border.jpg) | [Diff](https://raw.githubusercontent.com/jflesch/libpillowfight/master/tests/data/black_border_problem3_border_diff.jpg) |
 
 
 #### Python API
@@ -322,9 +322,9 @@ extern void pf_unpaper_border(const struct pf_bitmap *in, struct pf_bitmap *out)
 
 ### Unpaper's Grayfilter
 
-| Input | Output |
-| ----- | ------ |
-| [Black border problem 3](https://raw.githubusercontent.com/jflesch/libpillowfight/master/tests/data/black_border_problem.jpg) | [Filterd](https://raw.githubusercontent.com/jflesch/libpillowfight/master/tests/data/black_border_problem_grayfilter.jpg) |
+| Input | Output | Diff |
+| ----- | ------ | ---- |
+| [Black border problem 3](https://raw.githubusercontent.com/jflesch/libpillowfight/master/tests/data/black_border_problem.jpg) | [Filterd](https://raw.githubusercontent.com/jflesch/libpillowfight/master/tests/data/black_border_problem_grayfilter.jpg) | [Diff](https://raw.githubusercontent.com/jflesch/libpillowfight/master/tests/data/black_border_problem_grayfilter_diff.jpg) |
 
 
 #### Python API
@@ -349,9 +349,9 @@ extern void pf_unpaper_grayfilter(const struct pf_bitmap *in, struct pf_bitmap *
 
 ### Unpaper's Masks
 
-| Input | Output |
-| ----- | ------ |
-| [Black border problem 2](https://raw.githubusercontent.com/jflesch/libpillowfight/master/tests/data/black_border_problem2.jpg) | [Masks](https://raw.githubusercontent.com/jflesch/libpillowfight/master/tests/data/black_border_problem2_masks.jpg) |
+| Input | Output | Diff |
+| ----- | ------ | ---- |
+| [Black border problem 2](https://raw.githubusercontent.com/jflesch/libpillowfight/master/tests/data/black_border_problem2.jpg) | [Masks](https://raw.githubusercontent.com/jflesch/libpillowfight/master/tests/data/black_border_problem2_masks.jpg) | [Diff](https://raw.githubusercontent.com/jflesch/libpillowfight/master/tests/data/black_border_problem2_masks_diff.jpg) |
 
 
 #### Python API
@@ -376,9 +376,9 @@ extern void pf_unpaper_masks(const struct pf_bitmap *in, struct pf_bitmap *out);
 
 ### Unpaper's Noisefilter
 
-| Input | Output |
-| ----- | ------ |
-| [Black border problem](https://raw.githubusercontent.com/jflesch/libpillowfight/master/tests/data/black_border_problem.jpg) | [Filtered](https://raw.githubusercontent.com/jflesch/libpillowfight/master/tests/data/black_border_problem_noisefilter.jpg) |
+| Input | Output | Diff |
+| ----- | ------ | ---- |
+| [Black border problem](https://raw.githubusercontent.com/jflesch/libpillowfight/master/tests/data/black_border_problem.jpg) | [Filtered](https://raw.githubusercontent.com/jflesch/libpillowfight/master/tests/data/black_border_problem_noisefilter.jpg) | [Diff](https://raw.githubusercontent.com/jflesch/libpillowfight/master/tests/data/black_border_problem_noisefilter_diff.jpg) |
 
 
 #### Python API

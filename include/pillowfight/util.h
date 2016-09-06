@@ -23,23 +23,7 @@
 #include <Python.h>
 #endif
 
-/*!<
- * - Everything here assume we work with RGBA images
- * - In position (x, y): x = width, y = height.
- */
-
-enum pf_color {
-	COLOR_R = 0,
-	COLOR_G,
-	COLOR_B,
-	COLOR_A,
-};
-#define PF_NB_COLORS 4 /* to align on 32bits */
-#define PF_NB_RGB_COLORS 3 /* when we want explicitly to ignore the alpha channel */
-
-#define PF_WHITE 0xFF
-#define PF_WHOLE_WHITE 0xFFFFFFFF
-#define PF_BLACK 0x00
+#include <pillowfight/pillowfight.h>
 
 // Careful: double evaluation !
 #ifndef MIN
@@ -57,46 +41,7 @@ enum pf_color {
 #define MIN3(a, b, c) MIN(a, MIN(b, c))
 #endif
 
-#define IS_IN(v, a, b) ((a) <= (v) && (v) < (b))
-
-union pf_pixel {
-	uint32_t whole;
-	struct {
-		uint8_t r;
-		uint8_t g;
-		uint8_t b;
-		uint8_t a;
-	} color;
-	uint8_t channels[4];
-};
-
-
-struct pf_bitmap {
-	struct {
-		size_t x;
-		size_t y;
-	} size;
-	union pf_pixel *pixels;
-};
-
-/*!
- * \returns a uint32_t (RGBA)
- */
-#define PF_GET_PIXEL(bitmap, a, b) ((bitmap)->pixels[((b) * (bitmap)->size.x) + (a)])
-#define PF_GET_PIXEL_DEF(bitmap, a, b, def) \
-	((a < 0 || a >= bitmap->size.x) ? def : \
-	 ((b < 0 || b >= bitmap->size.y) ? def : \
-	  PF_GET_PIXEL(bitmap, a, b)))
-
-#define PF_SET_PIXEL(bitmap, a, b, value) PF_GET_PIXEL(bitmap, a, b).whole = (value);
-
-/*!
- * \returns a uint8_t
- */
-#define PF_GET_COLOR(bitmap, a, b, color) (PF_GET_PIXEL(bitmap, a, b).channels[(color)])
-#define PF_GET_COLOR_DEF(bitmap, a, b, color, def) (PF_GET_PIXEL_DEF(bitmap, a, b, def).channels[(color)])
-
-#define PF_SET_COLOR(bitmap, a, b, color, value) (PF_GET_PIXEL(bitmap, a, b).channels[(color)]) = (value)
+#define PF_IS_IN(v, a, b) ((a) <= (v) && (v) < (b))
 
 // Careful : multiple evaluation !
 #define PF_GET_PIXEL_DARKNESS_INVERSE(img, x, y) \
@@ -119,20 +64,6 @@ struct pf_bitmap {
 	)
 
 #define PF_COUNT_OF(x) (sizeof(x) / sizeof(x[0]))
-
-/*!
- * \brief matrix of integers
- */
-struct pf_dbl_matrix {
-	struct {
-		int x;
-		int y;
-	} size;
-	double *values;
-};
-
-#define PF_MATRIX_GET(matrix, a, b) ((matrix)->values[((b) * (matrix)->size.x) + (a)])
-#define PF_MATRIX_SET(matrix, a, b, val) PF_MATRIX_GET(matrix, a, b) = (val);
 
 
 struct pf_rectangle {

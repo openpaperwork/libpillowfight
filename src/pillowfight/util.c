@@ -93,7 +93,8 @@ void pf_apply_mask(struct pf_bitmap *img, const struct pf_rectangle *mask) {
 
 	for (y=0 ; y < img->size.y ; y++) {
 		for (x=0 ; x < img->size.x ; x++) {
-			if (!(IS_IN(x, mask->a.x, mask->b.x) && IS_IN(y, mask->a.y, mask->b.y))) {
+			if (!(PF_IS_IN(x, mask->a.x, mask->b.x)
+					&& PF_IS_IN(y, mask->a.y, mask->b.y))) {
 				PF_SET_PIXEL(img, x, y, PF_WHOLE_WHITE);
 			}
 		}
@@ -300,7 +301,7 @@ void pf_write_bitmap_to_ppm(const char *filepath, const struct pf_bitmap *in)
 	}
 
 	fprintf(fp, "P6\n");
-	fprintf(fp, "%zd %zd\n", in->size.x, in->size.y);
+	fprintf(fp, "%d %d\n", in->size.x, in->size.y);
 	fprintf(fp, "255\n");
 
 	for (y = 0 ; y < in->size.y ; y++) {

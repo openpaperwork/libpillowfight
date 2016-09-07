@@ -263,7 +263,9 @@ PyObject *pyblackfilter(PyObject *self, PyObject* args)
 	bitmap_in = from_py_buffer(&img_in, img_x, img_y);
 	bitmap_out = from_py_buffer(&img_out, img_x, img_y);
 
+	Py_BEGIN_ALLOW_THREADS;
 	pf_unpaper_blackfilter(&bitmap_in, &bitmap_out);
+	Py_END_ALLOW_THREADS;
 
 	PyBuffer_Release(&img_in);
 	PyBuffer_Release(&img_out);

@@ -369,7 +369,9 @@ PyObject *pyace(PyObject *self, PyObject* args)
 	bitmap_in = from_py_buffer(&img_in, img_x, img_y);
 	bitmap_out = from_py_buffer(&img_out, img_x, img_y);
 
+	Py_BEGIN_ALLOW_THREADS;
 	pf_ace(&bitmap_in, &bitmap_out, samples, slope, limit, nb_threads);
+	Py_END_ALLOW_THREADS;
 
 	PyBuffer_Release(&img_in);
 	PyBuffer_Release(&img_out);

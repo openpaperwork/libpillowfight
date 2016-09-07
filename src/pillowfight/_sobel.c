@@ -232,7 +232,9 @@ PyObject *pysobel(PyObject *self, PyObject* args)
 	bitmap_out = from_py_buffer(&img_out, img_x, img_y);
 
 	memset(bitmap_out.pixels, 0xFFFFFFFF, img_out.len);
+	Py_BEGIN_ALLOW_THREADS;
 	pf_sobel(&bitmap_in, &bitmap_out);
+	Py_END_ALLOW_THREADS;
 
 	PyBuffer_Release(&img_in);
 	PyBuffer_Release(&img_out);

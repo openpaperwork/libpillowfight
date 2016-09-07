@@ -255,7 +255,7 @@ extern void pf_sobel(const struct pf_bitmap *in_img, struct pf_bitmap *out_img);
 
 ### Stroke Width Transformation
 
-This algorithm extract text from natural scenes images.
+This algorithm extracts text from natural scenes images.
 
 To find text, it looks for strokes. Note that it doesn't appear to work well on
 scanned documents because strokes are too small.
@@ -281,7 +281,7 @@ This implementation can provide the output in 3 different ways:
 # SWT_OUTPUT_GRAYSCALE_TEXT = 1
 # SWT_OUTPUT_ORIGINAL_BOXES = 2
 
-img_out = pillowfight.swt(img_in, output_type=SWT_OUTPUT_ORIGINAL_BOXES)
+img_out = pillowfight.swt(img_in, output_type=pillowfight.SWT_OUTPUT_ORIGINAL_BOXES)
 ```
 
 

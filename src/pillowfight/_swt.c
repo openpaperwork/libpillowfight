@@ -1220,6 +1220,7 @@ static inline int get_nb_links(const struct swt_chain *chain)
 /* \brief renders the letter in black and white (no gray)
  */
 static int render_chains(
+		const struct pf_dbl_matrix *swt,
 		const struct pf_bitmap *in,
 		struct pf_bitmap *out,
 		const struct swt_chains *chains
@@ -1227,46 +1228,45 @@ static int render_chains(
 {
 	const struct swt_chain *chain;
 	const struct swt_link *link;
-	const struct swt_letter_stats *stats;
+	const struct swt_points *letter;
+	const struct swt_point *pt;
+	struct pf_dbl_matrix out_val;
+	struct pf_dbl_matrix grayscale;
 	int nb_letters = 0;
-	uint32_t pixel;
-	int min_x, max_x, min_y, max_y;
-	int x, y;
+	int x;
+	double val;
 
 #define MIN_COMPONENTS 3
 
-	// put default color everywhere
-	memset(
-			out->pixels, PF_WHOLE_WHITE,
-			out->size.x * out->size.y * sizeof(union pf_pixel)
-	      );
+	out_val = pf_dbl_matrix_new(in->size.x, in->size.y);
 
 	for (chain = chains->first ; chain != NULL ; chain = chain->next) {
 		// ignore chains with too few letters components
 		if (get_nb_links(chain) < MIN_COMPONENTS)
 			continue;
 
-		min_x = INT_MAX;
-		max_x = -INT_MAX;
-		min_y = INT_MAX;
-		max_y = -INT_MAX;
-
 		for (link = chain->first ; link != NULL ; link = link->next) {
-			stats = link->stats;
-			min_x = MIN(min_x, stats->min.x);
-			max_x = MAX(max_x, stats->max.x);
-			min_y = MIN(min_y, stats->min.y);
-			max_y = MAX(max_y, stats->max.y);
-			nb_letters++;
-		}
+			letter = link->letter;
 
-		for (x = min_x ; x < max_x ; x++) {
-			for (y = min_y ; y < max_y ; y++) {
-				pixel = PF_GET_PIXEL(in, x, y).whole;
-				PF_SET_PIXEL(out, x, y, pixel);
+			for (x = 0 ; x < letter->nb_points ; x++) {
+				pt = &letter->points[x];
+				val = PF_MATRIX_GET(swt, pt->x, pt->y);
+				if (val) {
+					PF_MATRIX_SET(&out_val, pt->x, pt->y, 255.0);
+				}
 			}
 		}
 	}
+
+	/* normalize and reverse */
+	grayscale = pf_normalize(&out_val, 0.0, 255.0, 0.0);
+	pf_dbl_matrix_free(&out_val);
+
+	pf_matrix_to_rgb_bitmap(&grayscale, out, COLOR_R);
+	pf_matrix_to_rgb_bitmap(&grayscale, out, COLOR_G);
+	pf_matrix_to_rgb_bitmap(&grayscale, out, COLOR_B);
+
+	pf_dbl_matrix_free(&grayscale);
 
 	return nb_letters;
 }
@@ -1394,7 +1394,6 @@ void pf_swt(const struct pf_bitmap *img_in, struct pf_bitmap *img_out)
 	fprintf(stderr, "SWT> Filtering 1: %d letters found\n", letters.nb_letters);
 	dump_letters("swt_0010_letters_filter_1.ppm", img_in, &letters);
 #endif
-	pf_dbl_matrix_free(&swt_out.swt);
 
 	possible_letters = letters;
 	letters = filter_letters_by_center(&possible_letters);
@@ -1413,10 +1412,12 @@ void pf_swt(const struct pf_bitmap *img_in, struct pf_bitmap *img_out)
 
 	PRINT_TIME_FN();
 
-	x = render_chains(img_in, img_out, &chains);
+	x = render_chains(&swt_out.swt, img_in, img_out, &chains);
 #if OUTPUT_INTERMEDIATE_IMGS == 1
 	fprintf(stderr, "SWT> %d letters rendered\n", x);
 #endif
+	pf_dbl_matrix_free(&swt_out.swt);
+
 
 	PRINT_TIME_FN();
 

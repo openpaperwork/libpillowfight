@@ -155,6 +155,11 @@ out_img = pillowfight.ace(img_in,
 
 Use as many threads as there are cores on the computer (up to 32).
 
+This algorithm uses random number. If you need consistent results
+(for unit tests for instance), you can specify a seed for the
+random number generator. Otherwise, time.time() will be used.
+
+
 #### C API
 
 ```C
@@ -166,6 +171,9 @@ extern void pf_ace(const struct pf_bitmap *in, struct pf_bitmap *out,
 		int nb_samples, double slope, double limit,
 		int nb_threads);
 ```
+
+This function uses random numbers coming (```rand()```).
+You *should* call ```srand()``` before calling this function.
 
 
 #### Sources

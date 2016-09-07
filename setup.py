@@ -4,8 +4,11 @@ from setuptools import Extension, setup
 
 setup(
     name="pypillowfight",
-    version="0.1.0",
+    version="0.1.0.2",
     description=("Library containing various image processing algorithms"),
+    long_description=("Library containing various image processing algorithms:"
+                      " Automatic Color Equalization, Unpaper's algorithms,"
+                      " Stroke Width Transformation, etc"),
     keywords="image processing algorithm pillow pil",
     url="https://github.com/jflesch/libpillowfight#readme",
     download_url="https://github.com/jflesch/libpillowfight/archive/v0.1.0.zip",

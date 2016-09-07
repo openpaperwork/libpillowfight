@@ -10,7 +10,9 @@ class TestSWT(unittest.TestCase):
     def test_swt(self):
         with tempfile.NamedTemporaryFile(suffix='.jpg') as tmpfile:
             in_img = PIL.Image.open("tests/data/crappy_background.jpg")
-            out_img = pillowfight.swt(in_img)
+            out_img = pillowfight.swt(
+                in_img, output_type=pillowfight.SWT_OUTPUT_ORIGINAL_BOXES
+            )
             in_img.close()
 
             # beware of JPG compression
@@ -27,7 +29,9 @@ class TestSWT(unittest.TestCase):
     def test_swt2(self):
         with tempfile.NamedTemporaryFile(suffix='.jpg') as tmpfile:
             in_img = PIL.Image.open("tests/data/black_border_problem.jpg")
-            out_img = pillowfight.swt(in_img)
+            out_img = pillowfight.swt(
+                in_img, output_type=pillowfight.SWT_OUTPUT_ORIGINAL_BOXES
+            )
             in_img.close()
 
             # beware of JPG compression

@@ -1217,12 +1217,12 @@ static inline int get_nb_links(const struct swt_chain *chain)
 	return nb;
 }
 
-/* \brief renders the letter in black and white (no gray)
- */
-static int render_chains(
+static int render_chains_boxes(
+		const struct pf_dbl_matrix *swt,
 		const struct pf_bitmap *in,
 		struct pf_bitmap *out,
-		const struct swt_chains *chains
+		const struct swt_chains *chains,
+		enum pf_swt_output output_type
 	)
 {
 	const struct swt_chain *chain;
@@ -1234,6 +1234,8 @@ static int render_chains(
 	int x, y;
 
 #define MIN_COMPONENTS 3
+
+	assert(output_type == PF_SWT_OUTPUT_ORIGINAL_BOXES);
 
 	// put default color everywhere
 	memset(
@@ -1271,11 +1273,70 @@ static int render_chains(
 	return nb_letters;
 }
 
+static int render_chains_text(
+		const struct pf_dbl_matrix *swt,
+		const struct pf_bitmap *in,
+		struct pf_bitmap *out,
+		const struct swt_chains *chains,
+		enum pf_swt_output output_type
+	)
+{
+	const struct swt_chain *chain;
+	const struct swt_link *link;
+	const struct swt_points *letter;
+	const struct swt_point *pt;
+	struct pf_dbl_matrix out_val;
+	struct pf_dbl_matrix grayscale;
+	int nb_letters = 0;
+	int x;
+	double val;
+
+#define MIN_COMPONENTS 3
+
+	assert(output_type == PF_SWT_OUTPUT_BW_TEXT
+			|| output_type == PF_SWT_OUTPUT_GRAYSCALE_TEXT);
+
+	out_val = pf_dbl_matrix_new(in->size.x, in->size.y);
+
+	for (chain = chains->first ; chain != NULL ; chain = chain->next) {
+		// ignore chains with too few letters components
+		if (get_nb_links(chain) < MIN_COMPONENTS)
+			continue;
+
+		for (link = chain->first ; link != NULL ; link = link->next) {
+			letter = link->letter;
+			nb_letters++;
+
+			for (x = 0 ; x < letter->nb_points ; x++) {
+				pt = &letter->points[x];
+				val = PF_MATRIX_GET(swt, pt->x, pt->y);
+				if (output_type == PF_SWT_OUTPUT_BW_TEXT) {
+					val = (val ? PF_WHITE : PF_BLACK);
+				}
+				PF_MATRIX_SET(&out_val, pt->x, pt->y, val);
+			}
+		}
+	}
+
+	/* normalize and reverse colors */
+	grayscale = pf_normalize(&out_val, 0.0, 255.0, 0.0);
+	pf_dbl_matrix_free(&out_val);
+
+	pf_matrix_to_rgb_bitmap(&grayscale, out, COLOR_R);
+	pf_matrix_to_rgb_bitmap(&grayscale, out, COLOR_G);
+	pf_matrix_to_rgb_bitmap(&grayscale, out, COLOR_B);
+
+	pf_dbl_matrix_free(&grayscale);
+
+	return nb_letters;
+}
+
 
 #ifndef NO_PYTHON
 static
 #endif
-void pf_swt(const struct pf_bitmap *img_in, struct pf_bitmap *img_out)
+void pf_swt(const struct pf_bitmap *img_in, struct pf_bitmap *img_out,
+		enum pf_swt_output output_type)
 {
 	struct pf_dbl_matrix in, out;
 	struct pf_gradient_matrixes gradient;
@@ -1394,7 +1455,6 @@ void pf_swt(const struct pf_bitmap *img_in, struct pf_bitmap *img_out)
 	fprintf(stderr, "SWT> Filtering 1: %d letters found\n", letters.nb_letters);
 	dump_letters("swt_0010_letters_filter_1.ppm", img_in, &letters);
 #endif
-	pf_dbl_matrix_free(&swt_out.swt);
 
 	possible_letters = letters;
 	letters = filter_letters_by_center(&possible_letters);
@@ -1413,12 +1473,30 @@ void pf_swt(const struct pf_bitmap *img_in, struct pf_bitmap *img_out)
 
 	PRINT_TIME_FN();
 
-	x = render_chains(img_in, img_out, &chains);
+	x = -1;
+	switch(output_type) {
+		case PF_SWT_OUTPUT_ORIGINAL_BOXES:
+			x = render_chains_boxes(
+					&swt_out.swt,
+					img_in, img_out, &chains,
+					output_type);
+			break;
+		case PF_SWT_OUTPUT_GRAYSCALE_TEXT:
+		case PF_SWT_OUTPUT_BW_TEXT:
+			x = render_chains_text(
+					&swt_out.swt,
+					img_in, img_out, &chains,
+					output_type);
+			break;
+	}
+	assert(x >= 0);
 #if OUTPUT_INTERMEDIATE_IMGS == 1
 	fprintf(stderr, "SWT> %d letters rendered\n", x);
 #endif
 
 	PRINT_TIME_FN();
+	pf_dbl_matrix_free(&swt_out.swt);
+
 
 	// Note: these structures share some allocations, so we have
 	// to be careful about what we free
@@ -1450,11 +1528,13 @@ PyObject *pyswt(PyObject *self, PyObject* args)
 	Py_buffer img_in, img_out;
 	struct pf_bitmap bitmap_in;
 	struct pf_bitmap bitmap_out;
+	int output_type;
 
-	if (!PyArg_ParseTuple(args, "iiy*y*",
+	if (!PyArg_ParseTuple(args, "iiy*y*i",
 				&img_x, &img_y,
 				&img_in,
-				&img_out)) {
+				&img_out,
+				&output_type)) {
 		return NULL;
 	}
 
@@ -1466,7 +1546,7 @@ PyObject *pyswt(PyObject *self, PyObject* args)
 
 	memset(bitmap_out.pixels, 0xFFFFFFFF, img_out.len);
 	Py_BEGIN_ALLOW_THREADS;
-	pf_swt(&bitmap_in, &bitmap_out);
+	pf_swt(&bitmap_in, &bitmap_out, output_type);
 	Py_END_ALLOW_THREADS;
 
 	PyBuffer_Release(&img_in);

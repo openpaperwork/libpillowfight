@@ -126,8 +126,17 @@ extern struct pf_gradient_matrixes pf_sobel_on_matrix(const struct pf_dbl_matrix
 		const struct pf_dbl_matrix *kernel_x, const struct pf_dbl_matrix *kernel_y,
 		double gaussian_sigma, int gaussian_stddev);
 
+enum pf_swt_output
+{
+	PF_SWT_OUTPUT_BW_TEXT = 0,
+	PF_SWT_OUTPUT_GRAYSCALE_TEXT,
+	PF_SWT_OUTPUT_ORIGINAL_BOXES,
+};
+#define PF_DEFAULT_SWT_OUTPUT PF_SWT_OUTPUT_BW_TEXT
+
 #ifdef NO_PYTHON
-extern void pf_swt(const struct pf_bitmap *in_img, struct pf_bitmap *out_img);
+extern void pf_swt(const struct pf_bitmap *in_img, struct pf_bitmap *out_img,
+		enum pf_swt_output output_type);
 
 extern void pf_unpaper_blackfilter(const struct pf_bitmap *in, struct pf_bitmap *out);
 

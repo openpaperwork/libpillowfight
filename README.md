@@ -255,6 +255,19 @@ extern void pf_sobel(const struct pf_bitmap *in_img, struct pf_bitmap *out_img);
 
 ### Stroke Width Transformation
 
+This algorithm extract text from natural scenes images.
+
+To find text, it looks for strokes. Note that it doesn't appear to work well on
+scanned documents because strokes are too small.
+
+This implementation can provide the output in 3 different ways:
+
+* Black & White : Detected text is black. Background is white.
+* Grayscale : Detected text is gray. Its exact color is proportional to the stroke width detected.
+* Original boxes : The rectangle around the detected is copied as is in the output image. Rest of the image is white.
+
+(following examples are with original boxes)
+
 | Input | Output |
 | ----- | ------ |
 | [Black border problen](https://raw.githubusercontent.com/jflesch/libpillowfight/master/tests/data/black_border_problem.jpg) | [SWT](https://raw.githubusercontent.com/jflesch/libpillowfight/master/tests/data/black_border_problem_swt.jpg) |
@@ -264,14 +277,27 @@ extern void pf_sobel(const struct pf_bitmap *in_img, struct pf_bitmap *out_img);
 #### Python API
 
 ```py
-img_out = pillowfight.swt(img_in)
+# SWT_OUTPUT_BW_TEXT = 0  # default
+# SWT_OUTPUT_GRAYSCALE_TEXT = 1
+# SWT_OUTPUT_ORIGINAL_BOXES = 2
+
+img_out = pillowfight.swt(img_in, output_type=SWT_OUTPUT_ORIGINAL_BOXES)
 ```
 
 
 #### C API
 
 ```C
-extern void pf_swt(const struct pf_bitmap *in_img, struct pf_bitmap *out_img);
+enum pf_swt_output
+{
+	PF_SWT_OUTPUT_BW_TEXT = 0,
+	PF_SWT_OUTPUT_GRAYSCALE_TEXT,
+	PF_SWT_OUTPUT_ORIGINAL_BOXES,
+};
+#define PF_DEFAULT_SWT_OUTPUT PF_SWT_OUTPUT_BW_TEXT
+
+extern void pf_swt(const struct pf_bitmap *in_img, struct pf_bitmap *out_img,
+		enum pf_swt_output output_type);
 ```
 
 

@@ -187,15 +187,19 @@ def sobel(img_in):
     )
     return img_in
 
+SWT_OUTPUT_BW_TEXT = 0
+SWT_OUTPUT_GRAYSCALE_TEXT = 1
+SWT_OUTPUT_ORIGINAL_BOXES = 2
 
-def swt(img_in):
+def swt(img_in, output_type=SWT_OUTPUT_BW_TEXT):
     img_in = img_in.convert("RGBA")  # Add alpha to align on 32bits
     img_out = bytes(img_in.size[0] * img_in.size[1] * 4 * [0])
     _clib.swt(
         img_in.size[0],
         img_in.size[1],
         img_in.tobytes(),
-        img_out
+        img_out,
+        output_type
     )
     return PIL.Image.frombytes(
         mode="RGBA",

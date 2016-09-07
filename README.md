@@ -69,6 +69,8 @@ $ sudo make install
 
 ### Usage
 
+#### C code
+
 For each algorithm, a function is available. It takes a ```struct pf_bitmap```
 as input. As output, it fills in another ```struct pf_bitmap```.
 
@@ -94,6 +96,13 @@ unused (no alpha channel taken into account).
 
 ```(struct pf_bitmap).pixels``` must points to a memory area containing the image.
 The image must contains ```x * y * union pf_pixel```.
+
+
+#### Compilation with GCC
+
+```
+$ gcc -Wall -Werror -lpillowfight -o test test.c
+```
 
 
 ## Note regarding Unpaper's algorithms

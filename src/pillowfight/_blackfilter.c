@@ -21,10 +21,10 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
-#include <values.h>
 
 #include <pillowfight/pillowfight.h>
 #include <pillowfight/util.h>
+
 
 #ifndef NO_PYTHON
 #include "_pymod.h"

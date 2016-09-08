@@ -19,9 +19,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <values.h>
 
 #include <pillowfight/util.h>
+
+#ifndef PF_WINDOWS
+#include <values.h>
+#endif
+
 
 const union pf_pixel g_pf_default_white_pixel = {
 	.whole = PF_WHOLE_WHITE,

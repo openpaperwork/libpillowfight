@@ -18,15 +18,19 @@
 
 #include <assert.h>
 #include <math.h>
-#include <pthread.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <values.h>
 
 #include <pillowfight/pillowfight.h>
 #include <pillowfight/util.h>
+
+#ifdef PF_WINDOWS
+#include <windows.h>
+#else
+#include <pthread.h>
+#endif
 
 #ifndef NO_PYTHON
 #include "_pymod.h"
@@ -173,7 +177,13 @@ struct ace_thread_adjustment_params {
 	struct rscore rscore;
 };
 
-static void *ace_thread_adjustment(void *_thread_params)
+static
+#ifdef PF_WINDOWS
+DWORD
+#else
+void *
+#endif
+ace_thread_adjustment(void *_thread_params)
 {
 	int i, j, color, sample_idx;
 	struct ace_thread_adjustment_params *params = _thread_params;
@@ -220,7 +230,11 @@ static void *ace_thread_adjustment(void *_thread_params)
 		}
 	}
 
+#ifdef PF_WINDOWS
+    return 0;
+#else
 	return params;
+#endif
 }
 
 struct ace_thread_scaling_params {
@@ -238,7 +252,13 @@ struct ace_thread_scaling_params {
 	const struct pf_bitmap *out;
 };
 
-void *ace_thread_scaling(void *_params) {
+static
+#ifdef PF_WINDOWS
+DWORD
+#else
+void *
+#endif
+ace_thread_scaling(void *_params) {
 	struct ace_thread_scaling_params *params = _params;
 	int i, j, color;
 	double scaled;
@@ -258,7 +278,11 @@ void *ace_thread_scaling(void *_params) {
 		}
 	}
 
+#ifdef PF_WINDOWS
+    return 0;
+#else
 	return params;
+#endif
 }
 
 #ifndef NO_PYTHON
@@ -271,9 +295,13 @@ void pf_ace(const struct pf_bitmap *in, struct pf_bitmap *out,
 	int i, nb_lines_per_thread, color;
 	struct rscore rscore;
 	struct pair *samples;
+#ifdef PF_WINDOWS
+    HANDLE threads[MAX_THREADS];
+#else
 	pthread_t threads[MAX_THREADS];
-	struct ace_thread_adjustment_params *adj_params;
-	struct ace_thread_scaling_params *scaling_params;
+#endif
+	struct ace_thread_adjustment_params *adj_params[MAX_THREADS];
+	struct ace_thread_scaling_params *scaling_params[MAX_THREADS];
 
 	if (nb_threads > MAX_THREADS)
 		nb_threads = MAX_THREADS;
@@ -289,54 +317,70 @@ void pf_ace(const struct pf_bitmap *in, struct pf_bitmap *out,
 
 	// Chromatic/Spatial adjustment
 	for (i = 0 ; i < nb_threads ; i++) {
-		adj_params = calloc(1, sizeof(struct ace_thread_adjustment_params));
+		adj_params[i] = calloc(1, sizeof(struct ace_thread_adjustment_params));
 
-		adj_params->start.x = 0;
-		adj_params->start.y = (i * nb_lines_per_thread);
-		adj_params->stop.x = in->size.x;
-		adj_params->stop.y = MIN((i + 1) * nb_lines_per_thread, in->size.y);
+		adj_params[i]->start.x = 0;
+		adj_params[i]->start.y = (i * nb_lines_per_thread);
+		adj_params[i]->stop.x = in->size.x;
+		adj_params[i]->stop.y = MIN((i + 1) * nb_lines_per_thread, in->size.y);
 
-		adj_params->slope = slope;
-		adj_params->limit = limit;
-		adj_params->in = in;
-		adj_params->samples = samples;
-		adj_params->nb_samples = nb_samples;
+		adj_params[i]->slope = slope;
+		adj_params[i]->limit = limit;
+		adj_params[i]->in = in;
+		adj_params[i]->samples = samples;
+		adj_params[i]->nb_samples = nb_samples;
 
 		// Will share the pointer to the same matrix
 		// but not the same min/max values
-		memcpy(&adj_params->rscore, &rscore, sizeof(rscore));
+		memcpy(&adj_params[i]->rscore, &rscore, sizeof(rscore));
 
-		pthread_create(&threads[i], NULL, ace_thread_adjustment, adj_params);
+#ifdef PF_WINDOWS
+        threads[i] = CreateThread(NULL, 0, ace_thread_adjustment, adj_params[i], 0, NULL);
+#else
+		pthread_create(&threads[i], NULL, ace_thread_adjustment, adj_params[i]);
+#endif
 	}
 
 	for (i = 0 ; i < nb_threads ; i++) {
-		pthread_join(threads[i], (void **)&adj_params);
+#ifdef PF_WINDOWS
+        WaitForSingleObject(threads[i], INFINITE);
+#else
+		pthread_join(threads[i], NULL);
+#endif
 		// we must merge the min/max values
 		for (color = 0 ; color < ACE_COLORS ; color++)
-			rscore.max[color] = MAX(rscore.max[color], adj_params->rscore.max[color]);
+			rscore.max[color] = MAX(rscore.max[color], adj_params[i]->rscore.max[color]);
 		for (color = 0 ; color < ACE_COLORS ; color++)
-			rscore.min[color] = MIN(rscore.min[color], adj_params->rscore.min[color]);
+			rscore.min[color] = MIN(rscore.min[color], adj_params[i]->rscore.min[color]);
 	}
 
 	free_pairs(samples);
 
 	// Dynamic tone reproduction scaling
 	for (i = 0 ; i < nb_threads ; i++) {
-		scaling_params = calloc(1, sizeof(struct ace_thread_scaling_params));
+		scaling_params[i] = calloc(1, sizeof(struct ace_thread_scaling_params));
 
-		scaling_params->start.x = 0;
-		scaling_params->start.y = (i * nb_lines_per_thread);
-		scaling_params->stop.x = in->size.x;
-		scaling_params->stop.y = MIN((i + 1) * nb_lines_per_thread, in->size.y);
-		scaling_params->rscore = &rscore;
+		scaling_params[i]->start.x = 0;
+		scaling_params[i]->start.y = (i * nb_lines_per_thread);
+		scaling_params[i]->stop.x = in->size.x;
+		scaling_params[i]->stop.y = MIN((i + 1) * nb_lines_per_thread, in->size.y);
+		scaling_params[i]->rscore = &rscore;
 
-		scaling_params->out = out;
+		scaling_params[i]->out = out;
 
-		pthread_create(&threads[i], NULL, ace_thread_scaling, scaling_params);
+#ifdef PF_WINDOWS
+        threads[i] = CreateThread(NULL, 0, ace_thread_scaling, scaling_params[i], 0, NULL);
+#else
+		pthread_create(&threads[i], NULL, ace_thread_scaling, scaling_params[i]);
+#endif
 	}
 
 	for (i = 0 ; i < nb_threads ; i++) {
+#ifdef PF_WINDOWS
+        WaitForSingleObject(threads[i], INFINITE);
+#else
 		pthread_join(threads[i], NULL);
+#endif
 	}
 
 	free_rscore(&rscore);

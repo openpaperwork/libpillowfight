@@ -17,11 +17,9 @@
  */
 
 #include <assert.h>
-#include <math.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
-#include <values.h>
 
 #ifndef NO_PYTHON
 #include "_pymod.h"

@@ -1,6 +1,13 @@
 #!/usr/bin/env python
 
+import os
+
 from setuptools import Extension, setup
+
+if os.name == "nt":
+    libdep = []
+else:
+    libdep = ["m"]
 
 setup(
     name="pypillowfight",
@@ -49,7 +56,7 @@ setup(
                 'src/pillowfight/_swt.c',
             ],
             include_dirs=["include"],
-            libraries=['m'],
+            libraries=libdep,
             extra_compile_args=[],
             undef_macros=['NDEBUG'],
         ),

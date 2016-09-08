@@ -17,6 +17,19 @@
 #ifndef __PILLOWFIGHT_UTIL_H
 #define __PILLOWFIGHT_UTIL_H
 
+#ifdef _WIN32
+#define PF_WINDOWS
+#endif
+
+#ifdef PF_WINDOWS
+#define _USE_MATH_DEFINES
+#include <float.h>
+#define MAXDOUBLE DBL_MAX
+#else
+#include <values.h>
+#endif
+
+#include <math.h>
 #include <stdint.h>
 
 #ifndef NO_PYTHON

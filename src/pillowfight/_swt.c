@@ -19,16 +19,18 @@
 #define _GNU_SOURCE // for qsort_r()
 
 #include <assert.h>
-#include <math.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
-#include <values.h>
 
 #include <pillowfight/pillowfight.h>
 #include <pillowfight/util.h>
+
+#ifdef PF_WINDOWS
+#include <windows.h>
+#endif
 
 #ifndef NO_PYTHON
 #include "_pymod.h"
@@ -409,7 +411,12 @@ static struct swt_output swt(const struct pf_dbl_matrix *edge, const struct pf_g
 	return out;
 }
 
-static int compare_points(const void *_pt_a, const void *_pt_b, void *_swt_matrix) {
+#ifdef PF_WINDOWS
+static int compare_points(void *_swt_matrix, const void *_pt_a, const void *_pt_b)
+#else
+static int compare_points(const void *_pt_a, const void *_pt_b, void *_swt_matrix)
+#endif
+    {
 	const struct swt_point *pt_a = _pt_a;
 	const struct swt_point *pt_b = _pt_b;
 	const struct pf_dbl_matrix *swt_matrix = _swt_matrix;
@@ -432,7 +439,12 @@ static double compute_points_median(const struct pf_dbl_matrix *swt,
 {
 	double median;
 
-	qsort_r(pts->points, pts->nb_points, sizeof(pts->points[0]),
+#ifdef PF_WINDOWS
+    qsort_s
+#else
+	qsort_r
+#endif
+	(pts->points, pts->nb_points, sizeof(pts->points[0]),
 		compare_points, (void*)swt);
 
 	if ((pts->nb_points % 2) == 0) {
@@ -1030,7 +1042,11 @@ static struct swt_chains make_valid_pairs(const struct swt_letters *letters)
 	return chains;
 }
 
+#ifdef PF_WINDOWS
+static int compare_chains(void *_nop, const void *_chain_a, const void *_chain_b)
+#else
 static int compare_chains(const void *_chain_a, const void *_chain_b, void *_nop)
+#endif
 {
 	struct swt_chain * const *chain_a = _chain_a;
 	struct swt_chain * const *chain_b = _chain_b;
@@ -1092,7 +1108,12 @@ static int merge_chains(struct swt_chains *in_chains)
 	}
 
 	// sort the chains by distance
-	qsort_r(chains, nb_chains, sizeof(struct swt_chain *), compare_chains, NULL);
+#ifdef PF_WINDOWS
+	qsort_s
+#else
+    qsort_r
+#endif
+	(chains, nb_chains, sizeof(struct swt_chain *), compare_chains, NULL);
 
 	// merge what can be merged
 	for (i = 0 ; i < nb_chains ; i++) {

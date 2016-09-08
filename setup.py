@@ -11,7 +11,7 @@ else:
 
 setup(
     name="pypillowfight",
-    version="0.1.0.2",
+    version="0.2.0",
     description=("Library containing various image processing algorithms"),
     long_description=("Library containing various image processing algorithms:"
                       " Automatic Color Equalization, Unpaper's algorithms,"

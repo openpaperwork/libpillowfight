@@ -172,7 +172,7 @@ static void init_output(struct swt_output *out)
 	}
 }
 
-static inline struct swt_points *new_point_list(int capacity) {
+static __inline struct swt_points *new_point_list(int capacity) {
 	struct swt_points *pts;
 	pts = calloc(1, sizeof(struct swt_points) + (sizeof(struct swt_point) * capacity));
 	pts->next = NULL;
@@ -251,7 +251,7 @@ static void init_gradient(struct swt_gradient_matrixes *out, const struct pf_gra
  * \retval 0 if no match (--> no stroke)
  * \return number of points in the ray
  */
-static inline int follow_stroke(
+static __inline int follow_stroke(
 		const struct pf_dbl_matrix *edge,
 		const struct pf_gradient_matrixes *pf_gradient,
 		const struct swt_gradient_matrixes *swt_gradient,
@@ -333,7 +333,7 @@ static inline int follow_stroke(
 	return nb_points;
 }
 
-static inline void find_stroke(struct swt_output *out,
+static __inline void find_stroke(struct swt_output *out,
 		const struct pf_dbl_matrix *edge,
 		const struct pf_gradient_matrixes *pf_gradient,
 		const struct swt_gradient_matrixes *swt_gradient,
@@ -501,10 +501,10 @@ static struct swt_adjacencies make_adjacencies_list(const struct pf_dbl_matrix *
 		int x;
 		int y;
 	} to_check[] = {
-		{ .x = 1, .y = 0 }, // right
-		{ .x = 1, .y = 1 }, // right down
-		{ .x = 0, .y = 1 }, // down
-		{ .x = -1, .y = 1 }, // left-down
+		{ 1, 0 }, // right
+		{ 1, 1 }, // right down
+		{ 0, 1 }, // down
+		{ -1, 1 }, // left-down
 	};
 	struct swt_adjacencies adjs;
 	struct swt_adjacency *adj_pt;
@@ -908,7 +908,7 @@ static struct swt_chains make_valid_pairs(const struct swt_letters *letters)
 #define MAX_COLOR_DIST 1600.0
 #define MAX_DIST_RATIO 9.0
 
-	struct swt_chains chains = { .first = NULL };
+	struct swt_chains chains = { NULL };
 	int nb_pairs = 0;
 	int letter_idx_a, letter_idx_b;
 	const struct swt_points *l_a;
@@ -1226,7 +1226,7 @@ static int merge_chains(struct swt_chains *in_chains)
 	return nb_after;
 }
 
-static inline int get_nb_links(const struct swt_chain *chain)
+static __inline int get_nb_links(const struct swt_chain *chain)
 {
 	const struct swt_link *link;
 	int nb;

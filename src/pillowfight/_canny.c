@@ -38,7 +38,6 @@
 #define LOW_THRESHOLD (0.686 * PF_WHITE)
 #define HIGH_THRESHOLD (1.372 * PF_WHITE)
 
-
 /*!
  * \brief Edge thinning
  *

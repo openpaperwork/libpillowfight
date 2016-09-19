@@ -28,7 +28,7 @@
 
 
 const union pf_pixel g_pf_default_white_pixel = {
-	.whole = PF_WHOLE_WHITE,
+	PF_WHOLE_WHITE,
 };
 
 #ifndef NO_PYTHON

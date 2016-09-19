@@ -153,4 +153,8 @@ void pf_write_matrix_to_pgm(const char *filepath, const struct pf_dbl_matrix *in
 struct pf_dbl_matrix pf_normalize(const struct pf_dbl_matrix *in, double factor, double min, double max);
 struct pf_dbl_matrix pf_grayscale_reverse(const struct pf_dbl_matrix *in);
 
+#ifdef PF_WINDOWS
+#define round(number) ((number) < 0.0 ? ceil((number) - 0.5) : floor((number) + 0.5))
+#endif
+
 #endif

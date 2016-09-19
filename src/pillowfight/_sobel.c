@@ -48,53 +48,48 @@
 #define DUMP_MATRIX(filename, matrix, factor)
 #endif
 
+const double g_pf_kernel_sobel_x_values[] = {
+    -1.0, 0.0, 1.0,
+    -2.0, 0.0, 2.0,
+    -1.0, 0.0, 1.0
+};
 
 const struct pf_dbl_matrix g_pf_kernel_sobel_x = {
-	.size = {
-		.x = 3,
-		.y = 3,
-	},
-	.values = (double[]) {
-		-1.0, 0.0, 1.0,
-		-2.0, 0.0, 2.0,
-		-1.0, 0.0, 1.0
-	}
+	{ 3, 3 },
+	g_pf_kernel_sobel_x_values,
+};
+
+const double g_pf_kernel_sobel_y_values[] = {
+    -1.0, -2.0, -1.0,
+    0.0, 0.0, 0.0,
+    1.0, 2.0, 1.0,
 };
 
 const struct pf_dbl_matrix g_pf_kernel_sobel_y = {
-	.size = {
-		.x = 3,
-		.y = 3,
-	},
-	.values = (double[]) {
-		-1.0, -2.0, -1.0,
-		0.0, 0.0, 0.0,
-		1.0, 2.0, 1.0,
-	}
+	{ 3, 3, },
+	g_pf_kernel_sobel_y_values,
 };
 
-const struct pf_dbl_matrix g_pf_kernel_scharr_x = {
-	.size = {
-		.x = 3,
-		.y = 3,
-	},
-	.values = (double[]) {
+const double g_pf_kernel_scharr_x_values[] = {
 		3.0, 0.0, -3.0,
 		10.0, 0.0, -10.0,
 		3.0, 0.0, -3.0,
-	}
 };
 
-const struct pf_dbl_matrix g_pf_kernel_scharr_y = {
-	.size = {
-		.x = 3,
-		.y = 3,
-	},
-	.values = (double[]) {
+const struct pf_dbl_matrix g_pf_kernel_scharr_x = {
+	{ 3, 3, },
+	g_pf_kernel_scharr_x_values,
+};
+
+const double g_pf_kernel_scharr_y_values[] = {
 		3.0, 10.0, 3.0,
 		0.0, 0, 0.0,
 		-3.0, -10.0, -3.0
-	}
+};
+
+const struct pf_dbl_matrix g_pf_kernel_scharr_y = {
+	{ 3, 3, },
+	g_pf_kernel_scharr_y_values,
 };
 
 /*!
@@ -108,7 +103,7 @@ static struct pf_dbl_matrix compute_intensity_matrix(
 	)
 {
 	int x, y;
-	int a, b;
+	double a, b;
 	double dist;
 	struct pf_dbl_matrix out;
 
@@ -134,7 +129,7 @@ static struct pf_dbl_matrix compute_direction_matrix(
 	)
 {
 	int x, y;
-	int val_a, val_b;
+	double val_a, val_b;
 	double direction;
 	struct pf_dbl_matrix out;
 

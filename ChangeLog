@@ -1,3 +1,6 @@
+- ACE: Fix alpha channel
+- Microsoft Visual C++ 2010 support
+
 2016/09/08 -- 0.2.0 :
 - SWT: Make it possible to specify the type of output wanted
 - Windows portage

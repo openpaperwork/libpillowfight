@@ -275,6 +275,7 @@ ace_thread_scaling(void *_params) {
 				);
 				PF_SET_COLOR(params->out, i, j, color, (uint8_t)scaled);
 			}
+			PF_SET_COLOR(params->out, i, j, COLOR_A, 0xFF);
 		}
 	}
 

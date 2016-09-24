@@ -56,7 +56,7 @@ const double g_pf_kernel_sobel_x_values[] = {
 
 const struct pf_dbl_matrix g_pf_kernel_sobel_x = {
 	{ 3, 3 },
-	g_pf_kernel_sobel_x_values,
+	(double *)g_pf_kernel_sobel_x_values,
 };
 
 const double g_pf_kernel_sobel_y_values[] = {
@@ -67,7 +67,7 @@ const double g_pf_kernel_sobel_y_values[] = {
 
 const struct pf_dbl_matrix g_pf_kernel_sobel_y = {
 	{ 3, 3, },
-	g_pf_kernel_sobel_y_values,
+	(double *)g_pf_kernel_sobel_y_values,
 };
 
 const double g_pf_kernel_scharr_x_values[] = {
@@ -78,7 +78,7 @@ const double g_pf_kernel_scharr_x_values[] = {
 
 const struct pf_dbl_matrix g_pf_kernel_scharr_x = {
 	{ 3, 3, },
-	g_pf_kernel_scharr_x_values,
+	(double *)g_pf_kernel_scharr_x_values,
 };
 
 const double g_pf_kernel_scharr_y_values[] = {
@@ -89,7 +89,7 @@ const double g_pf_kernel_scharr_y_values[] = {
 
 const struct pf_dbl_matrix g_pf_kernel_scharr_y = {
 	{ 3, 3, },
-	g_pf_kernel_scharr_y_values,
+	(double *)g_pf_kernel_scharr_y_values,
 };
 
 /*!

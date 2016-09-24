@@ -13,6 +13,18 @@ Python 2.x is *not* supported.
 
 Available algorithms are listed below.
 
+## Available algorithms
+
+* Unpaper's algorithms
+  * Blackfilter
+  * Noisefilter
+  * Blurfilter
+  * Masks
+  * Grayfilter
+  * Border
+* ACE (Automatic Color Equalization ; Parallelized implementation)
+* SWT (Stroke Width Transformation)
+
 
 ## Python API
 

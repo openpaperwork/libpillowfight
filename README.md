@@ -299,8 +299,10 @@ This implementation can provide the output in 3 different ways:
 
 | Input | Output |
 | ----- | ------ |
-| [Black border problen](https://raw.githubusercontent.com/jflesch/libpillowfight/master/tests/data/black_border_problem.jpg) | [SWT](https://raw.githubusercontent.com/jflesch/libpillowfight/master/tests/data/black_border_problem_swt.jpg) |
-| [Crappy background](https://raw.githubusercontent.com/jflesch/libpillowfight/master/tests/data/crappy_background.jpg) | [SWT](https://raw.githubusercontent.com/jflesch/libpillowfight/master/tests/data/crappy_background_swt.jpg) |
+| [Black border problen](https://raw.githubusercontent.com/jflesch/libpillowfight/master/tests/data/black_border_problem.jpg) | [SWT (SWT_OUTPUT_ORIGINAL_BOXES)](https://raw.githubusercontent.com/jflesch/libpillowfight/master/tests/data/black_border_problem_swt.jpg) |
+| [Crappy background](https://raw.githubusercontent.com/jflesch/libpillowfight/master/tests/data/crappy_background.jpg) | [SWT (SWT_OUTPUT_ORIGINAL_BOXES)](https://raw.githubusercontent.com/jflesch/libpillowfight/master/tests/data/crappy_background_swt.jpg) |
+| [Black border problen](https://raw.githubusercontent.com/jflesch/libpillowfight/47b1f59ce9a5fb3816e3abd186c28cc4c6092e13/tests/data/black_border_problem.jpg) | [SWT (SWT_OUTPUT_BW_TEXT)](https://raw.githubusercontent.com/jflesch/libpillowfight/47b1f59ce9a5fb3816e3abd186c28cc4c6092e13/tests/data/black_border_problem_swt.jpg) |
+| [Crappy background](https://raw.githubusercontent.com/jflesch/libpillowfight/47b1f59ce9a5fb3816e3abd186c28cc4c6092e13/tests/data/crappy_background.jpg) | [SWT (SWT_OUTPUT_BW_TEXT)](https://raw.githubusercontent.com/jflesch/libpillowfight/47b1f59ce9a5fb3816e3abd186c28cc4c6092e13/tests/data/crappy_background_swt.jpg) |
 
 
 #### Python API

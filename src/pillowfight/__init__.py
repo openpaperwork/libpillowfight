@@ -38,18 +38,18 @@ def diff(img_in, img_in2):
     img_in2 = img_in2.convert("RGBA")  # Add alpha to align on 32bits
     assert(img_in.size == img_in2.size)
     img_out = bytes(img_in.size[0] * img_in.size[1] * 4 * [0])
-    _clib.diff(
+    out = _clib.diff(
         img_in.size[0],
         img_in.size[1],
         img_in.tobytes(),
         img_in2.tobytes(),
         img_out
     )
-    return PIL.Image.frombytes(
+    return (out, PIL.Image.frombytes(
         mode="RGBA",
         size=(img_in.size[0], img_in.size[1]),
         data=img_out
-    )
+    ))
 
 
 def unpaper_blackfilter(img_in):

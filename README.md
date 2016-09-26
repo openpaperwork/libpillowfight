@@ -233,7 +233,7 @@ Note that it converts the images to grayscale first.
 #### Python API
 
 ```py
-out_img = pillowfight.diff(img_in, img_in2)
+(has_diff, out_img) = pillowfight.diff(img_in, img_in2)
 ```
 
 #### C API

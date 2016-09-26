@@ -14,8 +14,10 @@ class TestDiff(unittest.TestCase):
                 "tests/data/black_border_problem_blackfilter.jpg"
             )
 
-            out_img = pillowfight.diff(in_img, in_img2)
+            (has_diff, out_img) = pillowfight.diff(in_img, in_img2)
             in_img.close()
+
+            self.assertTrue(has_diff)
 
             # beware of JPG compression
             out_img.save(tmpfile.name)

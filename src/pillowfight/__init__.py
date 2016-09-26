@@ -33,6 +33,25 @@ def ace(img_in, slope=10, limit=1000, samples=100, seed=None):
     )
 
 
+def diff(img_in, img_in2):
+    img_in = img_in.convert("RGBA")  # Add alpha to align on 32bits
+    img_in2 = img_in2.convert("RGBA")  # Add alpha to align on 32bits
+    assert(img_in.size == img_in2.size)
+    img_out = bytes(img_in.size[0] * img_in.size[1] * 4 * [0])
+    _clib.diff(
+        img_in.size[0],
+        img_in.size[1],
+        img_in.tobytes(),
+        img_in2.tobytes(),
+        img_out
+    )
+    return PIL.Image.frombytes(
+        mode="RGBA",
+        size=(img_in.size[0], img_in.size[1]),
+        data=img_out
+    )
+
+
 def unpaper_blackfilter(img_in):
     img_in = img_in.convert("RGBA")  # Add alpha to align on 32bits
     img_out = bytes(img_in.size[0] * img_in.size[1] * 4 * [0])
@@ -187,9 +206,11 @@ def sobel(img_in):
     )
     return img_in
 
+
 SWT_OUTPUT_BW_TEXT = 0
 SWT_OUTPUT_GRAYSCALE_TEXT = 1
 SWT_OUTPUT_ORIGINAL_BOXES = 2
+
 
 def swt(img_in, output_type=SWT_OUTPUT_BW_TEXT):
     img_in = img_in.convert("RGBA")  # Add alpha to align on 32bits

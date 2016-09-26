@@ -221,6 +221,35 @@ extern void pf_canny(const struct pf_bitmap *in, struct pf_bitmap *out);
 * https://en.wikipedia.org/wiki/Canny_edge_detector
 
 
+### Diff
+
+Simple algorithm showing the difference between two images.
+Note that it converts the images to grayscale first.
+
+| Input | Input2 | Output |
+| ----- | ------ | ------ |
+| [Black border problem](https://raw.githubusercontent.com/jflesch/libpillowfight/master/tests/data/black_border_problem.jpg) | [Black border problem + blackfilter](https://raw.githubusercontent.com/jflesch/libpillowfight/master/tests/data/black_border_problem_blackfilter.jpg) | [Diff](https://raw.githubusercontent.com/jflesch/libpillowfight/master/tests/data/black_border_problem_diff.jpg) |
+
+#### Python API
+
+```py
+out_img = pillowfight.diff(img_in, img_in2)
+```
+
+#### C API
+
+```C
+extern int pf_diff(const struct pf_bitmap *in, const struct pf_bitmap *in2,
+		struct pf_bitmap *out);
+```
+
+
+#### Sources
+
+* "A new algorithm for unsupervised global and local color correction." - A. Rizzi, C. Gatta and D. Marini
+* http://argmax.jp/index.php?colorcorrect
+
+
 ### Gaussian
 
 | Input | Output |

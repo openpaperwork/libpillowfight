@@ -1,6 +1,4 @@
 /*
- * Copyright © 2005-2007 Jens Gulden
- * Copyright © 2011-2011 Diego Elio Pettenò
  * Copyright © 2016 Jerome Flesch
  *
  * Pypillowfight is free software; you can redistribute it and/or modify

@@ -5,6 +5,7 @@ PyObject *pyblackfilter(PyObject *self, PyObject* args);
 PyObject *pyblurfilter(PyObject *self, PyObject* args);
 PyObject *pyborder(PyObject *self, PyObject* args);
 PyObject *pycanny(PyObject *self, PyObject* args);
+PyObject *pydiff(PyObject *self, PyObject* args);
 PyObject *pygaussian(PyObject *self, PyObject* args);
 PyObject *pygrayfilter(PyObject *self, PyObject* args);
 PyObject *pymasks(PyObject *self, PyObject* args);

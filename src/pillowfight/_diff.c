@@ -28,6 +28,9 @@
 #include "_pymod.h"
 #endif
 
+#define TOLERANCE 10
+
+
 #ifndef NO_PYTHON
 static
 #endif
@@ -48,6 +51,9 @@ int pf_diff(const struct pf_bitmap *in, const struct pf_bitmap *in2,
 		for (y = 0 ; y < out->size.y ; y++) {
 			value = PF_GET_PIXEL_GRAYSCALE(in, x, y);
 			value2 = PF_GET_PIXEL_GRAYSCALE(in2, x, y);
+
+			if (abs(value - value2) <= TOLERANCE)
+				value2 = value;
 
 			PF_SET_COLOR(out, x, y, COLOR_A, 0xFF);
 			if (value == value2) {

@@ -33,7 +33,7 @@ def ace(img_in, slope=10, limit=1000, samples=100, seed=None):
     )
 
 
-def diff(img_in, img_in2):
+def diff(img_in, img_in2, tolerance=10):
     img_in = img_in.convert("RGBA")  # Add alpha to align on 32bits
     img_in2 = img_in2.convert("RGBA")  # Add alpha to align on 32bits
     assert(img_in.size == img_in2.size)
@@ -43,7 +43,8 @@ def diff(img_in, img_in2):
         img_in.size[1],
         img_in.tobytes(),
         img_in2.tobytes(),
-        img_out
+        img_out,
+        tolerance
     )
     return (out, PIL.Image.frombytes(
         mode="RGBA",

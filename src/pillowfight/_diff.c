@@ -35,7 +35,7 @@
 static
 #endif
 int pf_diff(const struct pf_bitmap *in, const struct pf_bitmap *in2,
-		struct pf_bitmap *out)
+		struct pf_bitmap *out, int tolerance)
 {
 	int x, y, ret;
 	int value, value2;
@@ -78,14 +78,15 @@ PyObject *pydiff(PyObject *self, PyObject* args)
 {
 	int img_x, img_y;
 	Py_buffer img_in, img_in2, img_out;
+	int tolerance;
 	struct pf_bitmap bitmap_in, bitmap_in2;
 	struct pf_bitmap bitmap_out;
 	int ret;
 
-	if (!PyArg_ParseTuple(args, "iiy*y*y*",
+	if (!PyArg_ParseTuple(args, "iiy*y*y*i",
 				&img_x, &img_y,
 				&img_in, &img_in2,
-				&img_out)) {
+				&img_out, &tolerance)) {
 		return NULL;
 	}
 
@@ -98,7 +99,7 @@ PyObject *pydiff(PyObject *self, PyObject* args)
 	bitmap_out = from_py_buffer(&img_out, img_x, img_y);
 
 	Py_BEGIN_ALLOW_THREADS;
-	ret = pf_diff(&bitmap_in, &bitmap_in2, &bitmap_out);
+	ret = pf_diff(&bitmap_in, &bitmap_in2, &bitmap_out, tolerance);
 	Py_END_ALLOW_THREADS;
 
 	PyBuffer_Release(&img_in);

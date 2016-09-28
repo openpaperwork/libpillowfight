@@ -1,3 +1,4 @@
+- Add algorithm 'diff' (basic image difference)
 - ACE: Fix alpha channel
 - Microsoft Visual C++ 2010 support
 

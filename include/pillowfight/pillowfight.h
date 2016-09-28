@@ -92,13 +92,17 @@ extern void pf_canny(const struct pf_bitmap *in, struct pf_bitmap *out);
 
 extern struct pf_dbl_matrix pf_canny_on_matrix(const struct pf_dbl_matrix *in);
 
+#define PF_DIFF_DEFAULT_TOLERANCE 10
+
+#ifdef NO_PYTHON
+extern int pf_diff(const struct pf_bitmap *in, const struct pf_bitmap *in2,
+		struct pf_bitmap *out, int tolerance);
+#endif
+
 #define PF_GAUSSIAN_DEFAULT_SIGMA 2.0
 #define PF_GAUSSIAN_DEFAULT_NB_STDDEV 5
 
 #ifdef NO_PYTHON
-extern int pf_diff(const struct pf_bitmap *in, const struct pf_bitmap *in2,
-		struct pf_bitmap *out);
-
 extern void pf_gaussian(const struct pf_bitmap *in, struct pf_bitmap *out,
 		double sigma, int nb_stddev);
 #endif

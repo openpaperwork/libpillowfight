@@ -226,6 +226,10 @@ extern void pf_canny(const struct pf_bitmap *in, struct pf_bitmap *out);
 Simple algorithm showing the difference between two images.
 Note that it converts the images to grayscale first.
 
+It accepts a parameter 'tolerance': For each pixel, the difference with
+the corresponding pixel is computed. If it difference is between 0 and
+'tolerance', it is ignored (pixels are considered equal).
+
 | Input | Input2 | Output |
 | ----- | ------ | ------ |
 | [Black border problem](https://raw.githubusercontent.com/jflesch/libpillowfight/master/tests/data/black_border_problem.jpg) | [Black border problem + blackfilter](https://raw.githubusercontent.com/jflesch/libpillowfight/master/tests/data/black_border_problem_blackfilter.jpg) | [Diff](https://raw.githubusercontent.com/jflesch/libpillowfight/master/tests/data/black_border_problem_diff.jpg) |
@@ -233,15 +237,18 @@ Note that it converts the images to grayscale first.
 #### Python API
 
 ```py
-(has_diff, out_img) = pillowfight.compare(img_in, img_in2)
+(nb_diff, out_img) = pillowfight.compare(img_in, img_in2, tolerance=10)
 ```
+
 
 #### C API
 
 ```C
 extern int pf_compare(const struct pf_bitmap *in, const struct pf_bitmap *in2,
-		struct pf_bitmap *out);
+		struct pf_bitmap *out, int tolerance);
 ```
+
+Returns the number of pixels that are different between both images.
 
 
 #### Sources

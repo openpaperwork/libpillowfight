@@ -65,7 +65,7 @@ int pf_compare(const struct pf_bitmap *in, const struct pf_bitmap *in2,
 				PF_SET_COLOR(out, x, y, COLOR_R, 0xFF);
 				PF_SET_COLOR(out, x, y, COLOR_G, (value + value2) / 4);
 				PF_SET_COLOR(out, x, y, COLOR_B, (value + value2) / 4);
-				ret = 1;
+				ret++;
 			}
 		}
 	}

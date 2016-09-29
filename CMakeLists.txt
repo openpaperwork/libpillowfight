@@ -12,7 +12,7 @@ add_library(pillowfight SHARED
 	src/pillowfight/_blurfilter.c
 	src/pillowfight/_border.c
 	src/pillowfight/_canny.c
-	src/pillowfight/_diff.c
+	src/pillowfight/_compare.c
 	src/pillowfight/_gaussian.c
 	src/pillowfight/_grayfilter.c
 	src/pillowfight/_masks.c

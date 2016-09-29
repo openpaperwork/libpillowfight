@@ -33,12 +33,12 @@ def ace(img_in, slope=10, limit=1000, samples=100, seed=None):
     )
 
 
-def diff(img_in, img_in2, tolerance=10):
+def compare(img_in, img_in2, tolerance=10):
     img_in = img_in.convert("RGBA")  # Add alpha to align on 32bits
     img_in2 = img_in2.convert("RGBA")  # Add alpha to align on 32bits
     assert(img_in.size == img_in2.size)
     img_out = bytes(img_in.size[0] * img_in.size[1] * 4 * [0])
-    out = _clib.diff(
+    out = _clib.compare(
         img_in.size[0],
         img_in.size[1],
         img_in.tobytes(),

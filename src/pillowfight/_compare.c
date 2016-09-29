@@ -34,7 +34,7 @@
 #ifndef NO_PYTHON
 static
 #endif
-int pf_diff(const struct pf_bitmap *in, const struct pf_bitmap *in2,
+int pf_compare(const struct pf_bitmap *in, const struct pf_bitmap *in2,
 		struct pf_bitmap *out, int tolerance)
 {
 	int x, y, ret;
@@ -74,7 +74,7 @@ int pf_diff(const struct pf_bitmap *in, const struct pf_bitmap *in2,
 }
 
 #ifndef NO_PYTHON
-PyObject *pydiff(PyObject *self, PyObject* args)
+PyObject *pycompare(PyObject *self, PyObject* args)
 {
 	int img_x, img_y;
 	Py_buffer img_in, img_in2, img_out;
@@ -99,7 +99,7 @@ PyObject *pydiff(PyObject *self, PyObject* args)
 	bitmap_out = from_py_buffer(&img_out, img_x, img_y);
 
 	Py_BEGIN_ALLOW_THREADS;
-	ret = pf_diff(&bitmap_in, &bitmap_in2, &bitmap_out, tolerance);
+	ret = pf_compare(&bitmap_in, &bitmap_in2, &bitmap_out, tolerance);
 	Py_END_ALLOW_THREADS;
 
 	PyBuffer_Release(&img_in);

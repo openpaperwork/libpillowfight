@@ -6,15 +6,15 @@ import PIL.Image
 import pillowfight
 
 
-class TestDiff(unittest.TestCase):
-    def test_diff(self):
+class TestCompare(unittest.TestCase):
+    def test_compare(self):
         with tempfile.NamedTemporaryFile(suffix='.jpg') as tmpfile:
             in_img = PIL.Image.open("tests/data/black_border_problem.jpg")
             in_img2 = PIL.Image.open(
                 "tests/data/black_border_problem_blackfilter.jpg"
             )
 
-            (has_diff, out_img) = pillowfight.diff(in_img, in_img2)
+            (has_diff, out_img) = pillowfight.compare(in_img, in_img2)
             in_img.close()
 
             self.assertTrue(has_diff)

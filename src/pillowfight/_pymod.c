@@ -5,7 +5,7 @@
 static PyMethodDef clib_methods[] = {
 	{"ace", pyace, METH_VARARGS, NULL},
 	{"canny", pycanny, METH_VARARGS, NULL},
-	{"diff", pydiff, METH_VARARGS, NULL},
+	{"compare", pycompare, METH_VARARGS, NULL},
 	{"gaussian", pygaussian, METH_VARARGS, NULL},
 	{"sobel", pysobel, METH_VARARGS, NULL},
 	{"swt", pyswt, METH_VARARGS, NULL},

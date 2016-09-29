@@ -221,7 +221,7 @@ extern void pf_canny(const struct pf_bitmap *in, struct pf_bitmap *out);
 * https://en.wikipedia.org/wiki/Canny_edge_detector
 
 
-### Diff
+### Compare
 
 Simple algorithm showing the difference between two images.
 Note that it converts the images to grayscale first.
@@ -233,13 +233,13 @@ Note that it converts the images to grayscale first.
 #### Python API
 
 ```py
-(has_diff, out_img) = pillowfight.diff(img_in, img_in2)
+(has_diff, out_img) = pillowfight.compare(img_in, img_in2)
 ```
 
 #### C API
 
 ```C
-extern int pf_diff(const struct pf_bitmap *in, const struct pf_bitmap *in2,
+extern int pf_compare(const struct pf_bitmap *in, const struct pf_bitmap *in2,
 		struct pf_bitmap *out);
 ```
 

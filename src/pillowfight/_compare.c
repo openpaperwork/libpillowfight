@@ -106,9 +106,7 @@ PyObject *pycompare(PyObject *self, PyObject* args)
 	PyBuffer_Release(&img_in2);
 	PyBuffer_Release(&img_out);
 
-	if (ret)
-		Py_RETURN_TRUE;
-	Py_RETURN_FALSE;
+	return PyLong_FromLong(ret);
 }
 
 #endif // !NO_PYTHON

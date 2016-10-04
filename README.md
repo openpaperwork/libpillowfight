@@ -24,6 +24,8 @@ Available algorithms are listed below.
   * Border
 * ACE (Automatic Color Equalization ; Parallelized implementation)
 * SWT (Stroke Width Transformation)
+* Compare : Compare two images (grayscale) and makes the pixels that are different
+  really visible (red).
 
 
 ## Python API

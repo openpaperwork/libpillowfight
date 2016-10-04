@@ -22,6 +22,9 @@ Available algorithms are listed below.
   * Masks
   * Grayfilter
   * Border
+* Canny edge detection
+* Sobel operator
+* Gaussian blur
 * ACE (Automatic Color Equalization ; Parallelized implementation)
 * SWT (Stroke Width Transformation)
 * Compare : Compare two images (grayscale) and makes the pixels that are different

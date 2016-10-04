@@ -1,3 +1,4 @@
+2016/10/05 -- 0.2.1 :
 - Add algorithm 'compare' (basic image difference visualisation)
 - ACE: Fix alpha channel
 - Microsoft Visual C++ 2010 support

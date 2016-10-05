@@ -256,12 +256,6 @@ extern int pf_compare(const struct pf_bitmap *in, const struct pf_bitmap *in2,
 Returns the number of pixels that are different between both images.
 
 
-#### Sources
-
-* "A new algorithm for unsupervised global and local color correction." - A. Rizzi, C. Gatta and D. Marini
-* http://argmax.jp/index.php?colorcorrect
-
-
 ### Gaussian
 
 | Input | Output |

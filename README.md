@@ -232,8 +232,9 @@ Simple algorithm showing the difference between two images.
 Note that it converts the images to grayscale first.
 
 It accepts a parameter 'tolerance': For each pixel, the difference with
-the corresponding pixel is computed. If it difference is between 0 and
-'tolerance', it is ignored (pixels are considered equal).
+the corresponding pixel from the other image is computed. If the
+difference is between 0 and 'tolerance', it is ignored (pixels
+are considered equal).
 
 | Input | Input2 | Output |
 | ----- | ------ | ------ |

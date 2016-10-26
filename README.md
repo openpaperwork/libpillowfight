@@ -530,6 +530,12 @@ extern void pf_unpaper_noisefilter(const struct pf_bitmap *in, struct pf_bitmap 
 ```
 
 
+## Contact
+
+* [Mailing-list](https://github.com/jflesch/paperwork/wiki/Contact#mailing-list)
+* [Bug tracker](https://github.com/jflesch/libpillowfight/issues/)
+
+
 #### Sources
 
 * https://github.com/Flameeyes/unpaper

@@ -68,7 +68,7 @@ output_img = pillowfight.ace(input_img)
 ### Tests
 
 ```sh
-$ sudo python3 ./setup.py nosetests
+$ python3 ./setup.py nosetests
 ```
 
 

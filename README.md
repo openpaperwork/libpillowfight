@@ -15,7 +15,7 @@ Available algorithms are listed below.
 
 ## Available algorithms
 
-* Unpaper's algorithms
+* [Unpaper](https://github.com/Flameeyes/unpaper)'s algorithms
   * Blackfilter
   * Noisefilter
   * Blurfilter

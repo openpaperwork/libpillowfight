@@ -108,7 +108,7 @@ struct pf_bitmap {
 ```(struct pf_bitmap).size.y``` is the height of the image.
 
 ```union pf_pixel``` are basically 32 bits integers, defined in a manner convenient
-to retrieve each color independantly (RGB). Each color is on one byte. 4 byte is
+to retrieve each color independantly (RGB). Each color is on one byte. 4th byte is
 unused (no alpha channel taken into account).
 
 ```(struct pf_bitmap).pixels``` must points to a memory area containing the image.

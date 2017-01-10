@@ -1,6 +1,6 @@
 # pillowfight
 
-Library containing various image processing algorithms.
+Really simple C Library containing various image processing algorithms.
 It includes Python 3 bindings designed to operate on Pillow images (PIL.Image).
 
 The C library depends only on the libc.

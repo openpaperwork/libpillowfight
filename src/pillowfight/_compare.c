@@ -38,10 +38,10 @@ int pf_compare(const struct pf_bitmap *in, const struct pf_bitmap *in2,
 	int x, y, ret;
 	int value, value2;
 
-	assert(in->size.x == in2->size.x);
-	assert(in->size.y == in2->size.y);
-	assert(in->size.x == out->size.x);
-	assert(in->size.y == out->size.y);
+	assert(in->size.x >= out->size.x);
+	assert(in->size.y >= out->size.y);
+	assert(in->size.x >= out->size.x);
+	assert(in->size.y >= out->size.y);
 
 	ret = 0;
 

@@ -28,8 +28,6 @@
 #include "_pymod.h"
 #endif
 
-#define TOLERANCE 10
-
 
 #ifndef NO_PYTHON
 static
@@ -52,7 +50,7 @@ int pf_compare(const struct pf_bitmap *in, const struct pf_bitmap *in2,
 			value = PF_GET_PIXEL_GRAYSCALE(in, x, y);
 			value2 = PF_GET_PIXEL_GRAYSCALE(in2, x, y);
 
-			if (abs(value - value2) <= TOLERANCE)
+			if (abs(value - value2) <= tolerance)
 				value2 = value;
 
 			PF_SET_COLOR(out, x, y, COLOR_A, 0xFF);
@@ -77,25 +75,29 @@ int pf_compare(const struct pf_bitmap *in, const struct pf_bitmap *in2,
 PyObject *pycompare(PyObject *self, PyObject* args)
 {
 	int img_x, img_y;
+	int img2_x, img2_y;
 	Py_buffer img_in, img_in2, img_out;
 	int tolerance;
 	struct pf_bitmap bitmap_in, bitmap_in2;
 	struct pf_bitmap bitmap_out;
 	int ret;
 
-	if (!PyArg_ParseTuple(args, "iiy*y*y*i",
+	if (!PyArg_ParseTuple(args, "iiiiy*y*y*i",
 				&img_x, &img_y,
+				&img2_x, &img2_y,
 				&img_in, &img_in2,
 				&img_out, &tolerance)) {
 		return NULL;
 	}
 
 	assert(img_x * img_y * 4 /* RGBA */ == img_in.len);
-	assert(img_x * img_y * 4 /* RGBA */ == img_in2.len);
-	assert(img_in.len == img_out.len);
+	assert(img2_x * img2_y * 4 /* RGBA */ == img_in2.len);
+	/* img_out must have a size that is the smallest common denominator */
+	assert(img_in.len >= img_out.len);
+	assert(img_in2.len >= img_out.len);
 
 	bitmap_in = from_py_buffer(&img_in, img_x, img_y);
-	bitmap_in2 = from_py_buffer(&img_in2, img_x, img_y);
+	bitmap_in2 = from_py_buffer(&img_in2, img2_x, img2_y);
 	bitmap_out = from_py_buffer(&img_out, img_x, img_y);
 
 	Py_BEGIN_ALLOW_THREADS;

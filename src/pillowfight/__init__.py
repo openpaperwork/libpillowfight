@@ -36,11 +36,16 @@ def ace(img_in, slope=10, limit=1000, samples=100, seed=None):
 def compare(img_in, img_in2, tolerance=10):
     img_in = img_in.convert("RGBA")  # Add alpha to align on 32bits
     img_in2 = img_in2.convert("RGBA")  # Add alpha to align on 32bits
-    assert(img_in.size == img_in2.size)
-    img_out = bytes(img_in.size[0] * img_in.size[1] * 4 * [0])
+
+    # img_out must have a size that is the smallest common denominator
+    min_x = min(img_in.size[0], img_in2.size[0])
+    min_y = min(img_in.size[1], img_in2.size[1])
+    img_out = bytes(min_x * min_y * 4 * [0])
     out = _clib.compare(
         img_in.size[0],
         img_in.size[1],
+        img_in2.size[0],
+        img_in2.size[1],
         img_in.tobytes(),
         img_in2.tobytes(),
         img_out,
@@ -48,7 +53,7 @@ def compare(img_in, img_in2, tolerance=10):
     )
     return (out, PIL.Image.frombytes(
         mode="RGBA",
-        size=(img_in.size[0], img_in.size[1]),
+        size=(min_x, min_y),
         data=img_out
     ))
 

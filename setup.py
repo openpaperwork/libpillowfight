@@ -11,14 +11,14 @@ else:
 
 setup(
     name="pypillowfight",
-    version="0.2.1",
+    version="0.2.2",
     description=("Library containing various image processing algorithms"),
     long_description=("Library containing various image processing algorithms:"
                       " Automatic Color Equalization, Unpaper's algorithms,"
                       " Stroke Width Transformation, etc"),
     keywords="image processing algorithm pillow pil",
     url="https://github.com/jflesch/libpillowfight#readme",
-    download_url="https://github.com/jflesch/libpillowfight/archive/v0.2.1.zip",
+    download_url="https://github.com/jflesch/libpillowfight/archive/v0.2.2.zip",
     classifiers=[
         "Intended Audience :: Developers",
         "License :: OSI Approved :: GNU General Public License v3 or later"

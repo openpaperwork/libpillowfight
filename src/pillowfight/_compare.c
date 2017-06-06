@@ -98,7 +98,7 @@ PyObject *pycompare(PyObject *self, PyObject* args)
 
 	bitmap_in = from_py_buffer(&img_in, img_x, img_y);
 	bitmap_in2 = from_py_buffer(&img_in2, img2_x, img2_y);
-	bitmap_out = from_py_buffer(&img_out, img_x, img_y);
+	bitmap_out = from_py_buffer(&img_out, MIN(img_x, img2_x), MIN(img_y, img2_y));
 
 	Py_BEGIN_ALLOW_THREADS;
 	ret = pf_compare(&bitmap_in, &bitmap_in2, &bitmap_out, tolerance);

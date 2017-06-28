@@ -22,11 +22,6 @@
 
 #include <pillowfight/util.h>
 
-#ifndef PF_WINDOWS
-#include <values.h>
-#endif
-
-
 const union pf_pixel g_pf_default_white_pixel = {
 	PF_WHOLE_WHITE,
 };
@@ -359,8 +354,8 @@ struct pf_dbl_matrix pf_normalize(const struct pf_dbl_matrix *in, double factor,
 	double in_min = out_min, in_max = out_max;
 
 	if (factor == 0.0) {
-		in_min = DBL_MAX;
-		in_max = -DBL_MAX;
+		in_min = MAXDOUBLE;
+		in_max = -MAXDOUBLE;
 		for (x = 0; x < in->size.x ; x++) {
 			for (y = 0 ; y < in->size.y ; y++) {
 				val = PF_MATRIX_GET(in, x, y);

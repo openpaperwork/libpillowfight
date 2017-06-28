@@ -23,11 +23,9 @@
 
 #ifdef PF_WINDOWS
 #define _USE_MATH_DEFINES
+#endif
 #include <float.h>
 #define MAXDOUBLE DBL_MAX
-#else
-#include <values.h>
-#endif
 
 #include <math.h>
 #include <stdint.h>

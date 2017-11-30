@@ -46,7 +46,7 @@ $ sudo pip3 install pypillowfight
 Development version :
 
 ```sh
-$ git clone https://github.com/jflesch/libpillowfight.git
+$ git clone https://github.com/openpaperwork/libpillowfight.git
 $ cd libpillowfight
 $ sudo python3 ./setup.py install
 ```
@@ -144,8 +144,8 @@ A basic documentation for some of the algorithms can be found in
 
 | Input | Output |
 | ----- | ------ |
-| [Black border problem](https://raw.githubusercontent.com/jflesch/libpillowfight/master/tests/data/black_border_problem.jpg) | [ACE + Unpapered](https://raw.githubusercontent.com/jflesch/libpillowfight/master/tests/data/black_border_problem_all.jpg) |
-| [Brightness problem](https://raw.githubusercontent.com/jflesch/libpillowfight/master/tests/data/brightness_problem.jpg) | [ACE + Unpapered](https://raw.githubusercontent.com/jflesch/libpillowfight/master/tests/data/brightness_problem_all.jpg) |
+| [Black border problem](https://raw.githubusercontent.com/openpaperwork/libpillowfight/master/tests/data/black_border_problem.jpg) | [ACE + Unpapered](https://raw.githubusercontent.com/openpaperwork/libpillowfight/master/tests/data/black_border_problem_all.jpg) |
+| [Brightness problem](https://raw.githubusercontent.com/openpaperwork/libpillowfight/master/tests/data/brightness_problem.jpg) | [ACE + Unpapered](https://raw.githubusercontent.com/openpaperwork/libpillowfight/master/tests/data/brightness_problem_all.jpg) |
 
 ## Available algorithms
 
@@ -153,7 +153,7 @@ A basic documentation for some of the algorithms can be found in
 
 | Input | Output |
 | ----- | ------ |
-| [Brightness problem](https://raw.githubusercontent.com/jflesch/libpillowfight/master/tests/data/brightness_problem.jpg) | [Corrected](https://raw.githubusercontent.com/jflesch/libpillowfight/master/tests/data/brightness_problem_ace.jpg) |
+| [Brightness problem](https://raw.githubusercontent.com/openpaperwork/libpillowfight/master/tests/data/brightness_problem.jpg) | [Corrected](https://raw.githubusercontent.com/openpaperwork/libpillowfight/master/tests/data/brightness_problem_ace.jpg) |
 
 This algorithm is quite slow (~40s for one big image with one thread
 on my machine). So this version is parallelized (down to ~15s on a 4
@@ -203,7 +203,7 @@ You *should* call ```srand()``` before calling this function.
 
 | Input | Output |
 | ----- | ------ |
-| [Crappy background](https://raw.githubusercontent.com/jflesch/libpillowfight/master/tests/data/crappy_background.jpg) | [Canny output](https://raw.githubusercontent.com/jflesch/libpillowfight/master/tests/data/crappy_background_canny.jpg) |
+| [Crappy background](https://raw.githubusercontent.com/openpaperwork/libpillowfight/master/tests/data/crappy_background.jpg) | [Canny output](https://raw.githubusercontent.com/openpaperwork/libpillowfight/master/tests/data/crappy_background_canny.jpg) |
 
 
 #### Python API
@@ -238,7 +238,7 @@ are considered equal).
 
 | Input | Input2 | Output |
 | ----- | ------ | ------ |
-| [Black border problem](https://raw.githubusercontent.com/jflesch/libpillowfight/master/tests/data/black_border_problem.jpg) | [Black border problem + blackfilter](https://raw.githubusercontent.com/jflesch/libpillowfight/master/tests/data/black_border_problem_blackfilter.jpg) | [Diff](https://raw.githubusercontent.com/jflesch/libpillowfight/master/tests/data/black_border_problem_diff.jpg) |
+| [Black border problem](https://raw.githubusercontent.com/openpaperwork/libpillowfight/master/tests/data/black_border_problem.jpg) | [Black border problem + blackfilter](https://raw.githubusercontent.com/openpaperwork/libpillowfight/master/tests/data/black_border_problem_blackfilter.jpg) | [Diff](https://raw.githubusercontent.com/openpaperwork/libpillowfight/master/tests/data/black_border_problem_diff.jpg) |
 
 #### Python API
 
@@ -261,7 +261,7 @@ Returns the number of pixels that are different between both images.
 
 | Input | Output |
 | ----- | ------ |
-| [Crappy background](https://raw.githubusercontent.com/jflesch/libpillowfight/master/tests/data/crappy_background.jpg) | [Gaussed](https://raw.githubusercontent.com/jflesch/libpillowfight/master/tests/data/crappy_background_gaussian.jpg) |
+| [Crappy background](https://raw.githubusercontent.com/openpaperwork/libpillowfight/master/tests/data/crappy_background.jpg) | [Gaussed](https://raw.githubusercontent.com/openpaperwork/libpillowfight/master/tests/data/crappy_background_gaussian.jpg) |
 
 One of the parameters is ```sigma```. If it is equals to 0.0, it will be computed automatically
 using the following formula (same as OpenCV):
@@ -295,7 +295,7 @@ extern void pf_gaussian(const struct pf_bitmap *in, struct pf_bitmap *out,
 
 | Input | Output |
 | ----- | ------ |
-| [Crappy background](https://raw.githubusercontent.com/jflesch/libpillowfight/master/tests/data/crappy_background.jpg) | [Sobel](https://raw.githubusercontent.com/jflesch/libpillowfight/master/tests/data/crappy_background_sobel.jpg) |
+| [Crappy background](https://raw.githubusercontent.com/openpaperwork/libpillowfight/master/tests/data/crappy_background.jpg) | [Sobel](https://raw.githubusercontent.com/openpaperwork/libpillowfight/master/tests/data/crappy_background_sobel.jpg) |
 
 
 #### Python API
@@ -335,10 +335,10 @@ This implementation can provide the output in 3 different ways:
 
 | Input | Output |
 | ----- | ------ |
-| [Black border problen](https://raw.githubusercontent.com/jflesch/libpillowfight/master/tests/data/black_border_problem.jpg) | [SWT (SWT_OUTPUT_ORIGINAL_BOXES)](https://raw.githubusercontent.com/jflesch/libpillowfight/master/tests/data/black_border_problem_swt.jpg) |
-| [Crappy background](https://raw.githubusercontent.com/jflesch/libpillowfight/master/tests/data/crappy_background.jpg) | [SWT (SWT_OUTPUT_ORIGINAL_BOXES)](https://raw.githubusercontent.com/jflesch/libpillowfight/master/tests/data/crappy_background_swt.jpg) |
-| [Black border problen](https://raw.githubusercontent.com/jflesch/libpillowfight/47b1f59ce9a5fb3816e3abd186c28cc4c6092e13/tests/data/black_border_problem.jpg) | [SWT (SWT_OUTPUT_BW_TEXT)](https://raw.githubusercontent.com/jflesch/libpillowfight/47b1f59ce9a5fb3816e3abd186c28cc4c6092e13/tests/data/black_border_problem_swt.jpg) |
-| [Crappy background](https://raw.githubusercontent.com/jflesch/libpillowfight/47b1f59ce9a5fb3816e3abd186c28cc4c6092e13/tests/data/crappy_background.jpg) | [SWT (SWT_OUTPUT_BW_TEXT)](https://raw.githubusercontent.com/jflesch/libpillowfight/47b1f59ce9a5fb3816e3abd186c28cc4c6092e13/tests/data/crappy_background_swt.jpg) |
+| [Black border problen](https://raw.githubusercontent.com/openpaperwork/libpillowfight/master/tests/data/black_border_problem.jpg) | [SWT (SWT_OUTPUT_ORIGINAL_BOXES)](https://raw.githubusercontent.com/openpaperwork/libpillowfight/master/tests/data/black_border_problem_swt.jpg) |
+| [Crappy background](https://raw.githubusercontent.com/openpaperwork/libpillowfight/master/tests/data/crappy_background.jpg) | [SWT (SWT_OUTPUT_ORIGINAL_BOXES)](https://raw.githubusercontent.com/openpaperwork/libpillowfight/master/tests/data/crappy_background_swt.jpg) |
+| [Black border problen](https://raw.githubusercontent.com/openpaperwork/libpillowfight/47b1f59ce9a5fb3816e3abd186c28cc4c6092e13/tests/data/black_border_problem.jpg) | [SWT (SWT_OUTPUT_BW_TEXT)](https://raw.githubusercontent.com/openpaperwork/libpillowfight/47b1f59ce9a5fb3816e3abd186c28cc4c6092e13/tests/data/black_border_problem_swt.jpg) |
+| [Crappy background](https://raw.githubusercontent.com/openpaperwork/libpillowfight/47b1f59ce9a5fb3816e3abd186c28cc4c6092e13/tests/data/crappy_background.jpg) | [SWT (SWT_OUTPUT_BW_TEXT)](https://raw.githubusercontent.com/openpaperwork/libpillowfight/47b1f59ce9a5fb3816e3abd186c28cc4c6092e13/tests/data/crappy_background_swt.jpg) |
 
 
 #### Python API
@@ -378,7 +378,7 @@ extern void pf_swt(const struct pf_bitmap *in_img, struct pf_bitmap *out_img,
 
 | Input | Output | Diff |
 | ----- | ------ | ---- |
-| [Black border problem](https://raw.githubusercontent.com/jflesch/libpillowfight/master/tests/data/black_border_problem.jpg) | [Filtered](https://raw.githubusercontent.com/jflesch/libpillowfight/master/tests/data/black_border_problem_blackfilter.jpg) | [Diff](https://raw.githubusercontent.com/jflesch/libpillowfight/master/tests/data/black_border_problem_blackfilter_diff.jpg) |
+| [Black border problem](https://raw.githubusercontent.com/openpaperwork/libpillowfight/master/tests/data/black_border_problem.jpg) | [Filtered](https://raw.githubusercontent.com/openpaperwork/libpillowfight/master/tests/data/black_border_problem_blackfilter.jpg) | [Diff](https://raw.githubusercontent.com/openpaperwork/libpillowfight/master/tests/data/black_border_problem_blackfilter_diff.jpg) |
 
 
 #### Python API
@@ -405,7 +405,7 @@ extern void pf_unpaper_blackfilter(const struct pf_bitmap *in, struct pf_bitmap 
 
 | Input | Output | Diff |
 | ----- | ------ | ---- |
-| [Black border problem](https://raw.githubusercontent.com/jflesch/libpillowfight/master/tests/data/black_border_problem.jpg) | [Filtered](https://raw.githubusercontent.com/jflesch/libpillowfight/master/tests/data/black_border_problem_blurfilter.jpg) | [Diff](https://raw.githubusercontent.com/jflesch/libpillowfight/master/tests/data/black_border_problem_blurfilter_diff.jpg) |
+| [Black border problem](https://raw.githubusercontent.com/openpaperwork/libpillowfight/master/tests/data/black_border_problem.jpg) | [Filtered](https://raw.githubusercontent.com/openpaperwork/libpillowfight/master/tests/data/black_border_problem_blurfilter.jpg) | [Diff](https://raw.githubusercontent.com/openpaperwork/libpillowfight/master/tests/data/black_border_problem_blurfilter_diff.jpg) |
 
 
 #### Python API
@@ -432,7 +432,7 @@ extern void pf_unpaper_blurfilter(const struct pf_bitmap *in, struct pf_bitmap *
 
 | Input | Output | Diff |
 | ----- | ------ | ---- |
-| [Black border problem 3](https://raw.githubusercontent.com/jflesch/libpillowfight/master/tests/data/black_border_problem3.jpg) | [Border](https://raw.githubusercontent.com/jflesch/libpillowfight/master/tests/data/black_border_problem3_border.jpg) | [Diff](https://raw.githubusercontent.com/jflesch/libpillowfight/master/tests/data/black_border_problem3_border_diff.jpg) |
+| [Black border problem 3](https://raw.githubusercontent.com/openpaperwork/libpillowfight/master/tests/data/black_border_problem3.jpg) | [Border](https://raw.githubusercontent.com/openpaperwork/libpillowfight/master/tests/data/black_border_problem3_border.jpg) | [Diff](https://raw.githubusercontent.com/openpaperwork/libpillowfight/master/tests/data/black_border_problem3_border_diff.jpg) |
 
 
 #### Python API
@@ -459,7 +459,7 @@ extern void pf_unpaper_border(const struct pf_bitmap *in, struct pf_bitmap *out)
 
 | Input | Output | Diff |
 | ----- | ------ | ---- |
-| [Black border problem 3](https://raw.githubusercontent.com/jflesch/libpillowfight/master/tests/data/black_border_problem.jpg) | [Filterd](https://raw.githubusercontent.com/jflesch/libpillowfight/master/tests/data/black_border_problem_grayfilter.jpg) | [Diff](https://raw.githubusercontent.com/jflesch/libpillowfight/master/tests/data/black_border_problem_grayfilter_diff.jpg) |
+| [Black border problem 3](https://raw.githubusercontent.com/openpaperwork/libpillowfight/master/tests/data/black_border_problem.jpg) | [Filterd](https://raw.githubusercontent.com/openpaperwork/libpillowfight/master/tests/data/black_border_problem_grayfilter.jpg) | [Diff](https://raw.githubusercontent.com/openpaperwork/libpillowfight/master/tests/data/black_border_problem_grayfilter_diff.jpg) |
 
 
 #### Python API
@@ -486,7 +486,7 @@ extern void pf_unpaper_grayfilter(const struct pf_bitmap *in, struct pf_bitmap *
 
 | Input | Output | Diff |
 | ----- | ------ | ---- |
-| [Black border problem 2](https://raw.githubusercontent.com/jflesch/libpillowfight/master/tests/data/black_border_problem2.jpg) | [Masks](https://raw.githubusercontent.com/jflesch/libpillowfight/master/tests/data/black_border_problem2_masks.jpg) | [Diff](https://raw.githubusercontent.com/jflesch/libpillowfight/master/tests/data/black_border_problem2_masks_diff.jpg) |
+| [Black border problem 2](https://raw.githubusercontent.com/openpaperwork/libpillowfight/master/tests/data/black_border_problem2.jpg) | [Masks](https://raw.githubusercontent.com/openpaperwork/libpillowfight/master/tests/data/black_border_problem2_masks.jpg) | [Diff](https://raw.githubusercontent.com/openpaperwork/libpillowfight/master/tests/data/black_border_problem2_masks_diff.jpg) |
 
 
 #### Python API
@@ -513,7 +513,7 @@ extern void pf_unpaper_masks(const struct pf_bitmap *in, struct pf_bitmap *out);
 
 | Input | Output | Diff |
 | ----- | ------ | ---- |
-| [Black border problem](https://raw.githubusercontent.com/jflesch/libpillowfight/master/tests/data/black_border_problem.jpg) | [Filtered](https://raw.githubusercontent.com/jflesch/libpillowfight/master/tests/data/black_border_problem_noisefilter.jpg) | [Diff](https://raw.githubusercontent.com/jflesch/libpillowfight/master/tests/data/black_border_problem_noisefilter_diff.jpg) |
+| [Black border problem](https://raw.githubusercontent.com/openpaperwork/libpillowfight/master/tests/data/black_border_problem.jpg) | [Filtered](https://raw.githubusercontent.com/openpaperwork/libpillowfight/master/tests/data/black_border_problem_noisefilter.jpg) | [Diff](https://raw.githubusercontent.com/openpaperwork/libpillowfight/master/tests/data/black_border_problem_noisefilter_diff.jpg) |
 
 
 #### Python API
@@ -532,8 +532,8 @@ extern void pf_unpaper_noisefilter(const struct pf_bitmap *in, struct pf_bitmap 
 
 ## Contact
 
-* [Mailing-list](https://github.com/jflesch/paperwork/wiki/Contact#mailing-list)
-* [Bug tracker](https://github.com/jflesch/libpillowfight/issues/)
+* [Mailing-list](https://github.com/openpaperwork/paperwork/wiki/Contact#mailing-list)
+* [Bug tracker](https://github.com/openpaperwork/libpillowfight/issues/)
 
 
 #### Sources

@@ -17,8 +17,8 @@ setup(
                       " Automatic Color Equalization, Unpaper's algorithms,"
                       " Stroke Width Transformation, etc"),
     keywords="image processing algorithm pillow pil",
-    url="https://github.com/jflesch/libpillowfight#readme",
-    download_url="https://github.com/jflesch/libpillowfight/archive/v0.2.2.zip",
+    url="https://github.com/openpaperwork/libpillowfight#readme",
+    download_url="https://github.com/openpaperwork/libpillowfight/archive/v0.2.2.zip",
     classifiers=[
         "Intended Audience :: Developers",
         "License :: OSI Approved :: GNU General Public License v3 or later"

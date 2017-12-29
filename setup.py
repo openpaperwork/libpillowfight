@@ -1,13 +1,19 @@
 #!/usr/bin/env python
 
 import os
+import platform
 
 from setuptools import Extension, setup
 
 if os.name == "nt":
     libdep = []
+    extra_compile_args = []
 else:
     libdep = ["m"]
+    if platform.architecture() == ('32bit', 'ELF'):
+        extra_compile_args = ['-msse2', '-mfpmath=sse']
+    else:
+        extra_compile_args = []
 
 setup(
     name="pypillowfight",
@@ -58,7 +64,7 @@ setup(
             ],
             include_dirs=["include"],
             libraries=libdep,
-            extra_compile_args=[],
+            extra_compile_args=extra_compile_args,
             undef_macros=['NDEBUG'],
         ),
     ],

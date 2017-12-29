@@ -10,7 +10,7 @@ from . import _clib
 logger = logging.getLogger(__name__)
 
 
-def ace(img_in, slope=10, limit=1000, samples=100, seed=None):
+def ace(img_in, slope=10, limit=1000, samples=100, seed=None, nb_threads=None):
     if seed is None:
         seed = int(time.time())
     if img_in.mode != "RGBA":
@@ -23,7 +23,7 @@ def ace(img_in, slope=10, limit=1000, samples=100, seed=None):
         slope,
         limit,
         samples,
-        multiprocessing.cpu_count(),
+        nb_threads if nb_threads is not None else multiprocessing.cpu_count(),
         seed,
         img_out
     )

@@ -440,7 +440,7 @@ static double compute_points_median(const struct pf_dbl_matrix *swt,
 	double median;
 
 #ifdef PF_WINDOWS
-    qsort_s
+	qsort_s
 #else
 	qsort_r
 #endif
@@ -1111,7 +1111,7 @@ static int merge_chains(struct swt_chains *in_chains)
 #ifdef PF_WINDOWS
 	qsort_s
 #else
-    qsort_r
+	qsort_r
 #endif
 	(chains, nb_chains, sizeof(struct swt_chain *), compare_chains, NULL);
 

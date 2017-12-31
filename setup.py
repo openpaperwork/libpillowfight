@@ -35,7 +35,7 @@ setup(
         "Programming Language :: Python :: 3.5",
         "Topic :: Multimedia :: Graphics :: Graphics Conversion",
     ],
-    license="GPLv3+",
+    license="GPLv2",
     author="Jerome Flesch",
     author_email="jflesch@gmail.com",
     packages=[

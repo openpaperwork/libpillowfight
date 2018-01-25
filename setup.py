@@ -1,13 +1,19 @@
 #!/usr/bin/env python
 
 import os
+import platform
 
 from setuptools import Extension, setup
 
 if os.name == "nt":
     libdep = []
+    extra_compile_args = []
 else:
     libdep = ["m"]
+    if platform.architecture() == ('32bit', 'ELF'):
+        extra_compile_args = ['-msse2', '-mfpmath=sse']
+    else:
+        extra_compile_args = []
 
 setup(
     name="pypillowfight",
@@ -29,7 +35,7 @@ setup(
         "Programming Language :: Python :: 3.5",
         "Topic :: Multimedia :: Graphics :: Graphics Conversion",
     ],
-    license="GPLv3+",
+    license="GPLv2",
     author="Jerome Flesch",
     author_email="jflesch@gmail.com",
     packages=[
@@ -58,7 +64,7 @@ setup(
             ],
             include_dirs=["include"],
             libraries=libdep,
-            extra_compile_args=[],
+            extra_compile_args=extra_compile_args,
             undef_macros=['NDEBUG'],
         ),
     ],

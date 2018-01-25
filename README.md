@@ -71,6 +71,10 @@ output_img = pillowfight.ace(input_img)
 $ python3 ./setup.py nosetests
 ```
 
+Test reference images are made on amd64. They should match also on i386.
+On other architectures however, due to slight differences regarding floating
+point numbers, results may vary slightly and tests may not pass.
+
 
 ## C library
 

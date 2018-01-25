@@ -295,7 +295,7 @@ void pf_ace(const struct pf_bitmap *in, struct pf_bitmap *out,
 	struct rscore rscore;
 	struct pair *samples;
 #ifdef PF_WINDOWS
-    HANDLE threads[MAX_THREADS];
+	HANDLE threads[MAX_THREADS];
 #else
 	pthread_t threads[MAX_THREADS];
 #endif
@@ -321,7 +321,9 @@ void pf_ace(const struct pf_bitmap *in, struct pf_bitmap *out,
 		adj_params[i]->start.x = 0;
 		adj_params[i]->start.y = (i * nb_lines_per_thread);
 		adj_params[i]->stop.x = in->size.x;
-		adj_params[i]->stop.y = MIN((i + 1) * nb_lines_per_thread, in->size.y);
+		adj_params[i]->stop.y = (i + 1) * nb_lines_per_thread;
+		if (i == nb_threads - 1)
+			adj_params[i]->stop.y = in->size.y;
 
 		adj_params[i]->slope = slope;
 		adj_params[i]->limit = limit;
@@ -334,7 +336,7 @@ void pf_ace(const struct pf_bitmap *in, struct pf_bitmap *out,
 		memcpy(&adj_params[i]->rscore, &rscore, sizeof(rscore));
 
 #ifdef PF_WINDOWS
-        threads[i] = CreateThread(NULL, 0, ace_thread_adjustment, adj_params[i], 0, NULL);
+		threads[i] = CreateThread(NULL, 0, ace_thread_adjustment, adj_params[i], 0, NULL);
 #else
 		pthread_create(&threads[i], NULL, ace_thread_adjustment, adj_params[i]);
 #endif
@@ -342,7 +344,7 @@ void pf_ace(const struct pf_bitmap *in, struct pf_bitmap *out,
 
 	for (i = 0 ; i < nb_threads ; i++) {
 #ifdef PF_WINDOWS
-        WaitForSingleObject(threads[i], INFINITE);
+		WaitForSingleObject(threads[i], INFINITE);
 #else
 		pthread_join(threads[i], NULL);
 #endif
@@ -362,13 +364,15 @@ void pf_ace(const struct pf_bitmap *in, struct pf_bitmap *out,
 		scaling_params[i]->start.x = 0;
 		scaling_params[i]->start.y = (i * nb_lines_per_thread);
 		scaling_params[i]->stop.x = in->size.x;
-		scaling_params[i]->stop.y = MIN((i + 1) * nb_lines_per_thread, in->size.y);
+		scaling_params[i]->stop.y = (i + 1) * nb_lines_per_thread;
+		if (i == nb_threads - 1)
+			scaling_params[i]->stop.y = in->size.y;
 		scaling_params[i]->rscore = &rscore;
 
 		scaling_params[i]->out = out;
 
 #ifdef PF_WINDOWS
-        threads[i] = CreateThread(NULL, 0, ace_thread_scaling, scaling_params[i], 0, NULL);
+		threads[i] = CreateThread(NULL, 0, ace_thread_scaling, scaling_params[i], 0, NULL);
 #else
 		pthread_create(&threads[i], NULL, ace_thread_scaling, scaling_params[i]);
 #endif
@@ -376,7 +380,7 @@ void pf_ace(const struct pf_bitmap *in, struct pf_bitmap *out,
 
 	for (i = 0 ; i < nb_threads ; i++) {
 #ifdef PF_WINDOWS
-        WaitForSingleObject(threads[i], INFINITE);
+		WaitForSingleObject(threads[i], INFINITE);
 #else
 		pthread_join(threads[i], NULL);
 #endif

@@ -68,7 +68,8 @@ output_img = pillowfight.ace(input_img)
 ### Tests
 
 ```sh
-$ python3 ./setup.py nosetests
+$ sudo pip3 install tox
+$ tox
 ```
 
 Test reference images are made on amd64. They should match also on i386.

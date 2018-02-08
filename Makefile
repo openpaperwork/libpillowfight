@@ -35,6 +35,7 @@ doc: install_py
 
 check:
 	flake8
+	pydocstyle src
 
 test: build_py
 	tox

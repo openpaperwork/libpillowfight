@@ -156,6 +156,11 @@ extern void pf_unpaper_grayfilter(const struct pf_bitmap *in, struct pf_bitmap *
 extern void pf_unpaper_masks(const struct pf_bitmap *in, struct pf_bitmap *out);
 
 extern void pf_unpaper_noisefilter(const struct pf_bitmap *in, struct pf_bitmap *out);
+
+/*!
+ * \brief return Libpillowfight version
+ */
+extern const char *pf_get_version(void);
 #endif
 
 extern void pf_write_bitmap_to_ppm(const char *filepath, const struct pf_bitmap *in);

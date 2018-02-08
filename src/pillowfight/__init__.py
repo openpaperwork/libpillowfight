@@ -273,3 +273,10 @@ def swt(img_in, output_type=SWT_OUTPUT_BW_TEXT):
         size=(img_in.size[0], img_in.size[1]),
         data=img_out
     ).convert("RGB")
+
+
+def get_version():
+    return _clib.get_version()
+
+
+__version__ = get_version()

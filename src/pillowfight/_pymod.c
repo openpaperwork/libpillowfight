@@ -7,6 +7,7 @@ static PyMethodDef clib_methods[] = {
 	{"canny", pycanny, METH_VARARGS, NULL},
 	{"compare", pycompare, METH_VARARGS, NULL},
 	{"gaussian", pygaussian, METH_VARARGS, NULL},
+	{"get_version", pyget_version, METH_NOARGS, NULL},
 	{"sobel", pysobel, METH_VARARGS, NULL},
 	{"swt", pyswt, METH_VARARGS, NULL},
 	{"unpaper_blackfilter", pyblackfilter, METH_VARARGS, NULL},

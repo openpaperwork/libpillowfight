@@ -12,3 +12,4 @@ PyObject *pymasks(PyObject *self, PyObject* args);
 PyObject *pynoisefilter(PyObject *self, PyObject* args);
 PyObject *pysobel(PyObject *self, PyObject* args);
 PyObject *pyswt(PyObject *self, PyObject* args);
+PyObject *pyget_version(PyObject *self, PyObject* args);

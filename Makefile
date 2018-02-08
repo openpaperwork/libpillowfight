@@ -1,27 +1,30 @@
 # If you want to build in MSYS2 on Windows
 # export CMAKE_OPTS=-G "MSYS Makefiles"
 
-build: build_py build_c
+VERSION_FILE = src/pillowfight/_version.h
+
+build: build_c build_py
 
 install: install_py install_c
 
 uninstall: uninstall_py
 
-build_py:
+build_py: ${VERSION_FILE}
 	python3 ./setup.py build
 
 build_c: build/libpillowfight.so
 
-build/libpillowfight.so: build/CMakeLists.txt
+build/libpillowfight.so: ${VERSION_FILE} build/CMakeLists.txt
 	(cd build && make -j4)
 
 build/CMakeLists.txt:
 	mkdir -p build
 	(cd build && cmake ${CMAKE_OPTS} ..)
 
-# TODO(Jflesch)
-# src/pillowfight/version.h:
-# 	git describe --always >| $@
+${VERSION_FILE}:
+	echo -n "#define INTERNAL_PILLOWFIGHT_VERSION \"" >| $@
+	echo -n $(shell git describe --always) >> $@
+	echo "\"" >> $@
 
 doc: install_py
 	(cd doc && make html)
@@ -31,8 +34,7 @@ doc: install_py
 clean:
 	rm -rf doc/build
 	rm -rf build dist *.egg-info
-	# TODO(Jflesch)
-	# rm -f src/pillowfight/version.h
+	rm -f ${VERSION_FILE}
 
 install_py:
 	python3 ./setup.py install ${PIP_ARGS}

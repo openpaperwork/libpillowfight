@@ -63,6 +63,7 @@ setup(
                 'src/pillowfight/_pymod.c',
                 'src/pillowfight/_sobel.c',
                 'src/pillowfight/_swt.c',
+                'src/pillowfight/_version.c',
             ],
             include_dirs=["include"],
             libraries=libdep,

@@ -1,5 +1,6 @@
 *~
 cbuild
+_version.h
 venv*/
 
 # Byte-compiled / optimized / DLL files

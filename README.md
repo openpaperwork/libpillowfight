@@ -49,9 +49,13 @@ Development version :
 $ git clone https://github.com/openpaperwork/libpillowfight.git
 $ cd libpillowfight
 
-# see 'make help' for details
+# Both C library and Python module
 $ make
 $ sudo make install  # will run python3 ./setup.py install + make install (CMake)
+
+# Or just the Python bindings
+$ make build_py
+$ make install_py  # will run only python3 ./setup.py install
 ```
 
 ### Usage
@@ -85,11 +89,9 @@ point numbers, results may vary slightly and tests may not pass.
 ### Installation
 
 ```sh
-$ mkdir cbuild
-$ cd cbuild
-$ cmake ..
-$ make -j4
-$ sudo make install
+# C library only (will use CMake)
+$ make build_c
+$ sudo make install_c
 ```
 
 ### Usage

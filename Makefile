@@ -26,10 +26,36 @@ ${VERSION_FILE}:
 	echo -n $(shell git describe --always) >> $@
 	echo "\"" >> $@
 
+version: ${VERSION_FILE}
+
 doc: install_py
 	(cd doc && make html)
 	doxygen doc/doxygen.conf
 	cp doc/index.html doc/build/index.html
+
+check:
+	flake8
+
+test:
+	tox
+
+exe:
+	echo "Library. Can't make executable"
+
+release:
+ifeq (${RELEASE}, )
+	@echo "You must specify a release version (make release RELEASE=1.2.3)"
+else
+	@echo "Will release: ${RELEASE}"
+	@echo "Checking release is in ChangeLog ..."
+	grep ${RELEASE} ChangeLog
+	@echo "Releasing ..."
+	git tag -a ${RELEASE} -m ${RELEASE}
+	make clean
+	make version
+	python3 ./setup.py sdist upload
+	@echo "All done"
+endif
 
 clean:
 	rm -rf doc/build
@@ -45,11 +71,33 @@ install_c:
 uninstall_py:
 	pip3 uninstall -y pypillowfight
 
+uninstall_c:
+	echo "Can't uninstall C library. Sorry"
+
 help:
 	@echo "make build || make build_c || make build_py"
+	@echo "make check"
 	@echo "make doc"
 	@echo "make help: display this message"
 	@echo "make install || make install_c || make install_py"
+	@echo "make release"
+	@echo "make test"
 	@echo "make uninstall || make uninstall_py"
 
-.PHONY: help build install uninstall exe build_c build_py install_c install_py doc
+.PHONY: \
+	build \
+	build_c \
+	build_py \
+	check \
+	doc \
+	exe \
+	exe \
+	help \
+	install \
+	install_c \
+	install_py \
+	release \
+	test \
+	uninstall \
+	uninstall_c \
+	version

@@ -2,6 +2,7 @@
 
 import os
 import platform
+import sys
 
 from setuptools import Extension, setup
 
@@ -15,9 +16,21 @@ else:
     else:
         extra_compile_args = []
 
+try:
+    with open("src/pillowfight/_version.h", "r") as file_descriptor:
+        version = file_descriptor.read().strip()
+        version = version.split(" ")[2][1:-1]
+        if "-" in version:
+            version = version.split("-")[0]
+except FileNotFoundError:
+    print("WARNING: version.txt file is missing")
+    print("WARNING: Please run 'make version' first")
+    sys.exit(1)
+
+
 setup(
     name="pypillowfight",
-    version="0.2.2",
+    version=version,
     description=("Library containing various image processing algorithms"),
     long_description=("Library containing various image processing algorithms:"
                       " Automatic Color Equalization, Unpaper's algorithms,"

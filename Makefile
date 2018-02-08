@@ -23,7 +23,11 @@ build/CMakeLists.txt:
 # src/pillowfight/version.h:
 # 	git describe --always >| $@
 
+doc:
+	(cd doc && make html)
+
 clean:
+	rm -rf doc/build
 	rm -rf build dist *.egg-info
 	# TODO(Jflesch)
 	# rm -f src/pillowfight/version.h
@@ -39,8 +43,9 @@ uninstall_py:
 
 help:
 	@echo "make build || make build_c || make build_py"
+	@echo "make doc"
 	@echo "make help: display this message"
 	@echo "make install || make install_c || make install_py"
 	@echo "make uninstall || make uninstall_py"
 
-.PHONY: help build install uninstall exe build_c build_py install_c install_py
+.PHONY: help build install uninstall exe build_c build_py install_c install_py doc

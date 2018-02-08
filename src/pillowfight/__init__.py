@@ -11,6 +11,9 @@ logger = logging.getLogger(__name__)
 
 
 def ace(img_in, slope=10, limit=1000, samples=100, seed=None, nb_threads=None):
+    """
+    Automatic Color Equalization
+    """
     if seed is None:
         seed = int(time.time())
     if img_in.mode != "RGBA":
@@ -36,6 +39,9 @@ def ace(img_in, slope=10, limit=1000, samples=100, seed=None, nb_threads=None):
 
 
 def compare(img_in, img_in2, tolerance=10):
+    """
+    Compare two images
+    """
     if img_in.mode != "RGBA":
         img_in = img_in.convert("RGBA")  # Add alpha to align on 32bits
     if img_in2.mode != "RGBA":

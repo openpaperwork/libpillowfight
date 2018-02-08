@@ -14,10 +14,10 @@ build_py: ${VERSION_FILE}
 
 build_c: ${VERSION_FILE} build/libpillowfight.so
 
-build/libpillowfight.so: ${VERSION_FILE} build/CMakeLists.txt
+build/libpillowfight.so: ${VERSION_FILE} build/Makefile
 	(cd build && make -j4)
 
-build/CMakeLists.txt:
+build/Makefile:
 	mkdir -p build
 	(cd build && cmake ${CMAKE_OPTS} ..)
 

@@ -12,7 +12,7 @@ uninstall: uninstall_py
 build_py: ${VERSION_FILE}
 	python3 ./setup.py build
 
-build_c: build/libpillowfight.so
+build_c: ${VERSION_FILE} build/libpillowfight.so
 
 build/libpillowfight.so: ${VERSION_FILE} build/CMakeLists.txt
 	(cd build && make -j4)
@@ -62,10 +62,10 @@ clean:
 	rm -rf build dist *.egg-info
 	rm -f ${VERSION_FILE}
 
-install_py:
+install_py: ${VERSION_FILE}
 	python3 ./setup.py install ${PIP_ARGS}
 
-install_c:
+install_c: ${VERSION_FILE}
 	(cd build && make install)
 
 uninstall_py:

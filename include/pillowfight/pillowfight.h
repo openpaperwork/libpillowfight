@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 
-/*!<
+/*!
  * - Everything here assume we work with RGBA images
  * - In position (x, y): x = width, y = height.
  */

@@ -25,6 +25,8 @@ build/CMakeLists.txt:
 
 doc:
 	(cd doc && make html)
+	doxygen doc/doxygen.conf
+	cp doc/index.html doc/build/index.html
 
 clean:
 	rm -rf doc/build

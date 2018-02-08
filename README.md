@@ -75,8 +75,8 @@ output_img = pillowfight.ace(input_img)
 ### Tests
 
 ```sh
-$ sudo pip3 install tox
-$ tox
+make check  # will check style
+make test  # will run the tests (will require tox)
 ```
 
 Test reference images are made on amd64. They should match also on i386.

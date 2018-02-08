@@ -36,7 +36,7 @@ doc: install_py
 check:
 	flake8
 
-test:
+test: build_py
 	tox
 
 exe:

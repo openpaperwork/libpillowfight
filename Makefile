@@ -23,7 +23,7 @@ build/CMakeLists.txt:
 # src/pillowfight/version.h:
 # 	git describe --always >| $@
 
-doc:
+doc: install_py
 	(cd doc && make html)
 	doxygen doc/doxygen.conf
 	cp doc/index.html doc/build/index.html

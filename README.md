@@ -48,7 +48,10 @@ Development version :
 ```sh
 $ git clone https://github.com/openpaperwork/libpillowfight.git
 $ cd libpillowfight
-$ sudo python3 ./setup.py install
+
+# see 'make help' for details
+$ make
+$ sudo make install  # will run python3 ./setup.py install + make install (CMake)
 ```
 
 ### Usage

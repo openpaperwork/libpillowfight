@@ -38,7 +38,8 @@ setup(
     keywords="image processing algorithm pillow pil",
     url="https://github.com/openpaperwork/libpillowfight#readme",
     download_url=(
-        "https://github.com/openpaperwork/libpillowfight/archive/v0.2.2.zip"
+        "https://github.com/openpaperwork/libpillowfight/archive/"
+        "{}.zip".format(version)
     ),
     classifiers=[
         "Intended Audience :: Developers",

@@ -68,7 +68,7 @@ install_py: ${VERSION_FILE}
 	# PIP_ARGS is used by Flatpak build
 	python3 ./setup.py install ${PIP_ARGS}
 
-install_c: ${VERSION_FILE}
+install_c: build/Makefile ${VERSION_FILE}
 	(cd build && make install)
 
 uninstall_py:

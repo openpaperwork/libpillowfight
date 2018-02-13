@@ -40,8 +40,9 @@ check:
 test: build_py
 	tox
 
-exe:
-	echo "Library. Can't make executable"
+linux_exe:
+
+windows_exe:
 
 release:
 ifeq (${RELEASE}, )

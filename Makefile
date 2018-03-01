@@ -2,6 +2,7 @@
 # export CMAKE_OPTS=-G "MSYS Makefiles"
 
 VERSION_FILE = src/pillowfight/_version.h
+PYTHON = python3
 
 build: build_c build_py
 
@@ -10,7 +11,7 @@ install: install_py install_c
 uninstall: uninstall_py
 
 build_py: ${VERSION_FILE}
-	python3 ./setup.py build
+	${PYTHON} ./setup.py build
 
 build_c: ${VERSION_FILE} build/libpillowfight.so
 
@@ -56,7 +57,7 @@ else
 	git push origin ${RELEASE}
 	make clean
 	make version
-	python3 ./setup.py sdist upload
+	${PYTHON} ./setup.py sdist upload
 	@echo "All done"
 endif
 
@@ -67,7 +68,7 @@ clean:
 
 install_py: ${VERSION_FILE}
 	# PIP_ARGS is used by Flatpak build
-	python3 ./setup.py install ${PIP_ARGS}
+	${PYTHON} ./setup.py install ${PIP_ARGS}
 
 install_c: build/Makefile ${VERSION_FILE}
 	(cd build && make install)

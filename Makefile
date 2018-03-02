@@ -67,7 +67,6 @@ clean:
 	rm -f ${VERSION_FILE}
 
 install_py: ${VERSION_FILE}
-	# PIP_ARGS is used by Flatpak build
 	${PYTHON} ./setup.py install ${PIP_ARGS}
 
 install_c: build/Makefile ${VERSION_FILE}

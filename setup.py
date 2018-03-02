@@ -43,8 +43,7 @@ setup(
     ),
     classifiers=[
         "Intended Audience :: Developers",
-        "License :: OSI Approved :: GNU General Public License v3 or later"
-        " (GPLv3+)",
+        "License :: OSI Approved :: GNU General Public License v2 (GPLv2)",
         "Operating System :: POSIX :: Linux",
         "Programming Language :: Python",
         "Programming Language :: Python :: 3",

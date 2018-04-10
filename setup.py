@@ -11,7 +11,7 @@ if os.name == "nt":
     extra_compile_args = []
 else:
     libdep = ["m"]
-    if platform.architecture() == ('32bit', 'ELF'):
+    if platform.processor() == "i386":
         extra_compile_args = ['-msse2', '-mfpmath=sse']
     else:
         extra_compile_args = []

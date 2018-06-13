@@ -1,7 +1,0 @@
-include README.md
-include README.rst
-include LICENSE
-include ChangeLog
-
-recursive-include src *.py *.c *.h
-recursive-include include *.h
